@@ -30,6 +30,11 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 #define MAXNUM_KEY (ORDER_V * 2)    /* 内部结点中最多键个数，为2v */
 #define MAXNUM_POINTER (MAXNUM_KEY + 1)    /* 内部结点中最多指向子树的指针个数，为2v */
 #define MAXNUM_DATA (ORDER_V * 2)    /* 叶子结点中最多数据个数，为2v */
+#include<string>
+#include<iostream>
+#include<fstream>
+using namespace std;
+
 
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -291,6 +296,7 @@ public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pLeafHead;                 // 头结点
     CLeafNode* m_pLeafTail;                   // 尾结点
+    string fpath;     //文件，也即表的路径
 
 protected:
 
@@ -302,6 +308,8 @@ protected:
     bool DeleteInternalNode(CInternalNode* pNode, KEY_TYPE key);
 
     CNode* m_Root;    // 根结点
+    size_t m_pRoot;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
+    
 };
 

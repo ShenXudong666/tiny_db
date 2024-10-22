@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="BPulsTree.cpp" />
     <ClCompile Include="Demo.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

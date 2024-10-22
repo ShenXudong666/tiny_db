@@ -2,6 +2,25 @@
 #include "stdio.h"
 #include "stdlib.h"
 
+#define DB_HEAD_SIZE (4096UL) // head size must be pow of 2! 文件数据库的头大小
+#define DB_BLOCK_SIZE                                                          \
+  (8192UL) // block size must be pow of 2! 文件数据库的数据块大小
+
+/**
+ * @brief 存储数据对齐方式
+ */
+#define DB_ALIGNMENT 16
+#define db_align(d, a) (((d) + (a - 1)) & ~(a - 1))
+
+#define ceil(M) (((M) - 1) / 2)
+
+ /**
+  * @brief 数据块类型
+  */
+#define TYPE_KEY 0
+#define TYPE_VALUE 1
+
+
 CNode::CNode()
 {
     m_Type = NODE_TYPE_LEAF;
