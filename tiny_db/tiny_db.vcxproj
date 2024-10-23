@@ -131,6 +131,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BPulsTree.cpp" />
+    <ClCompile Include="rwdata.cpp" />
+    <ClCompile Include="rwdata.h" />
     <ClCompile Include="Demo.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>

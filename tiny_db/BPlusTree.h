@@ -35,6 +35,23 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 #include<fstream>
 using namespace std;
 
+#define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
+#define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
+
+/**
+ * @brief 存储数据对齐方式
+ */
+#define DB_ALIGNMENT 16
+#define db_align(d, a) (((d) + (a - 1)) & ~(a - 1))
+
+#define ceil(M) (((M) - 1) / 2)
+
+ /**
+  * @brief 数据块类型
+  */
+#define TYPE_KEY 0
+#define TYPE_VALUE 1
+
 
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -82,6 +99,14 @@ public:
     CNode* GetFather() { return m_pFather; }
     void SetFather(CNode* father) { m_pFather = father; }
 
+    off_t getPtFather() {
+        return this->offt_father;
+    }
+
+    void setPtFather(off_t offt) {
+        this->offt_father = offt;
+    }
+
     // 获取一个最近的兄弟结点
     CNode* GetBrother(int& flag);
 
@@ -96,6 +121,7 @@ protected:
 
     CNode* m_pFather;     // 指向父结点的指针，标准B+树中并没有该指针，加上是为了更快地实现结点分裂和旋转等操作
 
+    off_t offt_father;   //父亲节点数据在文件中的位置
 };
 
 /* 内部结点数据结构 */
@@ -160,11 +186,22 @@ public:
     // 从另一结点移一个元素到本结点
     bool MoveOneElement(CNode* pNode);
 
+    //读取文件时设置指针数据
+    void setPointers(off_t offt_pointer[]) {
+        for (int i = 0; i < MAXNUM_POINTER; i++) {
+            this->offt_pointers[i] = offt_pointer[i];
+        }
+    }
+    //根据index返回下一个节点的文件指针
+    off_t getPointer(int index) {
+        return this->offt_pointers[index];
+    }
+
 protected:
 
     KEY_TYPE m_Keys[MAXNUM_KEY];           // 键数组
     CNode* m_Pointers[MAXNUM_POINTER];     // 指针数组
-
+    off_t offt_pointers[MAXNUM_POINTER];    //指针的内容在文件中的位置
 };
 
 /* 叶子结点数据结构 */
@@ -216,6 +253,8 @@ public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pPrevNode;                 // 前一个结点
     CLeafNode* m_pNextNode;                 // 后一个结点
+    off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
+    off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
 
 protected:
 
@@ -296,6 +335,8 @@ public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pLeafHead;                 // 头结点
     CLeafNode* m_pLeafTail;                   // 尾结点
+    off_t offt_leftHead;
+    off_t offt_rightHead;
     string fpath;     //文件，也即表的路径
 
 protected:
@@ -308,7 +349,7 @@ protected:
     bool DeleteInternalNode(CInternalNode* pNode, KEY_TYPE key);
 
     CNode* m_Root;    // 根结点
-    size_t m_pRoot;    //根节点在文件中的偏移量
+    off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
     
 };

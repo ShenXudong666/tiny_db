@@ -2,9 +2,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#define DB_HEAD_SIZE (4096UL) // head size must be pow of 2! 文件数据库的头大小
-#define DB_BLOCK_SIZE                                                          \
-  (8192UL) // block size must be pow of 2! 文件数据库的数据块大小
+#define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
+#define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
 
 /**
  * @brief 存储数据对齐方式
@@ -94,6 +93,12 @@ CInternalNode::CInternalNode()
     {
         m_Pointers[i] = NULL;
     }
+
+    for (i = 0; i < MAXNUM_POINTER; i++)
+    {
+        this->offt_pointers[i] = INVALID;
+    }
+
 }
 CInternalNode::~CInternalNode()
 {
