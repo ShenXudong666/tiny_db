@@ -74,7 +74,7 @@ void inTry2() {
 	
 }
 
-int main() {
+int main3() {
 	/*ifstream infile("example.txt", ios::in | ios::binary);
 	streamoff offset = 10;
 	infile.seekg(offset, ios::beg);*/
@@ -95,7 +95,7 @@ int main() {
 	inTry(BLOCK_SIZE * 0);*/
 
 	//cout << sizeof(btree_key) << endl;
-	
+	return 0;
 
 
 }

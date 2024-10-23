@@ -135,6 +135,7 @@
     <ClCompile Include="rwdata.h" />
     <ClCompile Include="Demo.cpp" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="test_struct.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

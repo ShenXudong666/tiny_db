@@ -38,6 +38,7 @@ typedef struct {
 
 	int node_type;
 	KEY_TYPE m_Datas[MAXNUM_DATA];
+	int value;								//用于测试，后续要删除
 }leaf_node;
 
 class FileManager {
@@ -81,7 +82,7 @@ public:
 		}
 		fwrite(&node, 1, sizeof(inter_node), file);
 		fclose(file);
-
+		return true;
 	}
 
 	bool flushLeafNode(leaf_node node, string fname, off_t offt) {
@@ -93,7 +94,7 @@ public:
 		}
 		fwrite(&node, 1, sizeof(leaf_node), file);
 		fclose(file);
-
+		return true;
 	}
 
 	void newBlock(string fname) {
