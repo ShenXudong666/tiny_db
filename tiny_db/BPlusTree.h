@@ -33,8 +33,9 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 #include<string>
 #include<iostream>
 #include<fstream>
+#include<cstring>
 using namespace std;
-
+#include"rwdata.h"
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
 #define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
 
@@ -197,11 +198,35 @@ public:
         return this->offt_pointers[index];
     }
 
+    bool flush_file(string fname) {
+        inter_node node;
+        /*这一部分后面会根据数据的需求进行变更*/
+        memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
+        memcpy(node.offt_pointers, this->offt_pointers, sizeof(this->offt_pointers));
+        node.offt_self = this->offt_self;
+        node.offt_father = this->offt_father;
+        FileManager().flushInterNode(node,fname, this->offt_self);
+
+        return true;
+    }
+
+    bool get_file(string fname) {
+        inter_node node=FileManager().getCInternalNode(fname, this->offt_self);
+        memcpy(this->m_Keys, node.m_Keys, sizeof(node.m_Keys));
+        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.m_Keys));
+        
+        this->offt_father=node.offt_father;
+
+        return true;
+    }
+
+
 protected:
 
     KEY_TYPE m_Keys[MAXNUM_KEY];           // 键数组
-    CNode* m_Pointers[MAXNUM_POINTER];     // 指针数组
     off_t offt_pointers[MAXNUM_POINTER];    //指针的内容在文件中的位置
+    off_t offt_self;
+    CNode* m_Pointers[MAXNUM_POINTER];     // 指针数组
 };
 
 /* 叶子结点数据结构 */
@@ -248,7 +273,46 @@ public:
     KEY_TYPE Split(CNode* pNode);
     // 结合结点
     bool Combine(CNode* pNode);
+    void sePtPrevNode(off_t offset) {
+        this->offt_PrevNode = offset;
+    }
+    void setPtNextNode(off_t offset) {
+        this->offt_NextNode = offset;
+    }
+    // 获取前一个节点的偏移量
+    off_t getPrevNodeOffset() const {
+        return this->offt_PrevNode;
+    }
 
+    // 获取后一个节点的偏移量
+    off_t getNextNodeOffset() const {
+        return this->offt_NextNode;
+    }
+
+    bool flush_file(string fname) {
+        leaf_node node;
+        /*这一部分后面会根据数据的需求进行变更*/
+        memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
+        
+        node.offt_self = this->offt_self;
+        node.offt_father = this->offt_father;
+        node.offt_NextNode = this->offt_NextNode;
+        node.offt_PrevNode = this->offt_PrevNode;
+        FileManager().flushLeafNode(node, fname, this->offt_self);
+
+        return true;
+    }
+
+    bool get_file(string fname) {
+        leaf_node node = FileManager().getLeafNode(fname, this->offt_self);
+
+        memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
+        this->offt_PrevNode = node.offt_PrevNode;
+        this->offt_NextNode = node.offt_NextNode;
+        this->offt_father = node.offt_father;
+
+        return true;
+    }
 public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pPrevNode;                 // 前一个结点
@@ -257,7 +321,7 @@ public:
     off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
 
 protected:
-
+    off_t offt_self;
     KEY_TYPE m_Datas[MAXNUM_DATA];    // 数据数组
 
 };
@@ -331,6 +395,35 @@ public:
         }
     }
 
+    bool flush_file() {
+        table t;
+        t.fpath = this->fpath;
+        t.offt_root = this->offt_root;
+        t.offt_leftHead = this->offt_leftHead;
+        t.offt_rightHead = this->offt_rightHead;
+        t.key_use_block = this->key_use_block;
+        t.value_use_block = this->value_use_block;
+        t.key_type = this->key_type;
+        t.m_Depth = this->m_Depth;
+        FileManager().flushTable(t, this->fpath, this->offt_self);
+        return true;
+
+    }
+
+    bool get_file() {
+        table t = FileManager().getTable(this->fpath, this->offt_self);
+        this->offt_root = t.offt_root;
+        this->offt_leftHead = t.offt_leftHead;
+        this->offt_rightHead = t.offt_rightHead;
+        this->key_type = t.key_type;
+        this->key_use_block = t.key_use_block;
+        this->value_use_block = t.value_use_block;
+        this->m_Depth = t.m_Depth;
+
+        return true;
+    }
+
+
 public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pLeafHead;                 // 头结点
@@ -351,6 +444,9 @@ protected:
     CNode* m_Root;    // 根结点
     off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
-    
+    size_t key_use_block;
+    size_t value_use_block;
+    int key_type;
+    off_t offt_self;
 };
 

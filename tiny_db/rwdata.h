@@ -1,11 +1,19 @@
+#pragma once
 #include "stdio.h"
 #include "stdlib.h"
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
 #define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
+#define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
+#define MAXNUM_KEY (ORDER_V * 2)    /* 内部结点中最多键个数，为2v */
+#define MAXNUM_POINTER (MAXNUM_KEY + 1)    /* 内部结点中最多指向子树的指针个数，为2v */
+#define MAXNUM_DATA (ORDER_V * 2)    /* 叶子结点中最多数据个数，为2v */
+/* 键值的类型*/
+typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
+/*备注： 为简单起见，叶子结点的数据也只存储键值*/
 #include<string>
 #include<iostream>
 #include<fstream>
-#include"BPlusTree.h"
+
 using namespace std;
 
 typedef struct {
@@ -44,6 +52,14 @@ typedef struct {
 class FileManager {
 
 public:
+
+	static FileManager* getInstance() {
+		if (object == NULL) {
+			object = new FileManager();
+		}
+		return object;
+	}
+
 	inter_node getCInternalNode(string fname, off_t offt) {
 		const char* filename = fname.c_str();
 		FILE* file = fopen(filename, "rb");
@@ -73,6 +89,21 @@ public:
 
 	}
 
+	table getTable (string fname, off_t offt) {
+		const char* filename = fname.c_str();
+		FILE* file = fopen(filename, "rb");
+		if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+			perror("Failed to seek");
+			fclose(file);
+		}
+		table t;
+		fread(&t, 1, sizeof(table), file);
+		fclose(file);
+
+		return t;
+
+	}
+
 	bool flushInterNode(inter_node node,string fname, off_t offt) {
 		const char* filename = fname.c_str();
 		FILE* file = fopen(filename, "rb+");
@@ -97,6 +128,18 @@ public:
 		return true;
 	}
 
+	bool flushTable(table t, string fname, off_t offt) {
+		const char* filename = fname.c_str();
+		FILE* file = fopen(filename, "rb+");
+		if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+			perror("Failed to seek");
+			fclose(file);
+		}
+		fwrite(&t, 1, sizeof(table),file);
+		fclose(file);
+		return true;
+	}
+
 	void newBlock(string fname) {
 		const char* filename = fname.c_str();
 		FILE* file = fopen(filename, "ab");
@@ -107,7 +150,8 @@ public:
 
 
 protected:
-
+	 static FileManager* object;
 
 
 };
+FileManager* FileManager::object = NULL;

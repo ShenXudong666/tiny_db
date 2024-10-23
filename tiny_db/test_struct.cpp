@@ -30,9 +30,9 @@ void duru(FileManager* fm, string fname) {
 	cout << "leaf2:" << leaf2.value << endl;
 	cout << "leaf3:" << leaf3.value << endl;
 }
-int main() {
+int main4() {
 
-	FileManager* fm = new FileManager();
+	FileManager* fm = FileManager().getInstance();
 	string fname = "example.bin";
 	/*fm->newBlock("example.bin");
 	fm->newBlock("example.bin");
@@ -46,6 +46,6 @@ int main() {
 	duru(fm, fname);
 
 	
-	
+	return 0;
 	
 }

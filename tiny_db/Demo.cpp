@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -87,7 +88,7 @@ void Test7(BPlusTree* pTree)
 }
 
 
-int main1(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     BPlusTree* pTree = new BPlusTree;
 
