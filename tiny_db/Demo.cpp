@@ -88,7 +88,7 @@ void Test7(BPlusTree* pTree)
 }
 
 
-int main(int argc, char* argv[])
+int main5(int argc, char* argv[])
 {
     BPlusTree* pTree = new BPlusTree;
 

@@ -205,13 +205,13 @@ public:
         memcpy(node.offt_pointers, this->offt_pointers, sizeof(this->offt_pointers));
         node.offt_self = this->offt_self;
         node.offt_father = this->offt_father;
-        FileManager().flushInterNode(node,fname, this->offt_self);
+        FileManager::getInstance()->flushInterNode(node,fname, this->offt_self);
 
         return true;
     }
 
     bool get_file(string fname) {
-        inter_node node=FileManager().getCInternalNode(fname, this->offt_self);
+        inter_node node=FileManager::getInstance()->getCInternalNode(fname, this->offt_self);
         memcpy(this->m_Keys, node.m_Keys, sizeof(node.m_Keys));
         memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.m_Keys));
         
@@ -227,6 +227,7 @@ protected:
     off_t offt_pointers[MAXNUM_POINTER];    //指针的内容在文件中的位置
     off_t offt_self;
     CNode* m_Pointers[MAXNUM_POINTER];     // 指针数组
+    void* keys[MAXNUM_KEY];
 };
 
 /* 叶子结点数据结构 */
@@ -298,13 +299,13 @@ public:
         node.offt_father = this->offt_father;
         node.offt_NextNode = this->offt_NextNode;
         node.offt_PrevNode = this->offt_PrevNode;
-        FileManager().flushLeafNode(node, fname, this->offt_self);
+        FileManager::getInstance()->flushLeafNode(node, fname, this->offt_self);
 
         return true;
     }
 
     bool get_file(string fname) {
-        leaf_node node = FileManager().getLeafNode(fname, this->offt_self);
+        leaf_node node = FileManager::getInstance()->getLeafNode(fname, this->offt_self);
 
         memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
         this->offt_PrevNode = node.offt_PrevNode;
@@ -405,13 +406,13 @@ public:
         t.value_use_block = this->value_use_block;
         t.key_type = this->key_type;
         t.m_Depth = this->m_Depth;
-        FileManager().flushTable(t, this->fpath, this->offt_self);
+        FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
         return true;
 
     }
 
     bool get_file() {
-        table t = FileManager().getTable(this->fpath, this->offt_self);
+        table t = FileManager::getInstance()->getTable(this->fpath, this->offt_self);
         this->offt_root = t.offt_root;
         this->offt_leftHead = t.offt_leftHead;
         this->offt_rightHead = t.offt_rightHead;

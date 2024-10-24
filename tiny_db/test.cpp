@@ -74,27 +74,22 @@ void inTry2() {
 	
 }
 
-int main3() {
-	/*ifstream infile("example.txt", ios::in | ios::binary);
-	streamoff offset = 10;
-	infile.seekg(offset, ios::beg);*/
+void help(void* data,int type) {
+	if (type == 1) {
+		data = (int*)14;
+	}
+	else {
+		data = (char*)"hello";
+	}
+}
 
-	/*ifstream infile("example.txt", ios::in | ios::binary);
+int main() {
 	
-	BPlusTree b;
-	b.fpath = "I love everthing about Conor";
-	infile.seekg(10L, ios::beg);
-	infile();*/
+	void* data = NULL;
+	help(data, 1);
+	cout << &data << endl;
 
-	//outTry();
-	//newBlock();
-	//outTry(BLOCK_SIZE*0);
-	inTry(BLOCK_SIZE * 1);
-	//newBlock();
-	/*outTry(BLOCK_SIZE * 0);
-	inTry(BLOCK_SIZE * 0);*/
-
-	//cout << sizeof(btree_key) << endl;
+	
 	return 0;
 
 

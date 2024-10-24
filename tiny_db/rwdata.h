@@ -54,6 +54,8 @@ class FileManager {
 public:
 
 	static FileManager* getInstance() {
+		static FileManager* m = new FileManager();
+		return m;
 		if (object == NULL) {
 			object = new FileManager();
 		}
@@ -154,4 +156,4 @@ protected:
 
 
 };
-FileManager* FileManager::object = NULL;
+//FileManager* FileManager::object = NULL;

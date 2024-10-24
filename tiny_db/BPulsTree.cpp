@@ -1,3 +1,4 @@
+#pragma once
 #include "BPlusTree.h"
 #include "stdio.h"
 #include "stdlib.h"
