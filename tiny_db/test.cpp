@@ -76,13 +76,19 @@ void inTry2() {
 
 
 // 修改help函数，使其通过引用传递void*类型的参数
-void help(void*& data, int type) {
+void help(void** data, int type) {
 	if (type == 1) {
-		data = (void*)new int(14); // 使用new分配内存
+		for (int i = 0; i < 10; i++) {
+			data[i] = (void*)new int(14); // 使用new分配内存
+		}
+		
 	}
 	else {
-		data = (void*)new char[6](); // 使用new分配内存并初始化字符串
-		strcpy((char*)data, "hello");
+		for (int i = 0; i < 10; i++) {
+			data[i] = (void*)new char[6](); // 使用new分配内存并初始化字符串
+			strcpy((char*)data[i], "hello");
+		}
+		
 	}
 }
 void test_write_char(const char* data,int dataSize,int position) {
@@ -113,6 +119,14 @@ void test_read_char(char* data, int dataSize, int position) {
 	fclose(file); // 关闭文件
 
 }
+void func1() {
+	void* data[10];
+	help(data, 2);
+	cout << ((char*)data[0] <(char*)data[1]) << endl;
+	for (int i = 0; i < 10; i++) {
+		cout << (char*)data[i] << endl;
+	}
+}
 int main() {
 	//void* data = nullptr; // 初始化data为nullptr
 	//help(data, 2); // 传递data的引用
@@ -120,12 +134,16 @@ int main() {
 
 	//cout << "The value is: " << strlen((char*)data) << endl;
 	//newBlock();
-	const char* data1 = "Hello, World!";
+	/*const char* data1 = "Hello, World!";
 	
 	size_t dataSize = strlen(data1) + 10;
 	char* data = new char[dataSize + 1];
 	int position = 64;
-	test_read_char(data, 100, position);
+	test_read_char(data, 100, position);*/
 	//test_write_char(data, dataSize, position);
+	func1();
+	/*int16_t a = 1000;
+	cout << a << endl;
+	cout << sizeof(int16_t)<<endl;*/
 	return 0;
 }

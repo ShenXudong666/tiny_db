@@ -21,6 +21,7 @@
 #define TYPE_VALUE 1
 
 
+
 CNode::CNode()
 {
     m_Type = NODE_TYPE_LEAF;

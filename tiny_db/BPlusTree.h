@@ -52,7 +52,18 @@ using namespace std;
   */
 #define TYPE_KEY 0
 #define TYPE_VALUE 1
-
+#define INT_KEY 1
+#define LL_KEY 2
+#define STRING_KEY 3
+static int cmp_string(void* a, void* b) {
+    return (char*)a < (char*)b;
+}
+static int cmp_int(void* a, void* b, size_t n) {
+    return *(int32_t*)a - *(int32_t*)b;
+}
+static int cmp_ll(void* a, void* b, size_t n) {
+    return *(long long*)a - *(long long*)b;
+}
 
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -201,7 +212,7 @@ public:
     bool flush_file(string fname) {
         inter_node node;
         /*这一部分后面会根据数据的需求进行变更*/
-        memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
+        //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
         memcpy(node.offt_pointers, this->offt_pointers, sizeof(this->offt_pointers));
         node.offt_self = this->offt_self;
         node.offt_father = this->offt_father;
@@ -212,8 +223,8 @@ public:
 
     bool get_file(string fname) {
         inter_node node=FileManager::getInstance()->getCInternalNode(fname, this->offt_self);
-        memcpy(this->m_Keys, node.m_Keys, sizeof(node.m_Keys));
-        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.m_Keys));
+        //memcpy(this->m_Keys, node.m_Keys, sizeof(node.m_Keys));
+        //memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.m_Keys));
         
         this->offt_father=node.offt_father;
 
@@ -293,7 +304,7 @@ public:
     bool flush_file(string fname) {
         leaf_node node;
         /*这一部分后面会根据数据的需求进行变更*/
-        memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
+        //memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
         
         node.offt_self = this->offt_self;
         node.offt_father = this->offt_father;
@@ -307,7 +318,7 @@ public:
     bool get_file(string fname) {
         leaf_node node = FileManager::getInstance()->getLeafNode(fname, this->offt_self);
 
-        memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
+        //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
         this->offt_PrevNode = node.offt_PrevNode;
         this->offt_NextNode = node.offt_NextNode;
         this->offt_father = node.offt_father;
