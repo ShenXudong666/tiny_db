@@ -22,13 +22,13 @@ using namespace std;
 
 
 typedef struct {
-	string fpath;
+	char fpath[100];
 	off_t offt_root;
 	off_t offt_leftHead;
 	off_t offt_rightHead;
 	int m_Depth;//树的深度
 	int key_type;//索引键的类型
-	int key_max_size;
+	size_t max_key_size;
 	size_t key_use_block;               /** 数据块为btree_key类型的总数 */
 	size_t value_use_block;
 }table;
@@ -68,87 +68,15 @@ public:
 		return object;
 	}
 
-	inter_node getCInternalNode(string fname, off_t offt) {
-		const char* filename = fname.c_str();
-		FILE* file = fopen(filename, "rb");
-		if (fseek(file, offt* DB_BLOCK_SIZE, SEEK_SET) != 0) {
-			perror("Failed to seek");
-			fclose(file);
-		}
-		inter_node node;
-		fread(&node, 1, sizeof(inter_node), file);
-		fclose(file);
-		return node;
-		
-	}
-	bool flushInterNode(inter_node node, string fname, off_t offt) {
-		const char* filename = fname.c_str();
-		FILE* file = fopen(filename, "rb+");
-		if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
-			perror("Failed to seek");
-			fclose(file);
-		}
-		fwrite(&node, 1, sizeof(inter_node), file);
-		fclose(file);
-		return true;
-	}
+	inter_node getCInternalNode(const char* filename, off_t offt);
+	bool flushInterNode(inter_node node, const char* filename, off_t offt);
+	leaf_node getLeafNode(const char* filename, off_t offt);
+	bool flushLeafNode(leaf_node node, const char* filename, off_t offt);
+	table getTable(const char* filename, off_t offt);
+	bool flushTable(table t, const char* filename, off_t offt);
+	bool table_create(const char* path, KEY_TYPE key_type, size_t max_key_size);
+	void newBlock(const char* filename) {
 
-	leaf_node getLeafNode(string fname, off_t offt) {
-		const char* filename = fname.c_str();
-		FILE* file = fopen(filename, "rb");
-		if (fseek(file, offt* DB_BLOCK_SIZE, SEEK_SET) != 0) {
-			perror("Failed to seek");
-			fclose(file);
-		}
-		leaf_node node;
-		fread(&node, 1, sizeof(leaf_node), file);
-		fclose(file);
-		
-		return node;
-
-	}
-	bool flushLeafNode(leaf_node node, string fname, off_t offt) {
-		const char* filename = fname.c_str();
-		FILE* file = fopen(filename, "rb+");
-		if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
-			perror("Failed to seek");
-			fclose(file);
-		}
-		fwrite(&node, 1, sizeof(leaf_node), file);
-		fclose(file);
-		return true;
-	}
-	table getTable (string fname, off_t offt) {
-		const char* filename = fname.c_str();
-		FILE* file = fopen(filename, "rb");
-		if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
-			perror("Failed to seek");
-			fclose(file);
-		}
-		table t;
-		fread(&t, 1, sizeof(table), file);
-		fclose(file);
-
-		return t;
-
-	}
-	bool flushTable(table t, string fname, off_t offt) {
-		const char* filename = fname.c_str();
-		FILE* file = fopen(filename, "rb+");
-		if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
-			perror("Failed to seek");
-			fclose(file);
-		}
-		fwrite(&t, 1, sizeof(table), file);
-		fclose(file);
-		return true;
-	}
-	
-
-
-
-	void newBlock(string fname) {
-		const char* filename = fname.c_str();
 		FILE* file = fopen(filename, "ab");
 		char zero[DB_BLOCK_SIZE] = { 0 };
 		fwrite(zero, 1, sizeof(zero), file);

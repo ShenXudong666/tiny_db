@@ -209,7 +209,7 @@ public:
         return this->offt_pointers[index];
     }
 
-    bool flush_file(string fname) {
+    bool flush_file(const char* fname) {
         inter_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
@@ -221,7 +221,7 @@ public:
         return true;
     }
 
-    bool get_file(string fname) {
+    bool get_file(const char* fname) {
         inter_node node=FileManager::getInstance()->getCInternalNode(fname, this->offt_self);
         //memcpy(this->m_Keys, node.m_Keys, sizeof(node.m_Keys));
         //memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.m_Keys));
@@ -301,7 +301,7 @@ public:
         return this->offt_NextNode;
     }
 
-    bool flush_file(string fname) {
+    bool flush_file(const char* fname) {
         leaf_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
@@ -315,7 +315,7 @@ public:
         return true;
     }
 
-    bool get_file(string fname) {
+    bool get_file(const char* fname) {
         leaf_node node = FileManager::getInstance()->getLeafNode(fname, this->offt_self);
 
         //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
@@ -409,7 +409,8 @@ public:
 
     bool flush_file() {
         table t;
-        t.fpath = this->fpath;
+        memcpy(t.fpath, this->fpath, sizeof(this->fpath));
+
         t.offt_root = this->offt_root;
         t.offt_leftHead = this->offt_leftHead;
         t.offt_rightHead = this->offt_rightHead;
@@ -442,7 +443,7 @@ public:
     CLeafNode* m_pLeafTail;                   // 尾结点
     off_t offt_leftHead;
     off_t offt_rightHead;
-    string fpath;     //文件，也即表的路径
+    char fpath[100];     //文件，也即表的路径
 
 protected:
 
@@ -459,6 +460,7 @@ protected:
     size_t key_use_block;
     size_t value_use_block;
     int key_type;
+    size_t max_key_size;
     off_t offt_self;
 };
 

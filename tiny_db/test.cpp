@@ -121,10 +121,10 @@ void test_read_char(char* data, int dataSize, int position) {
 }
 void func1() {
 	void* data[10];
-	help(data, 2);
-	cout << ((char*)data[0] <(char*)data[1]) << endl;
+	help(data, 1);
+	//cout << ((char*)data[0] <(char*)data[1]) << endl;
 	for (int i = 0; i < 10; i++) {
-		cout << (char*)data[i] << endl;
+		cout << *(int*)data[i] << endl;
 	}
 }
 int main() {
