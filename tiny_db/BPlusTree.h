@@ -70,12 +70,7 @@ typedef int KEY_TYPE;    /* Îª¼òµ¥Æð¼û£¬¶¨ÒåÎªintÀàÐÍ£¬Êµ¼ÊµÄB+Ê÷¼üÖµÀàÐÍÓ¦¸ÃÊÇ¿
 /*±¸×¢£º Îª¼òµ¥Æð¼û£¬Ò¶×Ó½áµãµÄÊý¾ÝÒ²Ö»´æ´¢¼üÖµ*/
 
 /* ½áµãÀàÐÍ */
-enum NODE_TYPE
-{
-    NODE_TYPE_ROOT = 1,    // ¸ù½áµã
-    NODE_TYPE_INTERNAL = 2,    // ÄÚ²¿½áµã
-    NODE_TYPE_LEAF = 3,    // Ò¶×Ó½áµã
-};
+
 
 #define NULL 0
 #define INVALID 0
@@ -301,7 +296,7 @@ public:
         return this->offt_NextNode;
     }
 
-    bool flush_file(const char* fname) {
+    bool flush_file(const char* fname,KEY_TYPE key_type,size_t max_size) {
         leaf_node node;
         /*ÕâÒ»²¿·ÖºóÃæ»á¸ù¾ÝÊý¾ÝµÄÐèÇó½øÐÐ±ä¸ü*/
         //memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
@@ -310,13 +305,23 @@ public:
         node.offt_father = this->offt_father;
         node.offt_NextNode = this->offt_NextNode;
         node.offt_PrevNode = this->offt_PrevNode;
-        FileManager::getInstance()->flushLeafNode(node, fname, this->offt_self);
+        Index index;
+        memcmp(index.fpath, fname, sizeof(fname));
+        index.key_type = key_type;
+        index.max_size = max_size;
+        
+        FileManager::getInstance()->flushLeafNode(node, index,(void**)this->m_Datas);
 
         return true;
     }
 
-    bool get_file(const char* fname) {
-        leaf_node node = FileManager::getInstance()->getLeafNode(fname, this->offt_self);
+    bool get_file(const char* fname, KEY_TYPE key_type, size_t max_size) {
+        Index index;
+        memcpy(index.fpath, fname, sizeof(fname));
+        index.key_type = key_type;
+        index.max_size = max_size;
+        
+        leaf_node node = FileManager::getInstance()->getLeafNode(index,this->values,this->offt_self);
 
         //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
         this->offt_PrevNode = node.offt_PrevNode;
@@ -335,6 +340,7 @@ public:
 protected:
     off_t offt_self;
     KEY_TYPE m_Datas[MAXNUM_DATA];    // Êý¾ÝÊý×é
+    void* values[MAXNUM_KEY];
 
 };
 
