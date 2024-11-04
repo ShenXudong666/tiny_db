@@ -1,4 +1,10 @@
 #include "rwdata.h"
+
+ FileManager* FileManager::getInstance() {
+	static FileManager* m = new FileManager();
+	
+	return m;
+}
 inter_node FileManager::getCInternalNode(const char* filename, off_t offt) {
 	FILE* file = fopen(filename, "rb");
 	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
@@ -25,6 +31,7 @@ bool FileManager::flushInterNode(inter_node node, const char* filename, off_t of
 leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t offt) {
 
 	FILE* file = fopen(index.fpath, "rb");
+	cout << index.fpath << endl;
 	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -32,6 +39,7 @@ leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t o
 	leaf_node node;
 	fread(&node, 1, sizeof(leaf_node), file);
 	off_t offset = ftell(file);
+	
 	index.offt_self = offset;
 	fclose(file);
 	get_value(data, index);
@@ -73,7 +81,9 @@ table FileManager::getTable(const char* filename, off_t offt) {
 bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 
 	FILE* file = fopen(filename, "rb+");
-	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+	offt = offt * DB_BLOCK_SIZE;
+	cout << filename << endl;
+	if (fseek(file, offt, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
@@ -89,14 +99,29 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		fclose(file);
 	}
 	if (index.key_type == INT_KEY) {
-		fwrite(&value, sizeof(int), MAXNUM_DATA, file);
+		int temp[MAXNUM_DATA];
+		for (int i = 0; i < MAXNUM_DATA; i++) {
+			temp[i] = *(int*)value[i];
+		}
+		fwrite(&temp, sizeof(int), MAXNUM_DATA, file);
 	}
 	else if (index.key_type == LL_KEY) {
-		fwrite(&value, sizeof(long long), MAXNUM_DATA, file);
+		int temp[MAXNUM_DATA];
+		for (int i = 0; i < MAXNUM_DATA; i++) {
+			temp[i] = *(long long*)value[i];
+		}
+		fwrite(&temp, sizeof(long long), MAXNUM_DATA, file);
 	}
 	else {
-		fwrite(&value, index.max_size, MAXNUM_DATA, file);
+		//暂时这样，后面可能有bug要修改
+		char* temp=new char(index.max_size);
+		for (int i = 0; i < MAXNUM_DATA; i++) {
+			temp = (char*)value[i];
+			fwrite(&temp, index.max_size, MAXNUM_DATA, file);
+		}
+		
 	}
+
 	fclose(file);
 }
 
@@ -107,14 +132,19 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 		perror("Failed to seek");
 		fclose(file);
 	}
+	void* temp;
 	if (index.key_type == INT_KEY) {
-		fread(&key, sizeof(int), MAXNUM_KEY, file);
+		temp = new int();
 	}
 	else if (index.key_type == LL_KEY) {
-		fread(&key, sizeof(long long), MAXNUM_KEY, file);
+		temp = new long long();
 	}
 	else {
-		fread(&key, index.max_size, MAXNUM_KEY, file);
+		temp = new char[index.max_size];
+	}
+	for (int i = 0; i < MAXNUM_KEY; i++) {
+		fread(temp, index.max_size, 1, file);
+		key[i] = (void*)temp;
 	}
 	fclose(file);
 }
@@ -122,19 +152,37 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb");
+	cout<<"index的文件" << index.fpath << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
+	void* temp;
+	cout << "index.key" << endl;
+	cout << index.key_type << endl;
+
 	if (index.key_type == INT_KEY) {
-		fread(&value, sizeof(int), MAXNUM_DATA, file);
+		temp = new int();
+		for (int i = 0; i < MAXNUM_DATA; ++i) {
+
+			if (fread(temp, sizeof(int), 1, file) != 1) {
+				cout << *(int*)value[i] << endl;
+				perror("Failed to read data");
+				fclose(file);
+				return;
+			}
+			value[i] = (void*)temp;
+		}
 	}
 	else if (index.key_type == LL_KEY) {
-		fread(&value, sizeof(long long), MAXNUM_DATA, file);
+		temp = new long long();
 	}
 	else {
-		fread(&value, index.max_size, MAXNUM_DATA, file);
+		temp = new char[index.max_size];
 	}
+	//cout << "size " << size << " " << index.offt_self << endl;
+
+	
 	fclose(file);
 }
 
@@ -159,7 +207,7 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 
 bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_key_size)
 {
-	size_t size;
+	size_t size = 0;
 	//纠正最大索引所占空间
 	switch (key_type)
 	{
@@ -173,21 +221,33 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 		size = max_key_size;
 		break;
 	default:
+		size = max_key_size;
 		break;
 	}
 	table t;
-	memcpy(t.fpath, path, sizeof(path));
+	memcpy(t.fpath, path, sizeof(path)+1);
+	t.fpath[sizeof(path)+1] = '\0';
+	cout << path << endl;
+	cout << t.fpath << endl;
 	t.key_type = key_type;
 	t.m_Depth = 1;
 	t.offt_root = 1;
 	t.key_use_block = 1;
 	t.value_use_block = 0;
+	t.max_key_size = size;
+	cout << size << endl;
 	//将表的信息写在文件的头部
 	flushTable(t,t.fpath ,0);
 	//将根的信息写在文件头部的后面一块
 	leaf_node root;
 	root.offt_self = 1;
+	
 	void* data[MAXNUM_DATA];
+	
+	for (int i = 0; i < MAXNUM_DATA; i++) {
+		data[i] = (void*)new int(13);
+	}
+	
 	Index index;
 	memcpy(index.fpath, t.fpath, sizeof(t.fpath));
 	index.max_size = t.max_key_size;
@@ -196,5 +256,12 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 
 
 	return false;
+}
+void FileManager::newBlock(const char* filename) {
+
+	FILE* file = fopen(filename, "ab");
+	char zero[DB_BLOCK_SIZE] = { 0 };
+	fwrite(zero, 1, sizeof(zero), file);
+	fclose(file);
 }
 

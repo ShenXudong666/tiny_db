@@ -68,43 +68,30 @@ typedef struct {
 	KEY_TYPE key_type;
 }Index;
 
-class FileManager {
+	class FileManager {
 
-public:
+	public:
 
-	static FileManager* getInstance() {
-		static FileManager* m = new FileManager();
-		return m;
-		if (object == NULL) {
-			object = new FileManager();
-		}
-		return object;
-	}
+		static FileManager* getInstance();
 
-	inter_node getCInternalNode(const char* filename, off_t offt);
-	bool flushInterNode(inter_node node, const char* filename, off_t offt);
-	leaf_node getLeafNode(Index index, void* data[MAXNUM_DATA], off_t offt);
-	bool flushLeafNode(leaf_node node, Index index, void** value);
-	table getTable(const char* filename, off_t offt);
-	bool flushTable(table t, const char* filename, off_t offt);
-	bool table_create(const char* path, KEY_TYPE key_type, size_t max_key_size);
-	void flush_key(void* key[MAXNUM_KEY], Index index);
-	void flush_value(void* value[MAXNUM_DATA], Index index);
-	void get_key(void* key[MAXNUM_KEY], Index index);
-	void get_value(void* value[MAXNUM_DATA], Index index);
+		inter_node getCInternalNode(const char* filename, off_t offt);
+		bool flushInterNode(inter_node node, const char* filename, off_t offt);
+		leaf_node getLeafNode(Index index, void* data[MAXNUM_DATA], off_t offt);
+		bool flushLeafNode(leaf_node node, Index index, void** value);
+		table getTable(const char* filename, off_t offt);
+		bool flushTable(table t, const char* filename, off_t offt);
+		bool table_create(const char* path, KEY_TYPE key_type, size_t max_key_size);
+		void flush_key(void* key[MAXNUM_KEY], Index index);
+		void flush_value(void* value[MAXNUM_DATA], Index index);
+		void get_key(void* key[MAXNUM_KEY], Index index);
+		void get_value(void* value[MAXNUM_DATA], Index index);
 
-	void newBlock(const char* filename) {
-
-		FILE* file = fopen(filename, "ab");
-		char zero[DB_BLOCK_SIZE] = { 0 };
-		fwrite(zero, 1, sizeof(zero), file);
-		fclose(file);
-	}
+		void newBlock(const char* filename);
 
 
-protected:
-	 static FileManager* object;
+	protected:
+		static FileManager* object;
 
 
-};
+	};
 //FileManager* FileManager::object = NULL;
