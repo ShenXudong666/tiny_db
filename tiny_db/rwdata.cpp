@@ -31,7 +31,7 @@ bool FileManager::flushInterNode(inter_node node, const char* filename, off_t of
 leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t offt) {
 
 	FILE* file = fopen(index.fpath, "rb");
-	cout << index.fpath << endl;
+	cout << "读取叶节点的文件名为 " << index.fpath << endl;
 	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -94,6 +94,7 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
+	cout << "写进value的偏移量为" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -106,7 +107,7 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		fwrite(&temp, sizeof(int), MAXNUM_DATA, file);
 	}
 	else if (index.key_type == LL_KEY) {
-		int temp[MAXNUM_DATA];
+		long long temp[MAXNUM_DATA];
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			temp[i] = *(long long*)value[i];
 		}
@@ -114,10 +115,15 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 	}
 	else {
 		//暂时这样，后面可能有bug要修改
-		char* temp=new char(index.max_size);
+		
+
 		for (int i = 0; i < MAXNUM_DATA; i++) {
+			char* temp = new char(index.max_size);
 			temp = (char*)value[i];
-			fwrite(&temp, index.max_size, MAXNUM_DATA, file);
+			cout << "写入数据前为" << temp << endl;
+			int t=fwrite(temp, sizeof(char), index.max_size, file);
+			cout << "写了位数为：" << t << endl;
+			delete temp;
 		}
 		
 	}
@@ -157,12 +163,13 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		perror("Failed to seek");
 		fclose(file);
 	}
-	void* temp;
+	//void* temp;
+	cout << "读取value的偏移量为" << index.offt_self << endl;
 	cout << "index.key" << endl;
 	cout << index.key_type << endl;
 
 	if (index.key_type == INT_KEY) {
-		temp = new int();
+		int *temp = new int();
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
 
 			if (fread(temp, sizeof(int), 1, file) != 1) {
@@ -175,10 +182,34 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		}
 	}
 	else if (index.key_type == LL_KEY) {
-		temp = new long long();
+		long long *temp = new long long();
+		for (int i = 0; i < MAXNUM_DATA; ++i) {
+
+			if (fread(temp, sizeof(long long), 1, file) != 1) {
+				//cout << *(long long*)value[i] << endl;
+				perror("Failed to read data");
+				fclose(file);
+				return;
+			}
+			value[i] = (void*)temp;
+		}
 	}
 	else {
-		temp = new char[index.max_size];
+		char temp[1024] = { 0 };
+		
+		for (int i = 0; i < MAXNUM_DATA; ++i) {
+
+			if (fread(temp, sizeof(char), index.max_size, file) != index.max_size) {
+				//cout << *(long long*)value[i] << endl;
+				perror("Failed to read data");
+				fclose(file);
+				return;
+			}
+			value[i] = (void*)temp;
+			cout << "读取后字符串数据为 " << (char*)value[i] << endl;
+			
+			
+		}
 	}
 	//cout << "size " << size << " " << index.offt_self << endl;
 
@@ -247,11 +278,22 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	for (int i = 0; i < MAXNUM_DATA; i++) {
 		data[i] = (void*)new int(13);
 	}
-	
 	Index index;
 	memcpy(index.fpath, t.fpath, sizeof(t.fpath));
 	index.max_size = t.max_key_size;
 	index.key_type = t.key_type;
+
+	/*for (int i = 0; i < MAXNUM_DATA; i++) {
+		char* temp= new char[index.max_size];
+		const char* s = "success";
+		memcpy(temp, s, sizeof(s)+1);
+		temp[sizeof(s) + 1] = '\0';
+		cout << "创建table之后写入数据的东西为" << temp << endl;
+		cout << sizeof(temp) << endl;
+		data[i] = (void*)temp;
+	}*/
+	
+	
 	flushLeafNode(root, index,data);
 
 

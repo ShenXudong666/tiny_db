@@ -106,7 +106,7 @@ void func2() {
 	/*ss::newoneBlock("table.bin");
 	ss::newoneBlock("table.bin");*/
 	const char* fname = "table.bin";
-	FileManager::getInstance()->table_create(fname, INT_KEY, 4);
+	FileManager::getInstance()->table_create(fname, LL_KEY, sizeof(long long));
 	//cout << "表头写入成功" << endl;
 	table t= FileManager::getInstance()->getTable("table.bin", 0);
 	cout << "读取表成功" << endl;
@@ -115,11 +115,11 @@ void func2() {
 	Index index;
 	memcpy(index.fpath, fname, sizeof(fname) + 1);
 	index.fpath[sizeof(fname) + 1] = '\0';
-	index.max_size = sizeof(int);
-	index.key_type = INT_KEY;
+	index.max_size = sizeof(long long);
+	index.key_type = LL_KEY;
 	void* data[MAXNUM_DATA];
 	leaf_node l = FileManager::getInstance()->getLeafNode(index, data, 1);
-	cout << *(int*)data[0] << endl;
+	cout << *(int*)data[0] << " "<< *(int*)data[1] << endl;
 	cout << "根的偏移值为" << endl;
 	cout << l.offt_self << endl;
 
@@ -167,8 +167,8 @@ int main() {
 	size_t dataSize = strlen(data1) + 10;
 	char* data = new char[dataSize + 1];
 	int position = 64;
+	test_write_char(data1, dataSize, position);
 	test_read_char(data, 100, position);*/
-	//test_write_char(data, dataSize, position);
 	func2();
 	/*void* data[5];
 	for (int i = 0; i < 5; i++) {
