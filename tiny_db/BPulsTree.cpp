@@ -81,11 +81,40 @@ void CNode::DeleteChildren()   // 疑问：这里的指针下标是否需要从0开始
 }
 
 //将内部节点的关键字和指针分别初始化为0和空
-CInternalNode::CInternalNode()
+CInternalNode::CInternalNode(off_t offt)
 {
+    this->offt_self = offt;
     m_Type = NODE_TYPE_INTERNAL;
 
     int i = 0;
+    for (int i = 0; i < MAXNUM_KEY; i++) {
+        this->keys[i] = new int();
+    }
+    for (i = 0; i < MAXNUM_KEY; i++)
+    {
+        m_Keys[i] = INVALID;
+    }
+
+    for (i = 0; i < MAXNUM_POINTER; i++)
+    {
+        m_Pointers[i] = NULL;
+    }
+
+    for (i = 0; i < MAXNUM_POINTER; i++)
+    {
+        this->offt_pointers[i] = INVALID;
+    }
+
+}
+CInternalNode::CInternalNode()
+{
+    
+    m_Type = NODE_TYPE_INTERNAL;
+
+    int i = 0;
+    for (int i=0; i < MAXNUM_KEY; i++) {
+        this->keys[i] = new int();
+    }
     for (i = 0; i < MAXNUM_KEY; i++)
     {
         m_Keys[i] = INVALID;

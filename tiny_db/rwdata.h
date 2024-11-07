@@ -45,21 +45,23 @@ typedef struct {
 	off_t offt_pointers[MAXNUM_POINTER];
 	off_t offt_father;
 	size_t count;
-	int node_type;
-	//KEY_TYPE m_Keys[MAXNUM_KEY];
+	NODE_TYPE node_type;
+
 
 }inter_node;
 
-typedef struct {
+struct leaf_node {
 	off_t offt_self;
 	off_t offt_father;
 	off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
 	off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
 	size_t count;
-	int node_type;
+	NODE_TYPE node_type;
+	leaf_node(){}
+	leaf_node(off_t offt) { offt_self = offt; }
 	//KEY_TYPE m_Datas[MAXNUM_DATA];
-	int value;								//用于测试，后续要删除
-}leaf_node;
+	
+};
 
 typedef struct {
 	char fpath[100];
@@ -74,8 +76,8 @@ typedef struct {
 
 		static FileManager* getInstance();
 
-		inter_node getCInternalNode(const char* filename, off_t offt);
-		bool flushInterNode(inter_node node, const char* filename, off_t offt);
+		inter_node getCInternalNode(Index index, void* data[MAXNUM_KEY], off_t offt);
+		bool flushInterNode(inter_node node, Index index, void** key);
 		leaf_node getLeafNode(Index index, void* data[MAXNUM_DATA], off_t offt);
 		bool flushLeafNode(leaf_node node, Index index, void** value);
 		table getTable(const char* filename, off_t offt);

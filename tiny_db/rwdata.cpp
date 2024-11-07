@@ -5,27 +5,36 @@
 	
 	return m;
 }
-inter_node FileManager::getCInternalNode(const char* filename, off_t offt) {
-	FILE* file = fopen(filename, "rb");
+inter_node FileManager::getCInternalNode(Index index,void *data[MAXNUM_KEY],off_t offt) {
+	FILE* file = fopen(index.fpath, "rb");
 	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 	inter_node node;
 	fread(&node, 1, sizeof(inter_node), file);
+	off_t arr_offt = ftell(file);
+
+	index.offt_self = arr_offt;
 	fclose(file);
+	get_key(data, index);
+	index.offt_self = offt;
+
 	return node;
 
 }
-bool FileManager::flushInterNode(inter_node node, const char* filename, off_t offt) {
+bool FileManager::flushInterNode(inter_node node, Index index,void** key) {
 
-	FILE* file = fopen(filename, "rb+");
-	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+	FILE* file = fopen(index.fpath, "rb+");
+	if (fseek(file, index.offt_self * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 	fwrite(&node, 1, sizeof(inter_node), file);
+	off_t offset = ftell(file);
+	index.offt_self = offset;
 	fclose(file);
+	flush_key(key, index);
 	return true;
 }
 leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t offt) {
@@ -38,12 +47,12 @@ leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t o
 	}
 	leaf_node node;
 	fread(&node, 1, sizeof(leaf_node), file);
-	off_t offset = ftell(file);
+	off_t arr_offt = ftell(file);
 	
-	index.offt_self = offset;
+	index.offt_self = arr_offt;
 	fclose(file);
 	get_value(data, index);
-
+	index.offt_self = offt;
 	return node;
 
 }
@@ -220,7 +229,7 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
-	cout << "写进value的偏移量为" << index.offt_self << endl;
+	cout << "写进key的偏移量为" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -279,20 +288,19 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	table t;
 	memcpy(t.fpath, path, sizeof(path)+1);
 	t.fpath[sizeof(path)+1] = '\0';
-	cout << path << endl;
-	cout << t.fpath << endl;
+
 	t.key_type = key_type;
 	t.m_Depth = 1;
 	t.offt_root = 1;
 	t.key_use_block = 1;
 	t.value_use_block = 0;
 	t.max_key_size = size;
-	cout << size << endl;
 	//将表的信息写在文件的头部
 	flushTable(t,t.fpath ,0);
 	//将根的信息写在文件头部的后面一块
 	leaf_node root;
 	root.offt_self = 1;
+	root.node_type = NODE_TYPE_ROOT;
 	
 	void* data[MAXNUM_DATA];
 	//初次创建表，根的值默认为最大的0

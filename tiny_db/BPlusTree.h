@@ -135,8 +135,8 @@ protected:
 class CInternalNode : public CNode
 {
 public:
-
     CInternalNode();
+    CInternalNode(off_t offt);
     virtual ~CInternalNode();
 
     // 获取和设置键值，对用户来说，数字从1开始，实际在结点中是从0开始的
@@ -204,36 +204,57 @@ public:
         return this->offt_pointers[index];
     }
 
-    bool flush_file(const char* fname) {
+    bool flush_file(const char* fname,KEY_TYPE key_type,size_t max_size) {
         inter_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
         memcpy(node.offt_pointers, this->offt_pointers, sizeof(this->offt_pointers));
         node.offt_self = this->offt_self;
         node.offt_father = this->offt_father;
-        FileManager::getInstance()->flushInterNode(node,fname, this->offt_self);
+        node.count = this->m_Count;
+        node.node_type = this->m_Type;
+        
+        Index index;
+        memcpy(index.fpath, fname, sizeof(fname)+1);
+        index.fpath[sizeof(fname) + 1] = '\0';
+        cout << index.fpath << endl;
+        index.key_type = key_type;
+        index.max_size = max_size;
+        index.offt_self = this->offt_self;
+        
+        FileManager::getInstance()->flushInterNode(node,index,this->keys);
 
         return true;
     }
 
-    bool get_file(const char* fname) {
-        inter_node node=FileManager::getInstance()->getCInternalNode(fname, this->offt_self);
-        //memcpy(this->m_Keys, node.m_Keys, sizeof(node.m_Keys));
-        //memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.m_Keys));
-        
+    bool get_file(const char* fname,KEY_TYPE key_type,size_t max_size) {
+        Index index;
+        memcpy(index.fpath, fname, sizeof(fname) + 1);
+        index.fpath[sizeof(fname) + 1] = '\0';
+        index.key_type = key_type;
+        index.max_size = max_size;
+        cout << index.fpath << endl;
+        //下面的getCInternalNode待修改
+        inter_node node=FileManager::getInstance()->getCInternalNode(index,this->keys ,this->offt_self);
+
+        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.offt_pointers));
+        this->m_Count = node.count;
+        this->m_Type = node.node_type;
         this->offt_father=node.offt_father;
 
         return true;
     }
 
+    off_t offt_pointers[MAXNUM_POINTER];    //指针的内容在文件中的位置
+    void* keys[MAXNUM_KEY];
 
 protected:
 
     KEY_TYPE m_Keys[MAXNUM_KEY];           // 键数组
-    off_t offt_pointers[MAXNUM_POINTER];    //指针的内容在文件中的位置
+    
     off_t offt_self;
     CNode* m_Pointers[MAXNUM_POINTER];     // 指针数组
-    void* keys[MAXNUM_KEY];
+    
 };
 
 /* 叶子结点数据结构 */
@@ -334,6 +355,7 @@ public:
         this->offt_NextNode = node.offt_NextNode;
         this->offt_father = node.offt_father;
         this->m_Count = node.count;
+        this->m_Type = node.node_type;
         return true;
     }
 public:
@@ -437,6 +459,7 @@ public:
 
     bool get_file() {
         table t = FileManager::getInstance()->getTable(this->fpath, this->offt_self);
+        
         this->offt_root = t.offt_root;
         this->offt_leftHead = t.offt_leftHead;
         this->offt_rightHead = t.offt_rightHead;

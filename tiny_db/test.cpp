@@ -163,6 +163,7 @@ void xiebiao(KEY_TYPE key) {
 	else FileManager::getInstance()->table_create(fname, key, 100);
 }
 int main() {
+	const char* fname = "table.bin";
 	//void* data = nullptr; // 初始化data为nullptr
 	//help(data, 2); // 传递data的引用
 	//cout << data << endl; // 输出data的地址
@@ -190,11 +191,24 @@ int main() {
 	cout << *(int*)data1[0] << endl;*/
 
 	//func2();
-	//xiebiao(INT_KEY);
+	/*xiebiao(INT_KEY);
 	CLeafNode* root = new CLeafNode(1);
 	const char* fname = "table.bin";
 	root->get_file(fname, INT_KEY, sizeof(4));
-	for (int i = 0; i < MAXNUM_DATA; i++) cout << *(int*)(root->values[i]) << endl;
+	for (int i = 0; i < MAXNUM_DATA; i++) cout << *(int*)(root->values[i]) << endl;*/
+
+	CInternalNode* cnode = new CInternalNode(2);
+	for (int i = 0; i < MAXNUM_KEY; i++) {
+		cnode->keys[i] = new int(10);
+	}
+	cnode->flush_file(fname, INT_KEY,sizeof(int));
+	cout << "写入成功" << endl;
+	CInternalNode* cnode2 = new CInternalNode(2);
+	cout << fname << endl;
+	cnode2->get_file(fname, INT_KEY, sizeof(int));
+	for (int i = 0; i < MAXNUM_KEY; i++) {
+		cout << *(int*)cnode2->keys[i] << endl;
+	}
 	
 	
 
