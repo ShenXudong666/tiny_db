@@ -44,7 +44,7 @@ typedef struct {
 	off_t offt_self;
 	off_t offt_pointers[MAXNUM_POINTER];
 	off_t offt_father;
-
+	size_t count;
 	int node_type;
 	//KEY_TYPE m_Keys[MAXNUM_KEY];
 
@@ -55,7 +55,7 @@ typedef struct {
 	off_t offt_father;
 	off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
 	off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
-
+	size_t count;
 	int node_type;
 	//KEY_TYPE m_Datas[MAXNUM_DATA];
 	int value;								//用于测试，后续要删除

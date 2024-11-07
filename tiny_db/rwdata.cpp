@@ -220,19 +220,40 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
+	cout << "写进value的偏移量为" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 	if (index.key_type == INT_KEY) {
-		fwrite(&key, sizeof(int), MAXNUM_DATA, file);
+		int temp[MAXNUM_KEY];
+		for (int i = 0; i < MAXNUM_KEY; i++) {
+			temp[i] = *(int*)key[i];
+		}
+		fwrite(&temp, sizeof(int), MAXNUM_KEY, file);
 	}
 	else if (index.key_type == LL_KEY) {
-		fwrite(&key, sizeof(long long), MAXNUM_DATA, file);
+		long long temp[MAXNUM_KEY];
+		for (int i = 0; i < MAXNUM_KEY; i++) {
+			temp[i] = *(long long*)key[i];
+		}
+		fwrite(&temp, sizeof(long long), MAXNUM_KEY, file);
 	}
 	else {
-		fwrite(&key, index.max_size, MAXNUM_DATA, file);
+		//暂时这样，后面可能有bug要修改
+
+
+		for (int i = 0; i < MAXNUM_KEY; i++) {
+			char* temp = new char(index.max_size);
+			temp = (char*)key[i];
+			cout << "写入数据前为" << temp << endl;
+			int t = fwrite(temp, sizeof(char), index.max_size, file);
+			cout << "写了位数为：" << t << endl;
+			delete temp;
+		}
+
 	}
+
 	fclose(file);
 }
 
@@ -274,9 +295,9 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	root.offt_self = 1;
 	
 	void* data[MAXNUM_DATA];
-	
+	//初次创建表，根的值默认为最大的0
 	for (int i = 0; i < MAXNUM_DATA; i++) {
-		data[i] = (void*)new int(13);
+		data[i] = (void*)new int(0);
 	}
 	Index index;
 	memcpy(index.fpath, t.fpath, sizeof(t.fpath));

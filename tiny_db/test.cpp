@@ -106,7 +106,7 @@ void func2() {
 	/*ss::newoneBlock("table.bin");
 	ss::newoneBlock("table.bin");*/
 	const char* fname = "table.bin";
-	FileManager::getInstance()->table_create(fname, LL_KEY, sizeof(long long));
+	FileManager::getInstance()->table_create(fname, INT_KEY, sizeof(int));
 	//cout << "表头写入成功" << endl;
 	table t= FileManager::getInstance()->getTable("table.bin", 0);
 	cout << "读取表成功" << endl;
