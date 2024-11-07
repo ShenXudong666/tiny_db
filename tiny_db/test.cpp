@@ -197,7 +197,7 @@ int main() {
 	root->get_file(fname, INT_KEY, sizeof(4));
 	for (int i = 0; i < MAXNUM_DATA; i++) cout << *(int*)(root->values[i]) << endl;*/
 
-	CInternalNode* cnode = new CInternalNode(2);
+	/*CInternalNode* cnode = new CInternalNode(2);
 	for (int i = 0; i < MAXNUM_KEY; i++) {
 		cnode->keys[i] = new int(10);
 	}
@@ -208,7 +208,13 @@ int main() {
 	cnode2->get_file(fname, INT_KEY, sizeof(int));
 	for (int i = 0; i < MAXNUM_KEY; i++) {
 		cout << *(int*)cnode2->keys[i] << endl;
-	}
+	}*/
+	xiebiao(INT_KEY);
+	BPlusTree* bp = new BPlusTree();
+	memcpy(bp->fpath, fname, sizeof(fname)+1);
+	bp->get_file();
+	cout << bp-> max_key_size<< endl;
+	
 	
 	
 

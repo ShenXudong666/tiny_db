@@ -467,6 +467,7 @@ public:
         this->key_use_block = t.key_use_block;
         this->value_use_block = t.value_use_block;
         this->m_Depth = t.m_Depth;
+        this->max_key_size = t.max_key_size;
 
         return true;
     }
@@ -479,7 +480,7 @@ public:
     off_t offt_leftHead;
     off_t offt_rightHead;
     char fpath[100];     //文件，也即表的路径
-
+    size_t max_key_size;
 protected:
 
     // 为插入而查找叶子结点
@@ -495,7 +496,7 @@ protected:
     size_t key_use_block;
     size_t value_use_block;
     int key_type;
-    size_t max_key_size;
+    
     off_t offt_self;
 };
 

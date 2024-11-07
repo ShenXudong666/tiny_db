@@ -294,6 +294,7 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	t.offt_root = 1;
 	t.key_use_block = 1;
 	t.value_use_block = 0;
+	
 	t.max_key_size = size;
 	//将表的信息写在文件的头部
 	flushTable(t,t.fpath ,0);
