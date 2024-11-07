@@ -1,4 +1,5 @@
 #include"rwdata.h"
+#include "BPlusTree.h"
 #include<iostream>
 #include<fstream>
 #include<unistd.h>
@@ -115,8 +116,8 @@ void func2() {
 	Index index;
 	memcpy(index.fpath, fname, sizeof(fname) + 1);
 	index.fpath[sizeof(fname) + 1] = '\0';
-	index.max_size = sizeof(long long);
-	index.key_type = LL_KEY;
+	index.max_size = sizeof(int);
+	index.key_type = INT_KEY;
 	void* data[MAXNUM_DATA];
 	leaf_node l = FileManager::getInstance()->getLeafNode(index, data, 1);
 	cout << *(int*)data[0] << " "<< *(int*)data[1] << endl;
@@ -155,6 +156,12 @@ void func4(void** data) {
 	}
 	fclose;
 }
+void xiebiao(KEY_TYPE key) {
+	const char* fname = "table.bin";
+	if(key==INT_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(int));
+	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
+	else FileManager::getInstance()->table_create(fname, key, 100);
+}
 int main() {
 	//void* data = nullptr; // 初始化data为nullptr
 	//help(data, 2); // 传递data的引用
@@ -169,7 +176,7 @@ int main() {
 	int position = 64;
 	test_write_char(data1, dataSize, position);
 	test_read_char(data, 100, position);*/
-	func2();
+	
 	/*void* data[5];
 	for (int i = 0; i < 5; i++) {
 		data[i] = (void*)new int(4);
@@ -182,6 +189,14 @@ int main() {
 	cout << "data1读进成功" << endl;
 	cout << *(int*)data1[0] << endl;*/
 
+	//func2();
+	//xiebiao(INT_KEY);
+	CLeafNode* root = new CLeafNode(1);
+	const char* fname = "table.bin";
+	root->get_file(fname, INT_KEY, sizeof(4));
+	for (int i = 0; i < MAXNUM_DATA; i++) cout << *(int*)(root->values[i]) << endl;
+	
+	
 
 	return 0;
 }

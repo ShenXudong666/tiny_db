@@ -297,7 +297,7 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	void* data[MAXNUM_DATA];
 	//初次创建表，根的值默认为最大的0
 	for (int i = 0; i < MAXNUM_DATA; i++) {
-		data[i] = (void*)new int(0);
+		data[i] = (void*)new int(13);
 	}
 	Index index;
 	memcpy(index.fpath, t.fpath, sizeof(t.fpath));

@@ -242,6 +242,9 @@ class CLeafNode : public CNode
 public:
 
     CLeafNode();
+    CLeafNode(off_t t) {
+        this->offt_self = t;
+    }
     virtual ~CLeafNode();
 
     // 获取和设置数据
@@ -305,6 +308,7 @@ public:
         node.offt_father = this->offt_father;
         node.offt_NextNode = this->offt_NextNode;
         node.offt_PrevNode = this->offt_PrevNode;
+        node.count = this->m_Count;
         Index index;
         memcmp(index.fpath, fname, sizeof(fname));
         index.key_type = key_type;
@@ -317,17 +321,19 @@ public:
 
     bool get_file(const char* fname, KEY_TYPE key_type, size_t max_size) {
         Index index;
-        memcpy(index.fpath, fname, sizeof(fname));
+        memcpy(index.fpath, fname, sizeof(fname)+1);
+        index.fpath[sizeof(fname) + 1] = '\0';
+        cout << "index的文件路径为:" << endl;
+        cout << index.fpath << endl;
         index.key_type = key_type;
         index.max_size = max_size;
-        
         leaf_node node = FileManager::getInstance()->getLeafNode(index,this->values,this->offt_self);
 
         //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
         this->offt_PrevNode = node.offt_PrevNode;
         this->offt_NextNode = node.offt_NextNode;
         this->offt_father = node.offt_father;
-
+        this->m_Count = node.count;
         return true;
     }
 public:
@@ -336,11 +342,11 @@ public:
     CLeafNode* m_pNextNode;                 // 后一个结点
     off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
     off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
-
+    void* values[MAXNUM_DATA];
 protected:
     off_t offt_self;
-    KEY_TYPE m_Datas[MAXNUM_DATA];    // 数据数组
-    void* values[MAXNUM_KEY];
+    KEY_TYPE m_Datas[MAXNUM_DATA];    // 数据数组，后面完成自己的调试后删掉
+    
 
 };
 
