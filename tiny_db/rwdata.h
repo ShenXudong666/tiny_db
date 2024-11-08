@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
-#define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
+#define DB_BLOCK_SIZE 4096 // block size must be pow of 2! 文件数据库的数据块大小
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
 #define MAXNUM_KEY (ORDER_V * 2)    /* 内部结点中最多键个数，为2v */
 #define MAXNUM_POINTER (MAXNUM_KEY + 1)    /* 内部结点中最多指向子树的指针个数，为2v */
@@ -26,6 +26,14 @@ using namespace std;
 
 #define FLAG_LEFT 1
 #define FLAG_RIGHT 2
+
+//用于
+#define BLOCK_TLABE '1'
+#define BLOCK_GRAPH '2'
+#define BLOCK_INTER '3'
+#define BLOCK_LEAF '4'
+#define BLOCK_UNAVA '5'
+#define BLOCK_FREE '0'
 enum NODE_TYPE
 {
 	NODE_TYPE_ROOT = 1,    // 根结点
@@ -104,8 +112,8 @@ public:
 	void flush_value(void* value[MAXNUM_DATA], Index index);
 	void get_key(void* key[MAXNUM_KEY], Index index);
 	void get_value(void* value[MAXNUM_DATA], Index index);
-	void get_FreeGraph(Index index,char* freeBlock);
-	void flush_FreeGraph(Index index, char* freeBlock);
+	void get_BlockGraph(const char* fname,char* freeBlock);
+	void flush_BlockGraph(Index index, char* freeBlock);
 
 	void newBlock(const char* filename);
 	//获取文件总共有多少块

@@ -504,6 +504,13 @@ BPlusTree::BPlusTree()
     m_pLeafHead = NULL;
     m_pLeafTail = NULL;
 }
+BPlusTree::BPlusTree(const char* fname)
+{
+    table t=FileManager::getInstance()->getTable(fname, 0);
+    this->m_Depth = t.m_Depth;
+    
+
+}
 BPlusTree::~BPlusTree()
 {
     ClearTree();

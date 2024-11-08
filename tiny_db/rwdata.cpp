@@ -226,15 +226,15 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 	fclose(file);
 }
 
-void FileManager::get_FreeGraph(Index index,char* freeBlock)
+void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 {
-	FILE* file=fopen(index.fpath, "rb");
-	if (fseek(file, index.offt_self*DB_BLOCK_SIZE, SEEK_SET) != 0) {
+	FILE* file=fopen(fname, "rb");
+	if (fseek(file, 1*DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 
-	if (fread(freeBlock, sizeof(char), index.max_size, file) != index.max_size) {
+	if (fread(freeBlock, sizeof(char), NUM_ALL_BLOCK, file) != NUM_ALL_BLOCK) {
 		perror("Failed to read data");
 		fclose(file);
 		return;
@@ -243,16 +243,16 @@ void FileManager::get_FreeGraph(Index index,char* freeBlock)
 	cout << "读取成功,前10位为：" << endl;
 	for (int i = 0; i < 10; i++)cout << freeBlock[i];
 	//这一步是防止出问题,已使用的块大于文件真正的大小
-	size_t i=getFileSize(index.fpath);
+	size_t i=getFileSize(fname);
 	i++;
-	for (i; i < index.max_size; i++) {
-		freeBlock[i] = '2';
+	for (i; i < NUM_ALL_BLOCK; i++) {
+		freeBlock[i] = BLOCK_UNAVA;
 	}
 	cout << endl;
 
 }
 
-void FileManager::flush_FreeGraph(Index index, char* freeBlock)
+void FileManager::flush_BlockGraph(Index index, char* freeBlock)
 {
 	FILE* file=fopen(index.fpath, "rb+");
 	if (fseek(file, index.offt_self * DB_BLOCK_SIZE, SEEK_SET) != 0) {
@@ -364,12 +364,15 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	
 	flushLeafNode(root, index,data);
 	//======================根信息写入成功========================
-	char freeBlock[NUM_ALL_BLOCK];
-	for (int j = 0; j < 3; j++)freeBlock[j] = '1';
-	for(int j=3;j<6;j++)freeBlock[j] = '0';
-	for (int j = 6; j < NUM_ALL_BLOCK; j++)freeBlock[j] = '2';
+	char block_graph[NUM_ALL_BLOCK];
+	block_graph[0] = BLOCK_TLABE;
+	block_graph[1] = BLOCK_GRAPH;
+	block_graph[2] = BLOCK_LEAF;
+	for(int j=3;j<6;j++)block_graph[j] = BLOCK_FREE;
+	for (int j = 6; j < NUM_ALL_BLOCK; j++)block_graph[j] = BLOCK_UNAVA;
 	index.offt_self = 1;
-	flush_FreeGraph(index, freeBlock);
+	index.max_size = NUM_ALL_BLOCK;
+	flush_BlockGraph(index, block_graph);
 	//=======================空闲表写入成功======================
 	return true;
 }

@@ -374,6 +374,8 @@ class BPlusTree
 public:
 
     BPlusTree();
+    //输入文件名初始化表，也就是这颗树
+    BPlusTree(const char* fname);
     virtual ~BPlusTree();
 
     // 查找指定的数据
@@ -495,6 +497,6 @@ protected:
     
     off_t offt_self;
     //后面定义宏来改大小，先这样
-    char freeBlock[2048];
+    char Block_GRAPH[NUM_ALL_BLOCK];
 };
 
