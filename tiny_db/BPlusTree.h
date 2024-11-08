@@ -85,7 +85,7 @@ public:
 
     CNode();
     virtual ~CNode();
-
+    //所有的get函数都应该new了对象，在读取了文件中的结构体之后才能调用,set函数在flush进文件时调用
     //获取和设置结点类型
     NODE_TYPE GetType() { return m_Type; }
     void SetType(NODE_TYPE type) { m_Type = type; }
@@ -94,7 +94,7 @@ public:
     int GetCount() { return m_Count; }
     void SetCount(int i) { m_Count = i; }
 
-    // 获取和设置某个元素，对中间结点指键值，对叶子结点指数据
+    // 获取和设置某个元素，对中间结点指键值，对叶子结点指数据；这里后面需要改为void*类型
     virtual KEY_TYPE GetElement(int i) { return 0; }
     virtual void SetElement(int i, KEY_TYPE value) { }
 
@@ -498,5 +498,7 @@ protected:
     int key_type;
     
     off_t offt_self;
+    //后面定义宏来改大小，先这样
+    char freeBlock[2048];
 };
 

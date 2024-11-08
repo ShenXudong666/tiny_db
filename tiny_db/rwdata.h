@@ -13,7 +13,7 @@ typedef int KEY_TYPE;    /* Îª¼òµ¥Æð¼û£¬¶¨ÒåÎªintÀàÐÍ£¬Êµ¼ÊµÄB+Ê÷¼üÖµÀàÐÍÓ¦¸ÃÊÇ¿
 #include<string>
 #include<iostream>
 #include<fstream>
-
+#include <sys/stat.h>
 using namespace std;
 #define INT_KEY 1
 #define LL_KEY 2
@@ -70,30 +70,33 @@ typedef struct {
 	KEY_TYPE key_type;
 }Index;
 
-	class FileManager {
+class FileManager {
 
-	public:
+public:
 
-		static FileManager* getInstance();
+	static FileManager* getInstance();
 
-		inter_node getCInternalNode(Index index, void* data[MAXNUM_KEY], off_t offt);
-		bool flushInterNode(inter_node node, Index index, void** key);
-		leaf_node getLeafNode(Index index, void* data[MAXNUM_DATA], off_t offt);
-		bool flushLeafNode(leaf_node node, Index index, void** value);
-		table getTable(const char* filename, off_t offt);
-		bool flushTable(table t, const char* filename, off_t offt);
-		bool table_create(const char* path, KEY_TYPE key_type, size_t max_key_size);
-		void flush_key(void* key[MAXNUM_KEY], Index index);
-		void flush_value(void* value[MAXNUM_DATA], Index index);
-		void get_key(void* key[MAXNUM_KEY], Index index);
-		void get_value(void* value[MAXNUM_DATA], Index index);
+	inter_node getCInternalNode(Index index, void* data[MAXNUM_KEY], off_t offt);
+	bool flushInterNode(inter_node node, Index index, void** key);
+	leaf_node getLeafNode(Index index, void* data[MAXNUM_DATA], off_t offt);
+	bool flushLeafNode(leaf_node node, Index index, void** value);
+	table getTable(const char* filename, off_t offt);
+	bool flushTable(table t, const char* filename, off_t offt);
+	bool table_create(const char* path, KEY_TYPE key_type, size_t max_key_size);
+	void flush_key(void* key[MAXNUM_KEY], Index index);
+	void flush_value(void* value[MAXNUM_DATA], Index index);
+	void get_key(void* key[MAXNUM_KEY], Index index);
+	void get_value(void* value[MAXNUM_DATA], Index index);
+	void get_FreeGraph(Index index,char* freeBlock);
+	void flush_FreeGraph(Index index, char* freeBlock);
 
-		void newBlock(const char* filename);
-
+	void newBlock(const char* filename);
+	//»ñÈ¡ÎÄ¼þ×Ü¹²ÓÐ¶àÉÙ¿é
+	size_t getFileSize(const char* fileName);
 
 	protected:
-		static FileManager* object;
+	static FileManager* object;
+	
 
-
-	};
+};
 //FileManager* FileManager::object = NULL;

@@ -226,6 +226,43 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 	fclose(file);
 }
 
+void FileManager::get_FreeGraph(Index index,char* freeBlock)
+{
+	FILE* file=fopen(index.fpath, "rb");
+	if (fseek(file, index.offt_self*DB_BLOCK_SIZE, SEEK_SET) != 0) {
+		perror("Failed to seek");
+		fclose(file);
+	}
+
+	if (fread(freeBlock, sizeof(char), index.max_size, file) != index.max_size) {
+		perror("Failed to read data");
+		fclose(file);
+		return;
+	}
+	fclose(file);
+	cout << "读取成功,前10位为：" << endl;
+	for (int i = 0; i < 10; i++)cout << freeBlock[i];
+	cout << endl;
+
+}
+
+void FileManager::flush_FreeGraph(Index index, char* freeBlock)
+{
+	FILE* file=fopen(index.fpath, "rb+");
+	if (fseek(file, index.offt_self * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+		perror("Failed to seek");
+		fclose(file);
+	}
+
+	fwrite(freeBlock, sizeof(char), 2048, file);
+	fclose(file);
+	cout << "读取成功,空闲块的分布为,前10位为：" << endl;
+	for (int i = 0; i < 10; i++)cout << freeBlock[i];
+	cout << endl;
+
+}
+
+
 void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
@@ -335,5 +372,19 @@ void FileManager::newBlock(const char* filename) {
 	char zero[DB_BLOCK_SIZE] = { 0 };
 	fwrite(zero, 1, sizeof(zero), file);
 	fclose(file);
+}
+
+size_t FileManager::getFileSize(const char* fileName)
+{
+	struct stat statbuf;
+
+	// 提供文件名字符串，获得文件属性结构体
+	stat(fileName, &statbuf);
+
+	// 获取文件大小
+	size_t filesize = statbuf.st_size;
+
+	return filesize / DB_BLOCK_SIZE;
+	
 }
 
