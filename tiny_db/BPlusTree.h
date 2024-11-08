@@ -72,11 +72,7 @@ typedef int KEY_TYPE;    /* Îª¼òµ¥Æğ¼û£¬¶¨ÒåÎªintÀàĞÍ£¬Êµ¼ÊµÄB+Ê÷¼üÖµÀàĞÍÓ¦¸ÃÊÇ¿
 /* ½áµãÀàĞÍ */
 
 
-#define NULL 0
-#define INVALID 0
 
-#define FLAG_LEFT 1
-#define FLAG_RIGHT 2
 
 /* ½áµãÊı¾İ½á¹¹£¬ÎªÄÚ²¿½áµãºÍÒ¶×Ó½áµãµÄ¸¸Àà */
 class CNode

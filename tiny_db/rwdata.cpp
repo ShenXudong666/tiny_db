@@ -242,6 +242,12 @@ void FileManager::get_FreeGraph(Index index,char* freeBlock)
 	fclose(file);
 	cout << "读取成功,前10位为：" << endl;
 	for (int i = 0; i < 10; i++)cout << freeBlock[i];
+	//这一步是防止出问题,已使用的块大于文件真正的大小
+	size_t i=getFileSize(index.fpath);
+	i++;
+	for (i; i < index.max_size; i++) {
+		freeBlock[i] = '2';
+	}
 	cout << endl;
 
 }
@@ -254,7 +260,7 @@ void FileManager::flush_FreeGraph(Index index, char* freeBlock)
 		fclose(file);
 	}
 
-	fwrite(freeBlock, sizeof(char), 2048, file);
+	fwrite(freeBlock, sizeof(char), index.max_size, file);
 	fclose(file);
 	cout << "读取成功,空闲块的分布为,前10位为：" << endl;
 	for (int i = 0; i < 10; i++)cout << freeBlock[i];
@@ -322,6 +328,16 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 		size = max_key_size;
 		break;
 	}
+
+	//对原本文件的大小进行重新初始化，如果原本的文件存在的话
+	FILE* file = fopen(path, "r");
+	if (file) {
+		fclose(file);
+		remove(path); // 删除文件
+		cout << "File deleted successfully." << endl;
+	}
+	for(int i=0;i<6;i++)newBlock(path);
+
 	table t;
 	memcpy(t.fpath, path, sizeof(path)+1);
 	t.fpath[sizeof(path)+1] = '\0';
@@ -335,36 +351,27 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	t.max_key_size = size;
 	//将表的信息写在文件的头部
 	flushTable(t,t.fpath ,0);
-	//将根的信息写在文件头部的后面一块
-	leaf_node root;
-	root.offt_self = 1;
-	root.node_type = NODE_TYPE_ROOT;
+	//===========表信息写入完成=================================
 	
+	//将根的信息写在文件头部的后面一块
+	leaf_node root(2,0,NODE_TYPE_ROOT);
 	void* data[MAXNUM_DATA];
 	//初次创建表，根的值默认为最大的0
 	for (int i = 0; i < MAXNUM_DATA; i++) {
-		data[i] = (void*)new int(13);
+		data[i] = (void*)new int(666);
 	}
-	Index index;
-	memcpy(index.fpath, t.fpath, sizeof(t.fpath));
-	index.max_size = t.max_key_size;
-	index.key_type = t.key_type;
-
-	/*for (int i = 0; i < MAXNUM_DATA; i++) {
-		char* temp= new char[index.max_size];
-		const char* s = "success";
-		memcpy(temp, s, sizeof(s)+1);
-		temp[sizeof(s) + 1] = '\0';
-		cout << "创建table之后写入数据的东西为" << temp << endl;
-		cout << sizeof(temp) << endl;
-		data[i] = (void*)temp;
-	}*/
-	
+	Index index(path,2,t.max_key_size,t.key_type);
 	
 	flushLeafNode(root, index,data);
-
-
-	return false;
+	//======================根信息写入成功========================
+	char freeBlock[NUM_ALL_BLOCK];
+	for (int j = 0; j < 3; j++)freeBlock[j] = '1';
+	for(int j=3;j<6;j++)freeBlock[j] = '0';
+	for (int j = 6; j < NUM_ALL_BLOCK; j++)freeBlock[j] = '2';
+	index.offt_self = 1;
+	flush_FreeGraph(index, freeBlock);
+	//=======================空闲表写入成功======================
+	return true;
 }
 void FileManager::newBlock(const char* filename) {
 

@@ -209,12 +209,13 @@ int main() {
 	for (int i = 0; i < MAXNUM_KEY; i++) {
 		cout << *(int*)cnode2->keys[i] << endl;
 	}*/
-	/*xiebiao(INT_KEY);
+	xiebiao(INT_KEY);
 	BPlusTree* bp = new BPlusTree();
 	memcpy(bp->fpath, fname, sizeof(fname)+1);
+	cout << bp->fpath << endl;
 	bp->get_file();
-	cout << bp-> max_key_size<< endl;*/
-	cout << FileManager::getInstance()->getFileSize(fname);
+	cout << bp-> max_key_size<< endl;
+	
 	
 	
 	
