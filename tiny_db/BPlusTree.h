@@ -37,8 +37,6 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 #include<cstring>
 using namespace std;
 #include"rwdata.h"
-#define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
-#define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
 
 /**
  * @brief 存储数据对齐方式
@@ -490,7 +488,6 @@ protected:
     // 在中间结点中删除键
     bool DeleteInternalNode(CInternalNode* pNode, KEY_TYPE key);
 
-    CNode* m_Root;    // 根结点
     off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
     size_t key_use_block;
