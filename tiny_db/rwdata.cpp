@@ -40,7 +40,7 @@ bool FileManager::flushInterNode(inter_node node, Index index,void** key) {
 leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t offt) {
 
 	FILE* file = fopen(index.fpath, "rb");
-	cout << "¶ÁÈ¡Ò¶½ÚµãµÄÎÄ¼þÃûÎª " << index.fpath << endl;
+	cout << "è¯»å–å¶èŠ‚ç‚¹çš„æ–‡ä»¶åä¸º " << index.fpath << endl;
 	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -57,7 +57,7 @@ leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t o
 
 }
 bool FileManager::flushLeafNode(leaf_node node, Index index, void** value) {
-	//ÒÔÕâ¸öÎªÀý£¬¿ªÊ¼Ð´±ä³¤µÄË÷Òý
+	//ä»¥è¿™ä¸ªä¸ºä¾‹ï¼Œå¼€å§‹å†™å˜é•¿çš„ç´¢å¼•
 	FILE* file = fopen(index.fpath, "rb+");
 	if (fseek(file, node.offt_self * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
@@ -67,7 +67,7 @@ bool FileManager::flushLeafNode(leaf_node node, Index index, void** value) {
 	off_t offset = ftell(file);
 	index.offt_self = offset;
 	fclose(file);
-	//ÔÚÕâÀïÖ®ºóµÃµ½Æ«ÒÆÖ¸ÕëµÄÆ«ÒÆ
+	//åœ¨è¿™é‡Œä¹‹åŽå¾—åˆ°åç§»æŒ‡é’ˆçš„åç§»
 	flush_value(value, index);
 	
 	return true;
@@ -103,7 +103,7 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
-	cout << "Ð´½øvalueµÄÆ«ÒÆÁ¿Îª" << index.offt_self << endl;
+	cout << "å†™è¿›valueçš„åç§»é‡ä¸º" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -123,15 +123,15 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		fwrite(&temp, sizeof(long long), MAXNUM_DATA, file);
 	}
 	else {
-		//ÔÝÊ±ÕâÑù£¬ºóÃæ¿ÉÄÜÓÐbugÒªÐÞ¸Ä
+		//æš‚æ—¶è¿™æ ·ï¼ŒåŽé¢å¯èƒ½æœ‰bugè¦ä¿®æ”¹
 		
 
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			char* temp = new char(index.max_size);
 			temp = (char*)value[i];
-			cout << "Ð´ÈëÊý¾ÝÇ°Îª" << temp << endl;
+			cout << "å†™å…¥æ•°æ®å‰ä¸º" << temp << endl;
 			int t=fwrite(temp, sizeof(char), index.max_size, file);
-			cout << "Ð´ÁËÎ»ÊýÎª£º" << t << endl;
+			cout << "å†™äº†ä½æ•°ä¸ºï¼š" << t << endl;
 			delete temp;
 		}
 		
@@ -167,13 +167,13 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb");
-	cout<<"indexµÄÎÄ¼þ" << index.fpath << endl;
+	cout<<"indexçš„æ–‡ä»¶" << index.fpath << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 	//void* temp;
-	cout << "¶ÁÈ¡valueµÄÆ«ÒÆÁ¿Îª" << index.offt_self << endl;
+	cout << "è¯»å–valueçš„åç§»é‡ä¸º" << index.offt_self << endl;
 	cout << "index.key" << endl;
 	cout << index.key_type << endl;
 
@@ -215,7 +215,7 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 				return;
 			}
 			value[i] = (void*)temp;
-			cout << "¶ÁÈ¡ºó×Ö·û´®Êý¾ÝÎª " << (char*)value[i] << endl;
+			cout << "è¯»å–åŽå­—ç¬¦ä¸²æ•°æ®ä¸º " << (char*)value[i] << endl;
 			
 			
 		}
@@ -240,9 +240,9 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 		return;
 	}
 	fclose(file);
-	cout << "¶ÁÈ¡³É¹¦,Ç°10Î»Îª£º" << endl;
+	cout << "è¯»å–æˆåŠŸ,å‰10ä½ä¸ºï¼š" << endl;
 	for (int i = 0; i < 10; i++)cout << freeBlock[i];
-	//ÕâÒ»²½ÊÇ·ÀÖ¹³öÎÊÌâ,ÒÑÊ¹ÓÃµÄ¿é´óÓÚÎÄ¼þÕæÕýµÄ´óÐ¡
+	//è¿™ä¸€æ­¥æ˜¯é˜²æ­¢å‡ºé—®é¢˜,å·²ä½¿ç”¨çš„å—å¤§äºŽæ–‡ä»¶çœŸæ­£çš„å¤§å°
 	size_t i=getFileSize(fname);
 	i++;
 	for (i; i < NUM_ALL_BLOCK; i++) {
@@ -262,7 +262,7 @@ void FileManager::flush_BlockGraph(Index index, char* freeBlock)
 
 	fwrite(freeBlock, sizeof(char), index.max_size, file);
 	fclose(file);
-	cout << "¶ÁÈ¡³É¹¦,¿ÕÏÐ¿éµÄ·Ö²¼Îª,Ç°10Î»Îª£º" << endl;
+	cout << "è¯»å–æˆåŠŸ,ç©ºé—²å—çš„åˆ†å¸ƒä¸º,å‰10ä½ä¸ºï¼š" << endl;
 	for (int i = 0; i < 10; i++)cout << freeBlock[i];
 	cout << endl;
 
@@ -272,7 +272,7 @@ void FileManager::flush_BlockGraph(Index index, char* freeBlock)
 void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
-	cout << "Ð´½økeyµÄÆ«ÒÆÁ¿Îª" << index.offt_self << endl;
+	cout << "å†™è¿›keyçš„åç§»é‡ä¸º" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -292,15 +292,15 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 		fwrite(&temp, sizeof(long long), MAXNUM_KEY, file);
 	}
 	else {
-		//ÔÝÊ±ÕâÑù£¬ºóÃæ¿ÉÄÜÓÐbugÒªÐÞ¸Ä
+		//æš‚æ—¶è¿™æ ·ï¼ŒåŽé¢å¯èƒ½æœ‰bugè¦ä¿®æ”¹
 
 
 		for (int i = 0; i < MAXNUM_KEY; i++) {
 			char* temp = new char(index.max_size);
 			temp = (char*)key[i];
-			cout << "Ð´ÈëÊý¾ÝÇ°Îª" << temp << endl;
+			cout << "å†™å…¥æ•°æ®å‰ä¸º" << temp << endl;
 			int t = fwrite(temp, sizeof(char), index.max_size, file);
-			cout << "Ð´ÁËÎ»ÊýÎª£º" << t << endl;
+			cout << "å†™äº†ä½æ•°ä¸ºï¼š" << t << endl;
 			delete temp;
 		}
 
@@ -312,7 +312,7 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_key_size)
 {
 	size_t size = 0;
-	//¾ÀÕý×î´óË÷ÒýËùÕ¼¿Õ¼ä
+	//çº æ­£æœ€å¤§ç´¢å¼•æ‰€å ç©ºé—´
 	switch (key_type)
 	{
 	case INT_KEY:
@@ -329,11 +329,11 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 		break;
 	}
 
-	//¶ÔÔ­±¾ÎÄ¼þµÄ´óÐ¡½øÐÐÖØÐÂ³õÊ¼»¯£¬Èç¹ûÔ­±¾µÄÎÄ¼þ´æÔÚµÄ»°
+	//å¯¹åŽŸæœ¬æ–‡ä»¶çš„å¤§å°è¿›è¡Œé‡æ–°åˆå§‹åŒ–ï¼Œå¦‚æžœåŽŸæœ¬çš„æ–‡ä»¶å­˜åœ¨çš„è¯
 	FILE* file = fopen(path, "r");
 	if (file) {
 		fclose(file);
-		remove(path); // É¾³ýÎÄ¼þ
+		remove(path); // åˆ é™¤æ–‡ä»¶
 		cout << "File deleted successfully." << endl;
 	}
 	for(int i=0;i<6;i++)newBlock(path);
@@ -349,21 +349,21 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	t.value_use_block = 0;
 	
 	t.max_key_size = size;
-	//½«±íµÄÐÅÏ¢Ð´ÔÚÎÄ¼þµÄÍ·²¿
+	//å°†è¡¨çš„ä¿¡æ¯å†™åœ¨æ–‡ä»¶çš„å¤´éƒ¨
 	flushTable(t,t.fpath ,0);
-	//===========±íÐÅÏ¢Ð´ÈëÍê³É=================================
+	//===========è¡¨ä¿¡æ¯å†™å…¥å®Œæˆ=================================
 	
-	//½«¸ùµÄÐÅÏ¢Ð´ÔÚÎÄ¼þÍ·²¿µÄºóÃæÒ»¿é
+	//å°†æ ¹çš„ä¿¡æ¯å†™åœ¨æ–‡ä»¶å¤´éƒ¨çš„åŽé¢ä¸€å—
 	leaf_node root(2,0,NODE_TYPE_ROOT);
 	void* data[MAXNUM_DATA];
-	//³õ´Î´´½¨±í£¬¸ùµÄÖµÄ¬ÈÏÎª×î´óµÄ0
+	//åˆæ¬¡åˆ›å»ºè¡¨ï¼Œæ ¹çš„å€¼é»˜è®¤ä¸ºæœ€å¤§çš„0
 	for (int i = 0; i < MAXNUM_DATA; i++) {
 		data[i] = (void*)new int(666);
 	}
 	Index index(path,2,t.max_key_size,t.key_type);
 	
 	flushLeafNode(root, index,data);
-	//======================¸ùÐÅÏ¢Ð´Èë³É¹¦========================
+	//======================æ ¹ä¿¡æ¯å†™å…¥æˆåŠŸ========================
 	char block_graph[NUM_ALL_BLOCK];
 	block_graph[0] = BLOCK_TLABE;
 	block_graph[1] = BLOCK_GRAPH;
@@ -373,7 +373,7 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	index.offt_self = 1;
 	index.max_size = NUM_ALL_BLOCK;
 	flush_BlockGraph(index, block_graph);
-	//=======================¿ÕÏÐ±íÐ´Èë³É¹¦======================
+	//=======================ç©ºé—²è¡¨å†™å…¥æˆåŠŸ======================
 	return true;
 }
 void FileManager::newBlock(const char* filename) {
@@ -388,10 +388,10 @@ size_t FileManager::getFileSize(const char* fileName)
 {
 	struct stat statbuf;
 
-	// Ìá¹©ÎÄ¼þÃû×Ö·û´®£¬»ñµÃÎÄ¼þÊôÐÔ½á¹¹Ìå
+	// æä¾›æ–‡ä»¶åå­—ç¬¦ä¸²ï¼ŒèŽ·å¾—æ–‡ä»¶å±žæ€§ç»“æž„ä½“
 	stat(fileName, &statbuf);
 
-	// »ñÈ¡ÎÄ¼þ´óÐ¡
+	// èŽ·å–æ–‡ä»¶å¤§å°
 	size_t filesize = statbuf.st_size;
 
 	return filesize / DB_BLOCK_SIZE;

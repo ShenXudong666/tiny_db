@@ -2,7 +2,6 @@
 #include "BPlusTree.h"
 #include<iostream>
 #include<fstream>
-#include<unistd.h>
 using namespace std;
 
 #define BLOCK_SIZE 4096
@@ -33,7 +32,7 @@ void outTry(off_t offset) {
 	
 	fwrite(&bt, sizeof(btree_key), 1, file);
 	fclose(file);
-	cout << "Ð´Èë³É¹¦" << endl;
+	cout << "å†™å…¥æˆåŠŸ" << endl;
 }
 void inTry(off_t offset) {
 	FILE* file = fopen("example.bin", "rb");
@@ -46,44 +45,44 @@ void inTry(off_t offset) {
 
 	fread(&bt, sizeof(btree_key), 1, file);
 	fclose(file);
-	cout << "¶ÁÈ¡³É¹¦" << endl;
+	cout << "è¯»å–æˆåŠŸ" << endl;
 	cout << bt.child << " " << bt.value << endl;
 }
 
-// ÐÞ¸Ähelpº¯Êý£¬Ê¹ÆäÍ¨¹ýÒýÓÃ´«µÝvoid*ÀàÐÍµÄ²ÎÊý
+// ä¿®æ”¹helpå‡½æ•°ï¼Œä½¿å…¶é€šè¿‡å¼•ç”¨ä¼ é€’void*ç±»åž‹çš„å‚æ•°
 void help(void** data, int type) {
 	if (type == 1) {
 		for (int i = 0; i < 10; i++) {
-			data[i] = (void*)new int(14); // Ê¹ÓÃnew·ÖÅäÄÚ´æ
+			data[i] = (void*)new int(14); // ä½¿ç”¨newåˆ†é…å†…å­˜
 		}
 		
 	}
 	else {
 		for (int i = 0; i < 10; i++) {
-			data[i] = (void*)new char[6](); // Ê¹ÓÃnew·ÖÅäÄÚ´æ²¢³õÊ¼»¯×Ö·û´®
+			data[i] = (void*)new char[6](); // ä½¿ç”¨newåˆ†é…å†…å­˜å¹¶åˆå§‹åŒ–å­—ç¬¦ä¸²
 			strcpy((char*)data[i], "hello");
 		}
 		
 	}
 }
 void test_write_char(const char* data,int dataSize,int position) {
-	FILE* file = fopen("output.bin", "rb+"); // ÒÔ¶Á/Ð´¶þ½øÖÆÄ£Ê½´ò¿ªÎÄ¼þ
+	FILE* file = fopen("output.bin", "rb+"); // ä»¥è¯»/å†™äºŒè¿›åˆ¶æ¨¡å¼æ‰“å¼€æ–‡ä»¶
 	if (fseek(file, position, SEEK_SET) != 0) {
 		std::cerr << "Failed to seek to the specified position." << std::endl;
 		fclose(file);
 		return ;
 	}
 
-	// Ê¹ÓÃfwriteÐ´ÈëÊý¾Ý
+	// ä½¿ç”¨fwriteå†™å…¥æ•°æ®
 	size_t bytesWritten = fwrite(data, sizeof(char), dataSize, file);
-	// ¹Ø±ÕÎÄ¼þ
+	// å…³é—­æ–‡ä»¶
 	fclose(file);
 
 	cout << "Data written to file successfully." << endl;
 }
 void test_read_char(char* data, int dataSize, int position) {
-	// ´ò¿ªÎÄ¼þ
-	FILE* file = fopen("output.bin", "rb"); // ÒÔ¶þ½øÖÆÐ´ÈëÄ£Ê½´ò¿ªÎÄ¼þ
+	// æ‰“å¼€æ–‡ä»¶
+	FILE* file = fopen("output.bin", "rb"); // ä»¥äºŒè¿›åˆ¶å†™å…¥æ¨¡å¼æ‰“å¼€æ–‡ä»¶
 	if (fseek(file, position, SEEK_SET) != 0) {
 		std::cerr << "Failed to seek to the specified position." << std::endl;
 		fclose(file);
@@ -91,7 +90,7 @@ void test_read_char(char* data, int dataSize, int position) {
 	}
 	size_t bytesRead = fread(data, sizeof(char), dataSize, file);
 	cout << "Data read from file: " << data << endl;
-	fclose(file); // ¹Ø±ÕÎÄ¼þ
+	fclose(file); // å…³é—­æ–‡ä»¶
 
 }
 void func1() {
@@ -108,10 +107,10 @@ void func2() {
 	ss::newoneBlock("table.bin");*/
 	const char* fname = "table.bin";
 	FileManager::getInstance()->table_create(fname, INT_KEY, sizeof(int));
-	//cout << "±íÍ·Ð´Èë³É¹¦" << endl;
+	//cout << "è¡¨å¤´å†™å…¥æˆåŠŸ" << endl;
 	table t= FileManager::getInstance()->getTable("table.bin", 0);
-	cout << "¶ÁÈ¡±í³É¹¦" << endl;
-	cout << "±íµÄË÷ÒýÖµÎª£º" << t.key_type << endl;
+	cout << "è¯»å–è¡¨æˆåŠŸ" << endl;
+	cout << "è¡¨çš„ç´¢å¼•å€¼ä¸ºï¼š" << t.key_type << endl;
 	cout << "max_size: " << t.max_key_size << endl;
 	Index index;
 	memcpy(index.fpath, fname, sizeof(fname) + 1);
@@ -121,19 +120,19 @@ void func2() {
 	void* data[MAXNUM_DATA];
 	leaf_node l = FileManager::getInstance()->getLeafNode(index, data, 1);
 	cout << *(int*)data[0] << " "<< *(int*)data[1] << endl;
-	cout << "¸ùµÄÆ«ÒÆÖµÎª" << endl;
+	cout << "æ ¹çš„åç§»å€¼ä¸º" << endl;
 	cout << l.offt_self << endl;
 
 }
 void func3(void** data) {
-	FILE* file = fopen("output.bin", "rb+"); // ÒÔ¶Á/Ð´¶þ½øÖÆÄ£Ê½´ò¿ªÎÄ¼þ
+	FILE* file = fopen("output.bin", "rb+"); // ä»¥è¯»/å†™äºŒè¿›åˆ¶æ¨¡å¼æ‰“å¼€æ–‡ä»¶
 	if (fseek(file, 2*DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		std::cerr << "Failed to seek to the specified position." << std::endl;
 		fclose(file);
 		return;
 	}
 	int arr[5];
-	cout << "Ð´½ø¹ý³Ì" << endl;
+	cout << "å†™è¿›è¿‡ç¨‹" << endl;
 	for (int i = 0; i < 5; i++) {
 		arr[i] = *(int*)data[i];
 		cout << arr[i] << endl;
@@ -142,7 +141,7 @@ void func3(void** data) {
 	fclose;
 }
 void func4(void** data) {
-	FILE* file = fopen("output.bin", "rb"); // ÒÔ¶Á/Ð´¶þ½øÖÆÄ£Ê½´ò¿ªÎÄ¼þ
+	FILE* file = fopen("output.bin", "rb"); // ä»¥è¯»/å†™äºŒè¿›åˆ¶æ¨¡å¼æ‰“å¼€æ–‡ä»¶
 	if (fseek(file, 2*DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		std::cerr << "Failed to seek to the specified position." << std::endl;
 		fclose(file);
@@ -164,9 +163,9 @@ void xiebiao(KEY_TYPE key) {
 }
 int main() {
 	const char* fname = "table.bin";
-	//void* data = nullptr; // ³õÊ¼»¯dataÎªnullptr
-	//help(data, 2); // ´«µÝdataµÄÒýÓÃ
-	//cout << data << endl; // Êä³ödataµÄµØÖ·
+	//void* data = nullptr; // åˆå§‹åŒ–dataä¸ºnullptr
+	//help(data, 2); // ä¼ é€’dataçš„å¼•ç”¨
+	//cout << data << endl; // è¾“å‡ºdataçš„åœ°å€
 
 	//cout << "The value is: " << strlen((char*)data) << endl;
 	//newBlock();
@@ -184,10 +183,10 @@ int main() {
 		cout << *(int*)data[i] << endl;
 	}
 	func3(data);
-	cout << "dataÐ´Èë³É¹¦" << endl;
+	cout << "dataå†™å…¥æˆåŠŸ" << endl;
 	void* data1[5];
 	func4(data1);
-	cout << "data1¶Á½ø³É¹¦" << endl;
+	cout << "data1è¯»è¿›æˆåŠŸ" << endl;
 	cout << *(int*)data1[0] << endl;*/
 
 	//func2();
@@ -202,7 +201,7 @@ int main() {
 		cnode->keys[i] = new int(10);
 	}
 	cnode->flush_file(fname, INT_KEY,sizeof(int));
-	cout << "Ð´Èë³É¹¦" << endl;
+	cout << "å†™å…¥æˆåŠŸ" << endl;
 	CInternalNode* cnode2 = new CInternalNode(2);
 	cout << fname << endl;
 	cnode2->get_file(fname, INT_KEY, sizeof(int));

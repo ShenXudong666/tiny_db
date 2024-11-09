@@ -18,11 +18,11 @@
 //	leaf3.offt_self = 4;
 //	leaf3.value = 3000;
 //	fm->flushLeafNode(leaf3, fname, leaf3.offt_self);
-//	cout << "写入成功" << endl;
+//	cout << "鍐欏叆鎴愬姛" << endl;
 //}
 //void duru(FileManager* fm, string fname) {
 //	inter_node root = fm->getCInternalNode(fname, 1);
-//	cout << "root的位置为:" << root.offt_self << endl;
+//	cout << "root鐨勪綅缃负:" << root.offt_self << endl;
 //	leaf_node leaf1=fm->getLeafNode(fname, root.offt_pointers[0]);
 //	leaf_node leaf2 = fm->getLeafNode(fname, root.offt_pointers[1]);
 //	leaf_node leaf3 = fm->getLeafNode(fname, root.offt_pointers[2]);

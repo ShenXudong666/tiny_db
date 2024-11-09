@@ -1,15 +1,15 @@
 #pragma once
 #include "stdio.h"
 #include "stdlib.h"
-#define DB_HEAD_SIZE 4096 // head size must be pow of 2! ÎÄ¼şÊı¾İ¿âµÄÍ·´óĞ¡
-#define DB_BLOCK_SIZE 4096 // block size must be pow of 2! ÎÄ¼şÊı¾İ¿âµÄÊı¾İ¿é´óĞ¡
-#define ORDER_V 2    /* Îª¼òµ¥Æğ¼û£¬°Ñv¹Ì¶¨Îª2£¬Êµ¼ÊµÄB+Ê÷vÖµÓ¦¸ÃÊÇ¿ÉÅäµÄ¡£ÕâÀïµÄvÊÇÄÚ²¿½ÚµãÖĞ¼üµÄ×îĞ¡Öµ */
-#define MAXNUM_KEY (ORDER_V * 2)    /* ÄÚ²¿½áµãÖĞ×î¶à¼ü¸öÊı£¬Îª2v */
-#define MAXNUM_POINTER (MAXNUM_KEY + 1)    /* ÄÚ²¿½áµãÖĞ×î¶àÖ¸Ïò×ÓÊ÷µÄÖ¸Õë¸öÊı£¬Îª2v */
-#define MAXNUM_DATA (ORDER_V * 2)    /* Ò¶×Ó½áµãÖĞ×î¶àÊı¾İ¸öÊı£¬Îª2v */
-/* ¼üÖµµÄÀàĞÍ*/
-typedef int KEY_TYPE;    /* Îª¼òµ¥Æğ¼û£¬¶¨ÒåÎªintÀàĞÍ£¬Êµ¼ÊµÄB+Ê÷¼üÖµÀàĞÍÓ¦¸ÃÊÇ¿ÉÅäµÄ */
-/*±¸×¢£º Îª¼òµ¥Æğ¼û£¬Ò¶×Ó½áµãµÄÊı¾İÒ²Ö»´æ´¢¼üÖµ*/
+#define DB_HEAD_SIZE 4096 // head size must be pow of 2! æ–‡ä»¶æ•°æ®åº“çš„å¤´å¤§å°
+#define DB_BLOCK_SIZE 4096 // block size must be pow of 2! æ–‡ä»¶æ•°æ®åº“çš„æ•°æ®å—å¤§å°
+#define ORDER_V 2    /* ä¸ºç®€å•èµ·è§ï¼ŒæŠŠvå›ºå®šä¸º2ï¼Œå®é™…çš„B+æ ‘vå€¼åº”è¯¥æ˜¯å¯é…çš„ã€‚è¿™é‡Œçš„væ˜¯å†…éƒ¨èŠ‚ç‚¹ä¸­é”®çš„æœ€å°å€¼ */
+#define MAXNUM_KEY (ORDER_V * 2)    /* å†…éƒ¨ç»“ç‚¹ä¸­æœ€å¤šé”®ä¸ªæ•°ï¼Œä¸º2v */
+#define MAXNUM_POINTER (MAXNUM_KEY + 1)    /* å†…éƒ¨ç»“ç‚¹ä¸­æœ€å¤šæŒ‡å‘å­æ ‘çš„æŒ‡é’ˆä¸ªæ•°ï¼Œä¸º2v */
+#define MAXNUM_DATA (ORDER_V * 2)    /* å¶å­ç»“ç‚¹ä¸­æœ€å¤šæ•°æ®ä¸ªæ•°ï¼Œä¸º2v */
+/* é”®å€¼çš„ç±»å‹*/
+typedef int KEY_TYPE;    /* ä¸ºç®€å•èµ·è§ï¼Œå®šä¹‰ä¸ºintç±»å‹ï¼Œå®é™…çš„B+æ ‘é”®å€¼ç±»å‹åº”è¯¥æ˜¯å¯é…çš„ */
+/*å¤‡æ³¨ï¼š ä¸ºç®€å•èµ·è§ï¼Œå¶å­ç»“ç‚¹çš„æ•°æ®ä¹Ÿåªå­˜å‚¨é”®å€¼*/
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -27,7 +27,7 @@ using namespace std;
 #define FLAG_LEFT 1
 #define FLAG_RIGHT 2
 
-//ÓÃÓÚ
+//ç”¨äº
 #define BLOCK_TLABE '1'
 #define BLOCK_GRAPH '2'
 #define BLOCK_INTER '3'
@@ -36,9 +36,9 @@ using namespace std;
 #define BLOCK_FREE '0'
 enum NODE_TYPE
 {
-	NODE_TYPE_ROOT = 1,    // ¸ù½áµã
-	NODE_TYPE_INTERNAL = 2,    // ÄÚ²¿½áµã
-	NODE_TYPE_LEAF = 3,    // Ò¶×Ó½áµã
+	NODE_TYPE_ROOT = 1,    // æ ¹ç»“ç‚¹
+	NODE_TYPE_INTERNAL = 2,    // å†…éƒ¨ç»“ç‚¹
+	NODE_TYPE_LEAF = 3,    // å¶å­ç»“ç‚¹
 };
 
 
@@ -47,10 +47,10 @@ typedef struct {
 	off_t offt_root;
 	off_t offt_leftHead;
 	off_t offt_rightHead;
-	int m_Depth;//Ê÷µÄÉî¶È
-	int key_type;//Ë÷Òı¼üµÄÀàĞÍ
+	int m_Depth;//æ ‘çš„æ·±åº¦
+	int key_type;//ç´¢å¼•é”®çš„ç±»å‹
 	size_t max_key_size;
-	size_t key_use_block;               /** Êı¾İ¿éÎªbtree_keyÀàĞÍµÄ×ÜÊı */
+	size_t key_use_block;               /** æ•°æ®å—ä¸ºbtree_keyç±»å‹çš„æ€»æ•° */
 	size_t value_use_block;
 }table;
 
@@ -68,8 +68,8 @@ typedef struct {
 struct leaf_node {
 	off_t offt_self;
 	off_t offt_father;
-	off_t offt_PrevNode;                    //Ç°Ò»¸ö½ÚµãÔÚÎÄ¼şÖĞµÄÆ«ÒÆÎ»ÖÃ
-	off_t offt_NextNode;                    //ºóÒ»¸öÎ»ÖÃÔÚÎÄ¼şÖĞµÄÆ«ÒÆÎ»ÖÃ
+	off_t offt_PrevNode;                    //å‰ä¸€ä¸ªèŠ‚ç‚¹åœ¨æ–‡ä»¶ä¸­çš„åç§»ä½ç½®
+	off_t offt_NextNode;                    //åä¸€ä¸ªä½ç½®åœ¨æ–‡ä»¶ä¸­çš„åç§»ä½ç½®
 	size_t count;
 	NODE_TYPE node_type;
 	leaf_node(){}
@@ -116,7 +116,7 @@ public:
 	void flush_BlockGraph(Index index, char* freeBlock);
 
 	void newBlock(const char* filename);
-	//»ñÈ¡ÎÄ¼ş×Ü¹²ÓĞ¶àÉÙ¿é
+	//è·å–æ–‡ä»¶æ€»å…±æœ‰å¤šå°‘å—
 	size_t getFileSize(const char* fileName);
 
 	protected:
