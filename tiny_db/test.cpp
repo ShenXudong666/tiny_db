@@ -1,5 +1,6 @@
 #include"rwdata.h"
 #include "BPlusTree.h"
+#include <cstring>
 #include<iostream>
 #include<fstream>
 #include<unistd.h>
@@ -210,11 +211,8 @@ int main() {
 		cout << *(int*)cnode2->keys[i] << endl;
 	}*/
 	xiebiao(INT_KEY);
-	BPlusTree* bp = new BPlusTree();
-	memcpy(bp->fpath, fname, sizeof(fname)+1);
-	cout << bp->fpath << endl;
-	bp->get_file();
-	cout << bp-> max_key_size<< endl;
+	BPlusTree* bp = new BPlusTree(fname);
+	cout<<bp->m_Root->GetType()<<endl;
 	
 	
 	
