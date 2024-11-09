@@ -84,14 +84,14 @@ struct leaf_node {
 struct Index{
 	char fpath[100];
 	off_t offt_self;
-	off_t max_size;
+	size_t max_size;
 	KEY_TYPE key_type;
 	Index(){}
 	Index(const char* fname, off_t offt,
 		off_t max_size, KEY_TYPE key_type)
 		:offt_self(offt), max_size(max_size), key_type(key_type) {
-		memcpy(fpath, fname, sizeof(fname) + 1);
-		fpath[sizeof(fname) + 1] = '\0';
+		memcpy(fpath, fname, strlen(fname));
+		fpath[strlen(fname)] = '\0';
 	}
 };
 

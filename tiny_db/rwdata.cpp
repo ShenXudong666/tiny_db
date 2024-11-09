@@ -83,7 +83,7 @@ table FileManager::getTable(const char* filename, off_t offt) {
 	table t;
 	fread(&t, 1, sizeof(table), file);
 	fclose(file);
-
+	cout<<"�����ɹ�"<<endl;
 	return t;
 
 }
@@ -98,6 +98,7 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 	}
 	fwrite(&t, 1, sizeof(table), file);
 	fclose(file);
+	cout<<"д���ɹ�"<<endl;
 	return true;
 }
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
@@ -361,9 +362,10 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 		data[i] = (void*)new int(666);
 	}
 	Index index(path,2,t.max_key_size,t.key_type);
-	
+	cout<<index.fpath<<endl;
 	flushLeafNode(root, index,data);
 	//======================根信息写入成功========================
+	cout<<"根信息写入成功"<<endl;
 	char block_graph[NUM_ALL_BLOCK];
 	block_graph[0] = BLOCK_TLABE;
 	block_graph[1] = BLOCK_GRAPH;
@@ -374,6 +376,7 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	index.max_size = NUM_ALL_BLOCK;
 	flush_BlockGraph(index, block_graph);
 	//=======================空闲表写入成功======================
+	cout<<"表创建成功"<<endl;
 	return true;
 }
 void FileManager::newBlock(const char* filename) {

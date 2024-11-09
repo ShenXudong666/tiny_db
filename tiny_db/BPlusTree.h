@@ -25,6 +25,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
    也有些人把阶定义为内部结点中键的最大数目，即2v。
    一般而言，叶子结点中最大数据个数和内部结点中最大键个数是一样的，也是2v。(我想这样做的目的是为了把内部结点和叶子结点统一到同一个结构中吧)
 */
+#include <sys/types.h>
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
 
 #define MAXNUM_KEY (ORDER_V * 2)    /* 内部结点中最多键个数，为2v */
@@ -342,8 +343,7 @@ public:
         index.fpath[sizeof(fname) + 1] = '\0';
         cout << "index的文件路径为:" << endl;
         cout << index.fpath << endl;
-        index.key_type = key_type;
-        index.max_size = max_size;
+        
         leaf_node node = FileManager::getInstance()->getLeafNode(index,this->values,this->offt_self);
 
         //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
@@ -352,6 +352,7 @@ public:
         this->offt_father = node.offt_father;
         this->m_Count = node.count;
         this->m_Type = node.node_type;
+        this->offt_self=node.offt_self;
         return true;
     }
 public:
@@ -479,6 +480,7 @@ public:
     off_t offt_rightHead;
     char fpath[100];     //文件，也即表的路径
     size_t max_key_size;
+    CNode* m_Root;    // �����
 protected:
 
     // 为插入而查找叶子结点

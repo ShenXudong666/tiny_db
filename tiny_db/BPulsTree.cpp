@@ -1,7 +1,10 @@
 #pragma once
 #include "BPlusTree.h"
+#include "rwdata.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include <cstring>
+#include <iterator>
 
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
 #define DB_BLOCK_SIZE 8192 // block size must be pow of 2! 文件数据库的数据块大小
@@ -503,11 +506,37 @@ BPlusTree::BPlusTree()
     m_Root = NULL;
     m_pLeafHead = NULL;
     m_pLeafTail = NULL;
+    this->offt_self = 0;
+    
 }
 BPlusTree::BPlusTree(const char* fname)
 {
+    memcpy(fpath, fname, sizeof(fname)+1);
+    this->fpath[sizeof(fname)+1]='\0';
     table t=FileManager::getInstance()->getTable(fname, 0);
     this->m_Depth = t.m_Depth;
+    this->offt_self = 0;
+    this->max_key_size= t.max_key_size;
+    this->key_type=t.key_type;
+    this->offt_root=t.offt_root;
+    this->key_use_block=t.key_use_block;
+    this->value_use_block=t.value_use_block;
+    this->offt_leftHead=NULL;
+    this->offt_rightHead=NULL;
+
+    FileManager::getInstance()->get_BlockGraph(fname, this->Block_GRAPH);
+    if(this->Block_GRAPH[2]==BLOCK_LEAF){
+        this->m_Root=new CLeafNode(2);
+        ((CLeafNode*)this->m_Root)->get_file(fname, t.key_type, t.max_key_size);
+
+    }
+    else if(this->Block_GRAPH[2]==BLOCK_INTER){
+        this->m_Root=new CInternalNode();
+        ((CInternalNode*)this->m_Root)->get_file(fname, t.key_type, t.max_key_size);
+    }
+    
+    
+    
     
 
 }
