@@ -162,7 +162,7 @@ void xiebiao(KEY_KIND key) {
 	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
 	else FileManager::getInstance()->table_create(fname, key, 100);
 }
-int main() {
+int main7() {
 	const char* fname = "table.bin";
 	//void* data = nullptr; // 初始化data为nullptr
 	//help(data, 2); // 传递data的引用

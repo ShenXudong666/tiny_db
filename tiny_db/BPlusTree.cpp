@@ -517,7 +517,7 @@ BPlusTree::BPlusTree(const char* fname)
     this->m_Depth = t.m_Depth;
     this->offt_self = 0;
     this->max_key_size= t.max_key_size;
-    this->key_type=t.key_kind;
+    this->key_kind=t.key_kind;
     this->offt_root=t.offt_root;
     this->key_use_block=t.key_use_block;
     this->value_use_block=t.value_use_block;

@@ -199,7 +199,7 @@ public:
         return this->offt_pointers[index];
     }
 
-    bool flush_file(const char* fname,KEY_TYPE key_type,size_t max_size) {
+    bool flush_file(const char* fname,KEY_KIND key_kind,size_t max_size) {
         inter_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
@@ -213,7 +213,7 @@ public:
         memcpy(index.fpath, fname, sizeof(fname)+1);
         index.fpath[sizeof(fname) + 1] = '\0';
         cout << index.fpath << endl;
-        index.key_kind = key_type;
+        index.key_kind = key_kind;
         index.max_size = max_size;
         index.offt_self = this->offt_self;
         
@@ -222,11 +222,11 @@ public:
         return true;
     }
 
-    bool get_file(const char* fname,KEY_TYPE key_type,size_t max_size) {
+    bool get_file(const char* fname,KEY_KIND key_kind,size_t max_size) {
         Index index;
         memcpy(index.fpath, fname, sizeof(fname) + 1);
         index.fpath[sizeof(fname) + 1] = '\0';
-        index.key_kind = key_type;
+        index.key_kind = key_kind;
         index.max_size = max_size;
         cout << index.fpath << endl;
         //下面的getCInternalNode待修改
@@ -315,7 +315,7 @@ public:
         return this->offt_NextNode;
     }
 
-    bool flush_file(const char* fname,KEY_TYPE key_type,size_t max_size) {
+    bool flush_file(const char* fname,KEY_KIND key_kind,size_t max_size) {
         leaf_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
@@ -327,7 +327,7 @@ public:
         node.count = this->m_Count;
         Index index;
         memcmp(index.fpath, fname, sizeof(fname));
-        index.key_kind = key_type;
+        index.key_kind = key_kind;
         index.max_size = max_size;
         
         FileManager::getInstance()->flushLeafNode(node, index,(void**)this->m_Datas);
@@ -335,9 +335,9 @@ public:
         return true;
     }
 
-    bool get_file(const char* fname, KEY_TYPE key_type, size_t max_size) {
+    bool get_file(const char* fname, KEY_KIND key_kind, size_t max_size) {
         
-        Index index(fname,this->offt_self,max_size,key_type);
+        Index index(fname,this->offt_self,max_size,key_kind);
 
 
         leaf_node node = FileManager::getInstance()->getLeafNode(index,this->values,this->offt_self);
@@ -445,7 +445,7 @@ public:
         t.offt_rightHead = this->offt_rightHead;
         t.key_use_block = this->key_use_block;
         t.value_use_block = this->value_use_block;
-        t.key_kind = this->key_type;
+        t.key_kind = this->key_kind;
         t.m_Depth = this->m_Depth;
         FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
         return true;
@@ -458,7 +458,7 @@ public:
         this->offt_root = t.offt_root;
         this->offt_leftHead = t.offt_leftHead;
         this->offt_rightHead = t.offt_rightHead;
-        this->key_type = t.key_kind;
+        this->key_kind = t.key_kind;
         this->key_use_block = t.key_use_block;
         this->value_use_block = t.value_use_block;
         this->m_Depth = t.m_Depth;
@@ -490,7 +490,7 @@ protected:
     int m_Depth;      // 树的深度
     size_t key_use_block;
     size_t value_use_block;
-    int key_type;
+    int key_kind;
     
     off_t offt_self;
     //后面定义宏来改大小，先这样
