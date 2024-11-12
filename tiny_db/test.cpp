@@ -111,13 +111,13 @@ void func2() {
 	//cout << "表头写入成功" << endl;
 	table t= FileManager::getInstance()->getTable("table.bin", 0);
 	cout << "读取表成功" << endl;
-	cout << "表的索引值为：" << t.key_type << endl;
+	cout << "表的索引值为：" << t.key_kind << endl;
 	cout << "max_size: " << t.max_key_size << endl;
 	Index index;
 	memcpy(index.fpath, fname, sizeof(fname) + 1);
 	index.fpath[sizeof(fname) + 1] = '\0';
 	index.max_size = sizeof(int);
-	index.key_type = INT_KEY;
+	index.key_kind = INT_KEY;
 	void* data[MAXNUM_DATA];
 	leaf_node l = FileManager::getInstance()->getLeafNode(index, data, 1);
 	cout << *(int*)data[0] << " "<< *(int*)data[1] << endl;
@@ -156,7 +156,7 @@ void func4(void** data) {
 	}
 	fclose;
 }
-void xiebiao(KEY_TYPE key) {
+void xiebiao(KEY_KIND key) {
 	const char* fname = "table.bin";
 	if(key==INT_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(int));
 	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));

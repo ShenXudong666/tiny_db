@@ -109,14 +109,14 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		perror("Failed to seek");
 		fclose(file);
 	}
-	if (index.key_type == INT_KEY) {
+	if (index.key_kind == INT_KEY) {
 		int temp[MAXNUM_DATA];
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			temp[i] = *(int*)value[i];
 		}
 		fwrite(&temp, sizeof(int), MAXNUM_DATA, file);
 	}
-	else if (index.key_type == LL_KEY) {
+	else if (index.key_kind == LL_KEY) {
 		long long temp[MAXNUM_DATA];
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			temp[i] = *(long long*)value[i];
@@ -149,10 +149,10 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 		fclose(file);
 	}
 	void* temp;
-	if (index.key_type == INT_KEY) {
+	if (index.key_kind == INT_KEY) {
 		temp = new int();
 	}
-	else if (index.key_type == LL_KEY) {
+	else if (index.key_kind == LL_KEY) {
 		temp = new long long();
 	}
 	else {
@@ -176,9 +176,9 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 	//void* temp;
 	cout << "读取value的偏移量为" << index.offt_self << endl;
 	cout << "index.key_type" << endl;
-	cout << index.key_type << endl;
+	cout << index.key_kind << endl;
 
-	if (index.key_type == INT_KEY) {
+	if (index.key_kind == INT_KEY) {
 		int *temp = new int();
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
 
@@ -191,7 +191,7 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 			value[i] = (void*)temp;
 		}
 	}
-	else if (index.key_type == LL_KEY) {
+	else if (index.key_kind == LL_KEY) {
 		long long *temp = new long long();
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
 
@@ -278,14 +278,14 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 		perror("Failed to seek");
 		fclose(file);
 	}
-	if (index.key_type == INT_KEY) {
+	if (index.key_kind == INT_KEY) {
 		int temp[MAXNUM_KEY];
 		for (int i = 0; i < MAXNUM_KEY; i++) {
 			temp[i] = *(int*)key[i];
 		}
 		fwrite(&temp, sizeof(int), MAXNUM_KEY, file);
 	}
-	else if (index.key_type == LL_KEY) {
+	else if (index.key_kind == LL_KEY) {
 		long long temp[MAXNUM_KEY];
 		for (int i = 0; i < MAXNUM_KEY; i++) {
 			temp[i] = *(long long*)key[i];
@@ -310,7 +310,7 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 	fclose(file);
 }
 
-bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_key_size)
+bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_key_size)
 {
 	size_t size = 0;
 	//纠正最大索引所占空间
@@ -343,7 +343,7 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	memcpy(t.fpath, path, sizeof(path)+1);
 	t.fpath[sizeof(path)+1] = '\0';
 
-	t.key_type = key_type;
+	t.key_kind = key_type;
 	t.m_Depth = 1;
 	t.offt_root = 1;
 	t.key_use_block = 1;
@@ -361,7 +361,7 @@ bool FileManager::table_create(const char* path, KEY_TYPE key_type, size_t max_k
 	for (int i = 0; i < MAXNUM_DATA; i++) {
 		data[i] = (void*)new int(666);
 	}
-	Index index(path,2,t.max_key_size,t.key_type);
+	Index index(path,2,t.max_key_size,t.key_kind);
 	cout<<index.fpath<<endl;
 	flushLeafNode(root, index,data);
 	//======================根信息写入成功========================

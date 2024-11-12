@@ -517,7 +517,7 @@ BPlusTree::BPlusTree(const char* fname)
     this->m_Depth = t.m_Depth;
     this->offt_self = 0;
     this->max_key_size= t.max_key_size;
-    this->key_type=t.key_type;
+    this->key_type=t.key_kind;
     this->offt_root=t.offt_root;
     this->key_use_block=t.key_use_block;
     this->value_use_block=t.value_use_block;
@@ -527,12 +527,12 @@ BPlusTree::BPlusTree(const char* fname)
     FileManager::getInstance()->get_BlockGraph(fname, this->Block_GRAPH);
     if(this->Block_GRAPH[2]==BLOCK_LEAF){
         this->m_Root=new CLeafNode(2);
-        ((CLeafNode*)this->m_Root)->get_file(fname, t.key_type, t.max_key_size);
+        ((CLeafNode*)this->m_Root)->get_file(fname, t.key_kind, t.max_key_size);
 
     }
     else if(this->Block_GRAPH[2]==BLOCK_INTER){
         this->m_Root=new CInternalNode();
-        ((CInternalNode*)this->m_Root)->get_file(fname, t.key_type, t.max_key_size);
+        ((CInternalNode*)this->m_Root)->get_file(fname, t.key_kind, t.max_key_size);
     }
     
     

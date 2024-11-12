@@ -8,7 +8,7 @@
 #define MAXNUM_POINTER (MAXNUM_KEY + 1)    /* 内部结点中最多指向子树的指针个数，为2v */
 #define MAXNUM_DATA (ORDER_V * 2)    /* 叶子结点中最多数据个数，为2v */
 /* 键值的类型*/
-typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
+typedef int KEY_KIND;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
 /*备注： 为简单起见，叶子结点的数据也只存储键值*/
 #include<string>
 #include<iostream>
@@ -48,7 +48,7 @@ typedef struct {
 	off_t offt_leftHead;
 	off_t offt_rightHead;
 	int m_Depth;//树的深度
-	int key_type;//索引键的类型
+	KEY_KIND key_kind;//索引键的类型
 	size_t max_key_size;
 	size_t key_use_block;               /** 数据块为btree_key类型的总数 */
 	size_t value_use_block;
@@ -85,11 +85,11 @@ struct Index{
 	char fpath[100];
 	off_t offt_self;
 	size_t max_size;
-	KEY_TYPE key_type;
+	KEY_KIND key_kind;
 	Index(){}
 	Index(const char* fname, off_t offt,
-		off_t max_size, KEY_TYPE key_type)
-		:offt_self(offt), max_size(max_size), key_type(key_type) {
+		off_t max_size, KEY_KIND key_type)
+		:offt_self(offt), max_size(max_size), key_kind(key_type) {
 		memcpy(fpath, fname, strlen(fname));
 		fpath[strlen(fname)] = '\0';
 	}
@@ -107,7 +107,7 @@ public:
 	bool flushLeafNode(leaf_node node, Index index, void** value);
 	table getTable(const char* filename, off_t offt);
 	bool flushTable(table t, const char* filename, off_t offt);
-	bool table_create(const char* path, KEY_TYPE key_type, size_t max_key_size);
+	bool table_create(const char* path, KEY_KIND key_type, size_t max_key_size);
 	void flush_key(void* key[MAXNUM_KEY], Index index);
 	void flush_value(void* value[MAXNUM_DATA], Index index);
 	void get_key(void* key[MAXNUM_KEY], Index index);

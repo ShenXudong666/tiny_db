@@ -213,7 +213,7 @@ public:
         memcpy(index.fpath, fname, sizeof(fname)+1);
         index.fpath[sizeof(fname) + 1] = '\0';
         cout << index.fpath << endl;
-        index.key_type = key_type;
+        index.key_kind = key_type;
         index.max_size = max_size;
         index.offt_self = this->offt_self;
         
@@ -226,7 +226,7 @@ public:
         Index index;
         memcpy(index.fpath, fname, sizeof(fname) + 1);
         index.fpath[sizeof(fname) + 1] = '\0';
-        index.key_type = key_type;
+        index.key_kind = key_type;
         index.max_size = max_size;
         cout << index.fpath << endl;
         //下面的getCInternalNode待修改
@@ -327,7 +327,7 @@ public:
         node.count = this->m_Count;
         Index index;
         memcmp(index.fpath, fname, sizeof(fname));
-        index.key_type = key_type;
+        index.key_kind = key_type;
         index.max_size = max_size;
         
         FileManager::getInstance()->flushLeafNode(node, index,(void**)this->m_Datas);
@@ -445,7 +445,7 @@ public:
         t.offt_rightHead = this->offt_rightHead;
         t.key_use_block = this->key_use_block;
         t.value_use_block = this->value_use_block;
-        t.key_type = this->key_type;
+        t.key_kind = this->key_type;
         t.m_Depth = this->m_Depth;
         FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
         return true;
@@ -458,7 +458,7 @@ public:
         this->offt_root = t.offt_root;
         this->offt_leftHead = t.offt_leftHead;
         this->offt_rightHead = t.offt_rightHead;
-        this->key_type = t.key_type;
+        this->key_type = t.key_kind;
         this->key_use_block = t.key_use_block;
         this->value_use_block = t.value_use_block;
         this->m_Depth = t.m_Depth;
