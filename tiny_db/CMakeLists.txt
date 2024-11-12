@@ -3,7 +3,7 @@ project(tiny_db)
 
 # 工程的源码，不需要包含头文件，当然你也可以包含
 set(TINY_DB_SOURCE 
-BPulsTree.cpp
+BPlusTree.cpp
 Demo.cpp
 rwdata.cpp
 test_struct.cpp

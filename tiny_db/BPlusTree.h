@@ -336,12 +336,10 @@ public:
     }
 
     bool get_file(const char* fname, KEY_TYPE key_type, size_t max_size) {
-        Index index;
-        memcpy(index.fpath, fname, sizeof(fname)+1);
-        index.fpath[sizeof(fname) + 1] = '\0';
-        cout << "index的文件路径为:" << endl;
-        cout << index.fpath << endl;
         
+        Index index(fname,this->offt_self,max_size,key_type);
+
+
         leaf_node node = FileManager::getInstance()->getLeafNode(index,this->values,this->offt_self);
 
         //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));

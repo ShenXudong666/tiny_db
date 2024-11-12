@@ -83,7 +83,7 @@ table FileManager::getTable(const char* filename, off_t offt) {
 	table t;
 	fread(&t, 1, sizeof(table), file);
 	fclose(file);
-	cout<<"�����ɹ�"<<endl;
+	cout<<"读取表成功"<<endl;
 	return t;
 
 }
@@ -98,7 +98,7 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 	}
 	fwrite(&t, 1, sizeof(table), file);
 	fclose(file);
-	cout<<"д���ɹ�"<<endl;
+	cout<<"表创建成功"<<endl;
 	return true;
 }
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
@@ -175,7 +175,7 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 	}
 	//void* temp;
 	cout << "读取value的偏移量为" << index.offt_self << endl;
-	cout << "index.key" << endl;
+	cout << "index.key_type" << endl;
 	cout << index.key_type << endl;
 
 	if (index.key_type == INT_KEY) {

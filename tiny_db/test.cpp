@@ -209,7 +209,7 @@ int main() {
 	for (int i = 0; i < MAXNUM_KEY; i++) {
 		cout << *(int*)cnode2->keys[i] << endl;
 	}*/
-	xiebiao(INT_KEY);
+	//xiebiao(INT_KEY);
 	BPlusTree* bp = new BPlusTree(fname);
 	cout<<bp->m_Root->GetType()<<endl;
 	
