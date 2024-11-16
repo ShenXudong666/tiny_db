@@ -55,7 +55,7 @@ using namespace std;
 #define LL_KEY 2
 #define STRING_KEY 3
 static int cmp_string(void* a, void* b) {
-    return (char*)a < (char*)b;
+    return (char*)a > (char*)b;
 }
 static int cmp_int(void* a, void* b, size_t n) {
     return *(int32_t*)a - *(int32_t*)b;
@@ -90,14 +90,14 @@ public:
     void SetCount(int i) { m_Count = i; }
 
     // 获取和设置某个元素，对中间结点指键值，对叶子结点指数据；这里后面需要改为void*类型
-    virtual KEY_TYPE GetElement(int i) { return 0; }
-    virtual void SetElement(int i, KEY_TYPE value) { }
+    virtual void* GetElement(int i) { return 0; }
+    virtual void SetElement(int i, void* value) { }
 
     // 获取和设置某个指针，对中间结点指指针，对叶子结点无意义
     virtual CNode* GetPointer(int i) { return NULL; }
     virtual void SetPointer(int i, CNode* pointer) { }
 
-    // 获取和设置父结点
+    // 获取和设置父结点,这里需要位置偏移读取文件
     CNode* GetFather() { return m_pFather; }
     void SetFather(CNode* father) { m_pFather = father; }
 
@@ -115,6 +115,14 @@ public:
     // 删除结点
     void DeleteChildren();
 
+    off_t getPtSelf() {
+        return this->offt_self;
+    }
+
+    void setPtSelf(off_t offt) {
+        this->offt_self = offt;
+    }
+
 protected:
 
     NODE_TYPE node_Type;    // 结点类型，取值为NODE_TYPE类型
@@ -124,6 +132,8 @@ protected:
     CNode* m_pFather;     // 指向父结点的指针，标准B+树中并没有该指针，加上是为了更快地实现结点分裂和旋转等操作
 
     off_t offt_father;   //父亲节点数据在文件中的位置
+
+    off_t offt_self;   //结点数据在文件中的位置
 };
 
 /* 内部结点数据结构 */
@@ -135,7 +145,7 @@ public:
     virtual ~CInternalNode();
 
     // 获取和设置键值，对用户来说，数字从1开始，实际在结点中是从0开始的
-    KEY_TYPE GetElement(int i)
+    void* GetElement(int i)
     {
         if ((i > 0) && (i <= MAXNUM_KEY))
         {
@@ -147,7 +157,7 @@ public:
         }
     }
 
-    void SetElement(int i, KEY_TYPE key)
+    void SetElement(int i, void* key)
     {
         if ((i > 0) && (i <= MAXNUM_KEY))
         {
@@ -160,6 +170,7 @@ public:
     {
         if ((i > 0) && (i <= MAXNUM_POINTER))
         {
+            //这里后面再改为指针读取
             return m_Pointers[i - 1];
         }
         else
@@ -172,7 +183,7 @@ public:
     {
         if ((i > 0) && (i <= MAXNUM_POINTER))
         {
-            m_Pointers[i - 1] = pointer;
+            m_Pointers[i - 1] = pointer.;
         }
     }
 
@@ -230,9 +241,9 @@ public:
         index.max_size = max_size;
         cout << index.fpath << endl;
         //下面的getCInternalNode待修改
-        inter_node node=FileManager::getInstance()->getCInternalNode(index,this->keys ,this->offt_self);
+        inter_node node=FileManager::getInstance()->getCInternalNode(index,this->m_Keys ,this->offt_self);
 
-        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.offt_pointers));
+        memcpy(this->m_Pointers, node.offt_pointers, sizeof(node.offt_pointers));
         this->m_Count = node.count;
         this->node_Type = node.node_type;
         this->offt_father=node.offt_father;
@@ -240,15 +251,14 @@ public:
         return true;
     }
 
-    off_t offt_pointers[MAXNUM_POINTER];    //指针的内容在文件中的位置
-    void* keys[MAXNUM_KEY];
-
+    
+    
 protected:
 
-    KEY_TYPE m_Keys[MAXNUM_KEY];           // 键数组
+    void* m_Keys[MAXNUM_KEY];           // 键数组
     
     off_t offt_self;
-    CNode* m_Pointers[MAXNUM_POINTER];     // 指针数组
+    off_t m_Pointers[MAXNUM_POINTER];     // 指针数组
     
 };
 
