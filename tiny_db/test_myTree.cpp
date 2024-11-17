@@ -14,6 +14,7 @@ int main(){
     const char* fname = "table.bin";
     xiebiao(INT_KEY);
     BPlusTree* bp = new BPlusTree(fname);
+    bp->Insert((void*)new int(1));
 	cout<<bp->m_Root->GetType()<<endl;
 
 	return 0;

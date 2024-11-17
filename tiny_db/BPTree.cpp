@@ -3,8 +3,10 @@
 #include "rwdata.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include <climits>
 #include <cstring>
 #include <iterator>
+#include <limits.h>
 #include <sys/types.h>
 
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
@@ -88,20 +90,51 @@ void CNode::DeleteChildren()   // 疑问：这里的指针下标是否需要从0
         delete pNode;
     }
 }
+CNode* CNode::GetFather(){
+    char type=FileManager::getInstance()->get_BlockType(this->fname, this->offt_father);
+    if(type==BLOCK_INTER)return new CInternalNode(this->fname, this->key_kind, this->max_size, this->offt_father);
+
+    return new CLeafNode(this->fname, this->key_kind, this->max_size, this->offt_father);
+    
+}
+
 
 //将内部节点的关键字和指针分别初始化为0和空
 CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max_size,off_t offt):CNode(filename,  key_kind,  max_size,  offt)
 {
 
-    node_Type = NODE_TYPE_INTERNAL;
+    if(this->offt_self==LOC_ROOT)node_Type = NODE_TYPE_ROOT;
+    else node_Type = NODE_TYPE_INTERNAL;
+    memcpy(this->fname, fname, strlen((char*)fname));
+    this->fname[strlen((char*)fname)] = '\0';
+    this->key_kind = key_kind;
+    this->max_size = max_size;
+    this->offt_self = offt;
+    m_Count = 0;
+    m_pFather = NULL;
+    this->offt_father=NULL;
     if(this->offt_self != NEW_OFFT){
         this->get_file();
     }
     else{
         this->offt_self=FileManager::getInstance()->getFreeBlock(filename, BLOCK_INTER);
+        if(this->key_kind==INT_KEY){
+            for(int i=0;i<MAXNUM_KEY;i++){
+                this->m_Keys[i]=(void*)new int(INT_MIN);
+            }
+        }
+        else if(this->key_kind==LL_KEY){
+            for(int i=0;i<MAXNUM_KEY;i++){
+                this->m_Keys[i]=(void*)new int(INT_MIN);
+            }
+        }
+        else{
+            for(int i=0;i<MAXNUM_KEY;i++){
+                this->m_Keys[i]=(void*)new char[this->max_size];
+        }
         //后面一定一定要记得更新
     }
-
+    }
 
 }
 // CInternalNode::CInternalNode()
@@ -128,7 +161,21 @@ CInternalNode::~CInternalNode()
         this->offt_pointers[i] = NULL;
     }
 }
-
+CNode* CInternalNode::GetPointer(int i)
+{
+    if ((i > 0) && (i <= MAXNUM_POINTER))
+    {
+            //这里后面再改为指针读取
+        char type=FileManager::getInstance()->get_BlockType(this->fname, this->offt_pointers[i - 1]);
+        if(type==BLOCK_INTER)return new CInternalNode(this->fname, this->key_kind, this->max_size, this->offt_pointers[i - 1]);
+        else if(type==BLOCK_LEAF)return new CLeafNode(this->fname, this->key_kind, this->max_size, this->offt_pointers[i - 1]);
+        else return NULL;
+    }
+        
+        
+    return NULL;
+        
+}
 // 在中间结点中插入键。
 /*疑问：中间结点需要插入值吗？在插入值时，通常都是先找到在叶子结点中的位置，然后再插入。
 中间结点通常当叶子结点需要分裂时将分裂后的两个孩子结点插入其中*/
@@ -388,15 +435,16 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
 // }
 CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t offt):CNode(fname,key_kind,max_size,offt)
 {
+    if(this->offt_self == LOC_ROOT)node_Type = NODE_TYPE_ROOT;
+    else node_Type = NODE_TYPE_LEAF;
     memcpy(this->fname, fname, strlen((char*)fname));
     this->fname[strlen((char*)fname)] = '\0';
     this->key_kind = key_kind;
     this->max_size = max_size;
     this->offt_self = offt;
-    node_Type = NODE_TYPE_LEAF;
     m_Count = 0;
     m_pFather = NULL;
-    node_Type = NODE_TYPE_LEAF;
+    this->offt_father=NULL;
     m_pPrevNode = NULL;
     m_pNextNode = NULL;
     this->offt_NextNode=NULL;
@@ -407,12 +455,26 @@ CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t o
     else{
         this->offt_self=FileManager::getInstance()->getFreeBlock(fname, BLOCK_LEAF);
         node_Type = NODE_TYPE_LEAF;
-
-        for (int i = 0; i < MAXNUM_DATA; i++)
-        {
-            m_Datas[i] = INVALID;
+        if(this->key_kind==INT_KEY){
+            for (int i = 0; i < MAXNUM_DATA; i++)
+            {
+                m_Datas[i] = (void*)new int(INT_MIN);
+            }
         }
+        else if(this->key_kind==LL_KEY){
+            for (int i = 0; i < MAXNUM_DATA; i++)
+            {
+                m_Datas[i] = (void*)new long long(LLONG_MIN);
+            }
+        }
+        else if(this->key_kind==STRING_KEY){
+            for (int i = 0; i < MAXNUM_DATA; i++)
+            {
+                //这里后面可能要改
+                m_Datas[i] = (void*)new char[this->max_size];;
+            }
         //后面一定一定要记得更新
+        }
     }
 }
 CLeafNode::~CLeafNode()
@@ -580,7 +642,7 @@ bool BPlusTree::Search(void* data, char* sPath)
         }
 
         // 找到第一个键值大于等于key的位置
-        for (i = 1; (data >= pNode->GetElement(i)) && (i <= pNode->GetCount()); i++)
+        for (i = 1; cmp(data , pNode->GetElement(i),this->key_kind) && (i <= pNode->GetCount()); i++)
         {
         }
 
@@ -593,7 +655,7 @@ bool BPlusTree::Search(void* data, char* sPath)
         pNode = pNode->GetPointer(i);
     }
 
-    // 没找到
+    // 没找到，这里可能会有情况，为null的情况
     if (NULL == pNode)
     {
         return false;
@@ -628,7 +690,8 @@ bool BPlusTree::Search(void* data, char* sPath)
     //         (void)sprintf(sPath + offset, " ,failed.");
     //     }
     // }
-
+    //释放内存
+    delete pNode;
     return found;
 }
 
@@ -668,7 +731,10 @@ bool BPlusTree::Insert(void* data)  //
     // 叶子结点未满，对应情况1，直接插入
     if (pOldNode->GetCount() < MAXNUM_DATA)
     {
-        return pOldNode->Insert(data);
+        bool success= pOldNode->Insert(data);
+        //插入完立马更新数据
+        pOldNode->flush_file();
+        return success;
     }
 
     // 原叶子结点已满，新建叶子结点，并把原结点后一半数据剪切到新结点
@@ -1085,7 +1151,8 @@ CLeafNode* BPlusTree::SearchLeafNode(void* data)
         // 找到第一个键值大于等于key的位置
         for (i = 1; i <= pNode->GetCount(); i++)
         {
-            if (data < pNode->GetElement(i))
+            
+            if (cmp(pNode->GetElement(i), data,this->key_kind))
             {
                 break;
             }

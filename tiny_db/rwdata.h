@@ -118,6 +118,7 @@ public:
 	void get_key(void* key[MAXNUM_KEY], Index index);
 	void get_value(void* value[MAXNUM_DATA], Index index);
 	void get_BlockGraph(const char* fname,char* freeBlock);
+	char get_BlockType(const char* fname, off_t offt);
 	void flush_BlockGraph(Index index, char* freeBlock);
 	off_t getFreeBlock(const char* filename,char type_block);
 	off_t newBlock(const char* filename);

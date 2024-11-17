@@ -100,7 +100,7 @@ public:
     virtual void SetPointer(int i, CNode* pointer) { }
 
     // 获取和设置父结点,这里需要位置偏移读取文件
-    CNode* GetFather() { return m_pFather; }
+    CNode* GetFather();
     void SetFather(CNode* father) { m_pFather = father; }
 
     off_t getPtFather() {
@@ -174,18 +174,8 @@ public:
     }
 
     // 获取和设置指针，对用户来说，数字从1开始
-    CNode* GetPointer(int i)
-    {
-        if ((i > 0) && (i <= MAXNUM_POINTER))
-        {
-            //这里后面再改为指针读取
-            return NULL;
-        }
-        else
-        {
-            return NULL;
-        }
-    }
+    CNode* GetPointer(int i);
+    
 
     void SetPointer(int i, CNode* pointer)
     {
@@ -403,7 +393,14 @@ public:
     // 获取和设置根结点
     CNode* GetRoot()
     {
-        return m_Root;
+        char type=FileManager::getInstance()->get_BlockType(this->fpath, LOC_ROOT);
+        if(type==BLOCK_INTER){
+            return new CInternalNode(this->fpath,this->key_kind,this->max_key_size,LOC_ROOT);
+        }
+        else if (type==BLOCK_LEAF) {
+            return new CLeafNode(this->fpath,this->key_kind,this->max_key_size,LOC_ROOT);
+        }
+        return NULL;
     }
 
     void SetRoot(CNode* root)

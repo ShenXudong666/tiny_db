@@ -254,7 +254,11 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 	cout << endl;
 
 }
-
+char FileManager::get_BlockType(const char* fname, off_t offt){
+	char* BlockGRAPH = new char[NUM_ALL_BLOCK];
+	get_BlockGraph(fname, BlockGRAPH);
+	return BlockGRAPH[offt];
+}
 void FileManager::flush_BlockGraph(Index index, char* freeBlock)
 {
 	FILE* file=fopen(index.fpath, "rb+");
@@ -376,27 +380,26 @@ bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_k
 	//===========表信息写入完成=================================
 	
 	//将根的信息写在文件头部的后面一块
-	leaf_node root(2,0,NODE_TYPE_ROOT);
-	void* data[MAXNUM_DATA];
-	//初次创建表，根的值默认为最大的0
-	for (int i = 0; i < MAXNUM_DATA; i++) {
-		data[i] = (void*)new int(666);
-	}
-	Index index(path,2,t.max_key_size,t.key_kind);
-	cout<<index.fpath<<endl;
-	flushLeafNode(root, index,data);
-	//======================根信息写入成功========================
-	cout<<"根信息写入成功"<<endl;
+	// leaf_node root(2,0,NODE_TYPE_ROOT);
+	// void* data[MAXNUM_DATA];
+	// //初次创建表，根的值默认为最大的0
+	// for (int i = 0; i < MAXNUM_DATA; i++) {
+	// 	data[i] = (void*)new int(666);
+	// }
+	// Index index(path,2,t.max_key_size,t.key_kind);
+	// cout<<index.fpath<<endl;
+	// flushLeafNode(root, index,data);
+	// //======================根信息写入成功========================
+	// cout<<"根信息写入成功"<<endl;
 	char block_graph[NUM_ALL_BLOCK];
 	block_graph[0] = BLOCK_TLABE;
 	block_graph[1] = BLOCK_GRAPH;
-	block_graph[2] = BLOCK_LEAF;
-	for(int j=3;j<6;j++)block_graph[j] = BLOCK_FREE;
+	for(int j=2;j<6;j++)block_graph[j] = BLOCK_FREE;
 	for (int j = 6; j < NUM_ALL_BLOCK; j++)block_graph[j] = BLOCK_UNAVA;
-	index.offt_self = 1;
-	index.max_size = NUM_ALL_BLOCK;
+	Index index(path,LOC_GRAPH,NUM_ALL_BLOCK,1);
 	flush_BlockGraph(index, block_graph);
 	//=======================空闲表写入成功======================
+	cout<<"空闲表写入成功"<<endl;
 	cout<<"表创建成功"<<endl;
 	return true;
 }
