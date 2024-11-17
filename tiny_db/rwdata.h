@@ -1,6 +1,7 @@
 #pragma once
 #include "stdio.h"
 #include "stdlib.h"
+#include <sys/types.h>
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
 #define DB_BLOCK_SIZE 4096 // block size must be pow of 2! 文件数据库的数据块大小
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
@@ -34,6 +35,10 @@ using namespace std;
 #define BLOCK_LEAF '4'
 #define BLOCK_UNAVA '5'
 #define BLOCK_FREE '0'
+
+#define LOC_TABLE 0
+#define LOC_GRAPH 1
+#define LOC_ROOT 2
 enum NODE_TYPE
 {
 	NODE_TYPE_ROOT = 1,    // 根结点
@@ -114,8 +119,8 @@ public:
 	void get_value(void* value[MAXNUM_DATA], Index index);
 	void get_BlockGraph(const char* fname,char* freeBlock);
 	void flush_BlockGraph(Index index, char* freeBlock);
-
-	void newBlock(const char* filename);
+	off_t getFreeBlock(const char* filename,char type_block);
+	off_t newBlock(const char* filename);
 	//获取文件总共有多少块
 	size_t getFileSize(const char* fileName);
 

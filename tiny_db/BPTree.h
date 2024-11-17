@@ -25,6 +25,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
    也有些人把阶定义为内部结点中键的最大数目，即2v。
    一般而言，叶子结点中最大数据个数和内部结点中最大键个数是一样的，也是2v。(我想这样做的目的是为了把内部结点和叶子结点统一到同一个结构中吧)
 */
+#include <cstddef>
 #include <sys/types.h>
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
 
@@ -51,18 +52,22 @@ using namespace std;
   */
 #define TYPE_KEY 0
 #define TYPE_VALUE 1
+
 #define INT_KEY 1
 #define LL_KEY 2
 #define STRING_KEY 3
-static int cmp_string(void* a, void* b) {
+#define NEW_OFFT 0
+static int cmp(void* a, void* b,KEY_KIND key_kind) {
+    if(key_kind == INT_KEY) {
+        return *(int*)a > *(int*)b;
+    }
+    else if(key_kind == LL_KEY) {
+        return *(long long*)a > *(long long*)b;
+    }
     return (char*)a > (char*)b;
 }
-static int cmp_int(void* a, void* b, size_t n) {
-    return *(int32_t*)a - *(int32_t*)b;
-}
-static int cmp_ll(void* a, void* b, size_t n) {
-    return *(long long*)a - *(long long*)b;
-}
+
+
 
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -70,15 +75,12 @@ typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+�
 
 /* 结点类型 */
 
-
-
-
 /* 结点数据结构，为内部结点和叶子结点的父类 */
 class CNode
 {
 public:
 
-    CNode();
+    CNode(const char* filename, KEY_KIND key_kind, size_t max_size,off_t offt_self);
     virtual ~CNode();
     //所有的get函数都应该new了对象，在读取了文件中的结构体之后才能调用,set函数在flush进文件时调用
     //获取和设置结点类型
@@ -127,6 +129,12 @@ protected:
 
     NODE_TYPE node_Type;    // 结点类型，取值为NODE_TYPE类型
 
+    KEY_KIND key_kind;    // 键值类型，取值为KEY_KIND类型
+
+    char fname[100];    // 文件名，用于存储结点数据
+
+    size_t max_size;    // 结点索引数据最大大小
+
     int m_Count;    // 有效数据个数，对中间结点指键个数，对叶子结点指数据个数
 
     CNode* m_pFather;     // 指向父结点的指针，标准B+树中并没有该指针，加上是为了更快地实现结点分裂和旋转等操作
@@ -140,8 +148,8 @@ protected:
 class CInternalNode : public CNode
 {
 public:
-    CInternalNode();
-    CInternalNode(off_t offt);
+    //CInternalNode();
+    CInternalNode(const char* fname, KEY_KIND key_kind,size_t max_size,off_t offt);
     virtual ~CInternalNode();
 
     // 获取和设置键值，对用户来说，数字从1开始，实际在结点中是从0开始的
@@ -171,7 +179,7 @@ public:
         if ((i > 0) && (i <= MAXNUM_POINTER))
         {
             //这里后面再改为指针读取
-            return m_Pointers[i - 1];
+            return NULL;
         }
         else
         {
@@ -183,17 +191,17 @@ public:
     {
         if ((i > 0) && (i <= MAXNUM_POINTER))
         {
-            m_Pointers[i - 1] = pointer.;
+            offt_pointers[i - 1] = pointer->getPtSelf();
         }
     }
 
     // 在结点pNode上插入键value
-    bool Insert(KEY_TYPE value, CNode* pNode);
+    bool Insert(void* value, CNode* pNode);
     // 删除键value
-    bool Delete(KEY_TYPE value);
+    bool Delete(void* value);
 
     // 分裂结点
-    KEY_TYPE Split(CInternalNode* pNode, KEY_TYPE key);
+    void* Split(CInternalNode* pNode, void* key);
     // 结合结点(合并结点)
     bool Combine(CNode* pNode);
     // 从另一结点移一个元素到本结点
@@ -210,7 +218,7 @@ public:
         return this->offt_pointers[index];
     }
 
-    bool flush_file(const char* fname,KEY_KIND key_kind,size_t max_size) {
+    bool flush_file() {
         inter_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
@@ -220,30 +228,18 @@ public:
         node.count = this->m_Count;
         node.node_type = this->node_Type;
         
-        Index index;
-        memcpy(index.fpath, fname, sizeof(fname)+1);
-        index.fpath[sizeof(fname) + 1] = '\0';
-        cout << index.fpath << endl;
-        index.key_kind = key_kind;
-        index.max_size = max_size;
-        index.offt_self = this->offt_self;
-        
-        FileManager::getInstance()->flushInterNode(node,index,this->keys);
+        Index index(this->fname, this->offt_self,  this->max_size,this->key_kind);
+        FileManager::getInstance()->flushInterNode(node,index,this->m_Keys);
 
         return true;
     }
 
-    bool get_file(const char* fname,KEY_KIND key_kind,size_t max_size) {
-        Index index;
-        memcpy(index.fpath, fname, sizeof(fname) + 1);
-        index.fpath[sizeof(fname) + 1] = '\0';
-        index.key_kind = key_kind;
-        index.max_size = max_size;
-        cout << index.fpath << endl;
+    bool get_file() {
+        Index index(this->fname, this->offt_self,  this->max_size,this->key_kind);
         //下面的getCInternalNode待修改
         inter_node node=FileManager::getInstance()->getCInternalNode(index,this->m_Keys ,this->offt_self);
 
-        memcpy(this->m_Pointers, node.offt_pointers, sizeof(node.offt_pointers));
+        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.offt_pointers));
         this->m_Count = node.count;
         this->node_Type = node.node_type;
         this->offt_father=node.offt_father;
@@ -258,7 +254,7 @@ protected:
     void* m_Keys[MAXNUM_KEY];           // 键数组
     
     off_t offt_self;
-    off_t m_Pointers[MAXNUM_POINTER];     // 指针数组
+    off_t offt_pointers[MAXNUM_POINTER];     // 指针数组
     
 };
 
@@ -267,14 +263,14 @@ class CLeafNode : public CNode
 {
 public:
 
-    CLeafNode();
-    CLeafNode(off_t t) {
-        this->offt_self = t;
-    }
+    //CLeafNode();
+    CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t offt);
+        
+    
     virtual ~CLeafNode();
 
     // 获取和设置数据
-    KEY_TYPE GetElement(int i)
+    void* GetElement(int i)
     {
         if ((i > 0) && (i <= MAXNUM_DATA))
         {
@@ -286,7 +282,7 @@ public:
         }
     }
 
-    void SetElement(int i, KEY_TYPE data)
+    void SetElement(int i, void* data)
     {
         if ((i > 0) && (i <= MAXNUM_DATA))
         {
@@ -301,12 +297,12 @@ public:
     }
 
     // 插入数据
-    bool Insert(KEY_TYPE value);
+    bool Insert(void* value);
     // 删除数据
-    bool Delete(KEY_TYPE value);
+    bool Delete(void* value);
 
     // 分裂结点
-    KEY_TYPE Split(CNode* pNode);
+    void* Split(CNode* pNode);
     // 结合结点
     bool Combine(CNode* pNode);
     void sePtPrevNode(off_t offset) {
@@ -325,7 +321,7 @@ public:
         return this->offt_NextNode;
     }
 
-    bool flush_file(const char* fname,KEY_KIND key_kind,size_t max_size) {
+    bool flush_file() {
         leaf_node node;
         /*这一部分后面会根据数据的需求进行变更*/
         //memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
@@ -335,22 +331,17 @@ public:
         node.offt_NextNode = this->offt_NextNode;
         node.offt_PrevNode = this->offt_PrevNode;
         node.count = this->m_Count;
-        Index index;
-        memcmp(index.fpath, fname, sizeof(fname));
-        index.key_kind = key_kind;
-        index.max_size = max_size;
-        
-        FileManager::getInstance()->flushLeafNode(node, index,(void**)this->m_Datas);
+        Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
+        FileManager::getInstance()->flushLeafNode(node, index,this->m_Datas);
 
         return true;
     }
 
-    bool get_file(const char* fname, KEY_KIND key_kind, size_t max_size) {
+    bool get_file() {
         
-        Index index(fname,this->offt_self,max_size,key_kind);
+        Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
 
-
-        leaf_node node = FileManager::getInstance()->getLeafNode(index,this->values,this->offt_self);
+        leaf_node node = FileManager::getInstance()->getLeafNode(index,this->m_Datas,this->offt_self);
 
         //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
         this->offt_PrevNode = node.offt_PrevNode;
@@ -367,10 +358,10 @@ public:
     CLeafNode* m_pNextNode;                 // 后一个结点
     off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
     off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
-    void* values[MAXNUM_DATA];
+
 protected:
     off_t offt_self;
-    KEY_TYPE m_Datas[MAXNUM_DATA];    // 数据数组，后面完成自己的调试后删掉
+    void* m_Datas[MAXNUM_DATA];    // 数据数组，后面完成自己的调试后删掉
     
 
 };
@@ -386,11 +377,11 @@ public:
     virtual ~BPlusTree();
 
     // 查找指定的数据
-    bool Search(KEY_TYPE data, char* sPath);
+    bool Search(void* data, char* sPath);
     // 插入指定的数据
-    bool Insert(KEY_TYPE data);
+    bool Insert(void* data);
     // 删除指定的数据
-    bool Delete(KEY_TYPE data);
+    bool Delete(void* data);
 
     // 清除树
     void ClearTree();
@@ -486,21 +477,21 @@ public:
     off_t offt_rightHead;
     char fpath[100];     //文件，也即表的路径
     size_t max_key_size;
-    CNode* m_Root;    // �����
+    CNode* m_Root;    // 根结点
 protected:
 
     // 为插入而查找叶子结点
-    CLeafNode* SearchLeafNode(KEY_TYPE data);
+    CLeafNode* SearchLeafNode(void* data);
     //插入键到中间结点
-    bool InsertInternalNode(CInternalNode* pNode, KEY_TYPE key, CNode* pRightSon);
+    bool InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRightSon);
     // 在中间结点中删除键
-    bool DeleteInternalNode(CInternalNode* pNode, KEY_TYPE key);
+    bool DeleteInternalNode(CInternalNode* pNode, void* key);
 
     off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
     size_t key_use_block;
     size_t value_use_block;
-    int key_kind;
+    KEY_KIND key_kind;
     
     off_t offt_self;
     //后面定义宏来改大小，先这样

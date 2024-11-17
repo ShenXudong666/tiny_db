@@ -1,4 +1,6 @@
 #include "rwdata.h"
+#include <cstdio>
+#include <sys/types.h>
 
  FileManager* FileManager::getInstance() {
 	static FileManager* m = new FileManager();
@@ -246,8 +248,8 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 	//这一步是防止出问题,已使用的块大于文件真正的大小
 	size_t i=getFileSize(fname);
 	i++;
-	for (i; i < NUM_ALL_BLOCK; i++) {
-		freeBlock[i] = BLOCK_UNAVA;
+	for (int j=i; j < NUM_ALL_BLOCK; j++) {
+		freeBlock[j] = BLOCK_UNAVA;
 	}
 	cout << endl;
 
@@ -269,6 +271,25 @@ void FileManager::flush_BlockGraph(Index index, char* freeBlock)
 
 }
 
+off_t FileManager::getFreeBlock(const char* fname,char type_block)
+{
+	char* BlockGRAPH = new char[NUM_ALL_BLOCK];
+	get_BlockGraph(fname, BlockGRAPH);
+	for (int i = 0; i < NUM_ALL_BLOCK; i++) {
+		if (BlockGRAPH[i] == BLOCK_FREE) {
+			Index index(fname,LOC_GRAPH,NUM_ALL_BLOCK,1);
+			BlockGRAPH[i] = type_block;
+			flush_BlockGraph(index, BlockGRAPH);
+			delete[] BlockGRAPH;
+			return i;
+		}
+	}
+	int i=this->newBlock(fname);
+	BlockGRAPH[i]=type_block;
+	Index index(fname, LOC_GRAPH, NUM_ALL_BLOCK, 1);
+	flush_BlockGraph(index, BlockGRAPH);
+	return i;
+}
 
 void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 {
@@ -345,7 +366,7 @@ bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_k
 
 	t.key_kind = key_type;
 	t.m_Depth = 1;
-	t.offt_root = 1;
+	t.offt_root = LOC_ROOT;
 	t.key_use_block = 1;
 	t.value_use_block = 0;
 	
@@ -379,12 +400,23 @@ bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_k
 	cout<<"表创建成功"<<endl;
 	return true;
 }
-void FileManager::newBlock(const char* filename) {
+off_t FileManager::newBlock(const char* filename) {
 
 	FILE* file = fopen(filename, "ab");
 	char zero[DB_BLOCK_SIZE] = { 0 };
 	fwrite(zero, 1, sizeof(zero), file);
+	off_t now=ftell(file)/DB_BLOCK_SIZE;
 	fclose(file);
+	char* graph=new char[NUM_ALL_BLOCK];
+	//读获取位图
+	get_BlockGraph(filename, graph);
+	graph[now] = BLOCK_FREE;
+	Index index(filename,LOC_GRAPH,NUM_ALL_BLOCK,1);
+	//写位图
+	flush_BlockGraph(index, graph);
+	delete[] graph;
+	return now;
+	
 }
 
 size_t FileManager::getFileSize(const char* fileName)
