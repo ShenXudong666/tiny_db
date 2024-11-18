@@ -25,6 +25,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
    也有些人把阶定义为内部结点中键的最大数目，即2v。
    一般而言，叶子结点中最大数据个数和内部结点中最大键个数是一样的，也是2v。(我想这样做的目的是为了把内部结点和叶子结点统一到同一个结构中吧)
 */
+#include <climits>
 #include <cstddef>
 #include <sys/types.h>
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
@@ -76,6 +77,17 @@ static int eql(void* a, void* b,KEY_KIND key_kind) {
     }
     //后面可能要改
     return (char*)a == (char*)b;
+}
+
+static void* Invalid(KEY_KIND key_kind) {
+    if(key_kind == INT_KEY) {
+        return new int(INT_MIN);
+    }
+    else if(key_kind == LL_KEY) {
+        return new long long(LLONG_MIN);
+    }
+    //char*类型后面肯定要改，可能多传一个参数，表示字符串长度
+    return new char[1];
 }
 
 /* 键值的类型*/
@@ -184,7 +196,16 @@ public:
     {
         if ((i > 0) && (i <= MAXNUM_KEY))
         {
-            m_Keys[i - 1] = key;
+            //m_Keys[i - 1] = key;
+            if(this->key_kind==INT_KEY){
+                this->m_Keys[i - 1] = (void*)(new int(*(int*)key));
+            }
+            else if(this->key_kind==LL_KEY){
+                this->m_Keys[i - 1] = (void*)(new long long(*(long long*)key));
+            }
+            else if(this->key_kind==STRING_KEY){
+                this->m_Keys[i - 1] = (void*)((char*)key);
+            }
         }
     }
 
@@ -257,8 +278,6 @@ public:
 protected:
 
     void* m_Keys[MAXNUM_KEY];           // 键数组
-    
-    off_t offt_self;
     off_t offt_pointers[MAXNUM_POINTER];     // 指针数组
     
 };
@@ -289,9 +308,18 @@ public:
 
     void SetElement(int i, void* data)
     {
-        if ((i > 0) && (i <= MAXNUM_DATA))
+        if ((i > 0) && (i <= MAXNUM_KEY))
         {
-            m_Datas[i - 1] = data;
+            //m_Keys[i - 1] = key;
+            if(this->key_kind==INT_KEY){
+                this->m_Datas[i - 1] = (void*)(new int(*(int*)data));
+            }
+            else if(this->key_kind==LL_KEY){
+                this->m_Datas[i - 1] = (void*)(new long long(*(long long*)data));
+            }
+            else if(this->key_kind==STRING_KEY){
+                this->m_Datas[i - 1] = (void*)((char*)data);
+            }
         }
     }
 
@@ -364,7 +392,6 @@ public:
     off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
 
 protected:
-    off_t offt_self;
     void* m_Datas[MAXNUM_DATA];    // 数据数组，后面完成自己的调试后删掉
     
 
@@ -410,12 +437,13 @@ public:
     // 获取和设置根结点
     CNode* GetRoot()
     {
-        char type=FileManager::getInstance()->get_BlockType(this->fpath, LOC_ROOT);
+        
+        char type=FileManager::getInstance()->get_BlockType(this->fpath, this->offt_root);
         if(type==BLOCK_INTER){
-            return new CInternalNode(this->fpath,this->key_kind,this->max_key_size,LOC_ROOT);
+            return new CInternalNode(this->fpath,this->key_kind,this->max_key_size,this->offt_root);
         }
         else if (type==BLOCK_LEAF) {
-            return new CLeafNode(this->fpath,this->key_kind,this->max_key_size,LOC_ROOT);
+            return new CLeafNode(this->fpath,this->key_kind,this->max_key_size,this->offt_root);
         }
         return NULL;
     }
@@ -423,8 +451,9 @@ public:
     void SetRoot(CNode* root)
     {   //同步更新文件
         m_Root = root;
-        m_Root->setPtSelf(LOC_ROOT);
         m_Root->flush_file();
+        this->offt_root = m_Root->getPtSelf();
+        cout<<"root offt"<<this->offt_root<<endl;
     }
 
     // 获取和设置深度
@@ -514,3 +543,7 @@ protected:
     char Block_GRAPH[NUM_ALL_BLOCK];
 };
 
+static void updateNode(CNode* node) {
+    node->flush_file();
+    delete node;
+}

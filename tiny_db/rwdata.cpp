@@ -19,7 +19,7 @@ inter_node FileManager::getCInternalNode(Index index,void *data[MAXNUM_KEY],off_
 
 	index.offt_self = arr_offt;
 	fclose(file);
-	get_key(data, index);
+	get_value(data, index);
 	index.offt_self = offt;
 
 	return node;
@@ -152,20 +152,50 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 		perror("Failed to seek");
 		fclose(file);
 	}
-	void* temp;
 	if (index.key_kind == INT_KEY) {
-		temp = new int();
+		
+		for (int i = 0; i < MAXNUM_DATA; ++i) {
+			int *temp = new int();
+			if (fread(temp, sizeof(int), 1, file) != 1) {
+				
+				perror("Failed to read data");
+				fclose(file);
+				return;
+			}
+			key[i] = (void*)temp;
+			//cout<<"读取后数据为"<<*(int*)value[i]<<endl;
+		}
 	}
 	else if (index.key_kind == LL_KEY) {
-		temp = new long long();
+		
+		for (int i = 0; i < MAXNUM_DATA; ++i) {
+			long long *temp = new long long();
+			if (fread(temp, sizeof(long long), 1, file) != 1) {
+				
+				perror("Failed to read data");
+				fclose(file);
+				return;
+			}
+			key[i] = (void*)temp;
+		}
 	}
 	else {
-		temp = new char[index.max_size];
+		
+		
+		for (int i = 0; i < MAXNUM_DATA; ++i) {
+			char temp[1024] = { 0 };
+			if (fread(temp, sizeof(char), index.max_size, file) != index.max_size) {
+				//cout << *(long long*)value[i] << endl;
+				perror("Failed to read data");
+				fclose(file);
+				return;
+			}
+			key[i] = (void*)temp;
+			//cout << "读取后字符串数据为 " << (char*)value[i] << endl;
+			
+		}
 	}
-	for (int i = 0; i < MAXNUM_KEY; i++) {
-		fread(temp, index.max_size, 1, file);
-		key[i] = (void*)temp;
-	}
+	//cout << "size " << size << " " << index.offt_self << endl;
 	fclose(file);
 }
 
@@ -197,9 +227,9 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		}
 	}
 	else if (index.key_kind == LL_KEY) {
-		long long *temp = new long long();
+		
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
-
+			long long *temp = new long long();
 			if (fread(temp, sizeof(long long), 1, file) != 1) {
 				
 				perror("Failed to read data");
@@ -210,10 +240,10 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		}
 	}
 	else {
-		char temp[1024] = { 0 };
+		
 		
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
-
+			char temp[1024] = { 0 };
 			if (fread(temp, sizeof(char), index.max_size, file) != index.max_size) {
 				//cout << *(long long*)value[i] << endl;
 				perror("Failed to read data");
@@ -221,7 +251,7 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 				return;
 			}
 			value[i] = (void*)temp;
-			cout << "读取后字符串数据为 " << (char*)value[i] << endl;
+			//cout << "读取后字符串数据为 " << (char*)value[i] << endl;
 			
 			
 		}
@@ -247,7 +277,7 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 	}
 	fclose(file);
 	
-	for (int i = 0; i < 10; i++)cout << freeBlock[i];
+	//for (int i = 0; i < 10; i++)cout << freeBlock[i];
 	//这一步是防止出问题,已使用的块大于文件真正的大小
 	size_t i=getFileSize(fname);
 	i++;
@@ -369,7 +399,7 @@ bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_k
 
 	t.key_kind = key_type;
 	t.m_Depth = 1;
-	t.offt_root = LOC_ROOT;
+	t.offt_root = 2;
 	t.key_use_block = 1;
 	t.value_use_block = 0;
 	

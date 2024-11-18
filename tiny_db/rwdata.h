@@ -38,7 +38,7 @@ using namespace std;
 
 #define LOC_TABLE 0
 #define LOC_GRAPH 1
-#define LOC_ROOT 2
+
 enum NODE_TYPE
 {
 	NODE_TYPE_ROOT = 1,    // 根结点

@@ -5,6 +5,7 @@
 #include "stdlib.h"
 #include <climits>
 #include <cstring>
+#include <iostream>
 #include <iterator>
 #include <limits.h>
 #include <sys/types.h>
@@ -91,6 +92,7 @@ void CNode::DeleteChildren()   // 疑问：这里的指针下标是否需要从0
     }
 }
 CNode* CNode::GetFather(){
+    if(this->offt_father<=LOC_GRAPH) return NULL;
     char type=FileManager::getInstance()->get_BlockType(this->fname, this->offt_father);
     if(type==BLOCK_INTER)return new CInternalNode(this->fname, this->key_kind, this->max_size, this->offt_father);
 
@@ -103,16 +105,15 @@ CNode* CNode::GetFather(){
 CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max_size,off_t offt):CNode(filename,  key_kind,  max_size,  offt)
 {
 
-    if(this->offt_self==LOC_ROOT)node_Type = NODE_TYPE_ROOT;
-    else node_Type = NODE_TYPE_INTERNAL;
-    memcpy(this->fname, fname, strlen((char*)fname));
-    this->fname[strlen((char*)fname)] = '\0';
-    this->key_kind = key_kind;
-    this->max_size = max_size;
-    this->offt_self = offt;
-    m_Count = 0;
-    m_pFather = NULL;
-    this->offt_father=NULL;
+    node_Type = NODE_TYPE_INTERNAL;
+    // memcpy(this->fname, fname, strlen((char*)fname));
+    // this->fname[strlen((char*)fname)] = '\0';
+    // this->key_kind = key_kind;
+    // this->max_size = max_size;
+    // this->offt_self = offt;
+    // m_Count = 0;
+    // m_pFather = NULL;
+    // this->offt_father=NULL;
     if(this->offt_self != NEW_OFFT){
         this->get_file();
     }
@@ -132,10 +133,11 @@ CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max
             for(int i=0;i<MAXNUM_KEY;i++){
                 this->m_Keys[i]=(void*)new char[this->max_size];
         }
-        //后面一定一定要记得更新
-        FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_INTER);
+        
     }
     }
+    //后面一定一定要记得更新
+    FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_INTER);
 
 }
 // CInternalNode::CInternalNode()
@@ -191,8 +193,8 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
 
     int j = 0;
 
-    // 找到要插入键的位置,这里的比较规则要改
-    for (i = 0; (cmp(value , m_Keys[i],this->key_kind)) && (i < m_Count); i++)
+    // 找到要插入键的位置,这里的比较规则要改,这里相当于大于等于
+    for (i = 0; (cmp(value , m_Keys[i],this->key_kind)&&eql(value , m_Keys[i],this->key_kind)) && (i < m_Count); i++)
     {
     }
 
@@ -214,6 +216,7 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
     pNode->SetFather(this);      // 非常重要  该函数的意思是插入关键字value及其所指向子树
 
     m_Count++;
+
 
     // 返回成功
     return true;
@@ -437,37 +440,20 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
 CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t offt):CNode(fname,key_kind,max_size,offt)
 {
     this->node_Type = NODE_TYPE_LEAF;
-    memcpy(this->fname, fname, strlen((char*)fname));
-    this->fname[strlen((char*)fname)] = '\0';
-    this->key_kind = key_kind;
-    this->max_size = max_size;
-    this->offt_self = offt;
-    m_Count = 0;
-    m_pFather = NULL;
-    this->offt_father=NULL;
+    // memcpy(this->fname, fname, strlen((char*)fname));
+    // this->fname[strlen((char*)fname)] = '\0';
+    // this->key_kind = key_kind;
+    // this->max_size = max_size;
+    // this->offt_self = offt;
+    // m_Count = 0;
+    // m_pFather = NULL;
+    // this->offt_father=NULL;
     m_pPrevNode = NULL;
     m_pNextNode = NULL;
     this->offt_NextNode=NULL;
     this->offt_PrevNode=NULL;
-    if(this->key_kind==INT_KEY){
-        for (int i = 0; i < MAXNUM_DATA; i++)
-            {
-                m_Datas[i] = (void*)new int(INT_MIN);
-            }
-        }
-    else if(this->key_kind==LL_KEY){
-            for (int i = 0; i < MAXNUM_DATA; i++)
-            {
-                m_Datas[i] = (void*)new long long(LLONG_MIN);
-            }
-        }
-    else if(this->key_kind==STRING_KEY){
-            for (int i = 0; i < MAXNUM_DATA; i++)
-            {
-                //这里后面可能要改
-                m_Datas[i] = (void*)new char[this->max_size];
-            }
-    }
+    for (int i = 0; i < MAXNUM_DATA; i++)m_Datas[i] = Invalid(this->key_kind);
+
     if(this->offt_self != NEW_OFFT){
         this->get_file();
         cout<<"get file"<<endl;
@@ -477,10 +463,9 @@ CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t o
     }
     else{
         this->offt_self=FileManager::getInstance()->getFreeBlock(fname, BLOCK_LEAF);
-        
         //后面一定一定要记得更新
-        FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_LEAF);
         }
+    FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_LEAF);
     
 }
 CLeafNode::~CLeafNode()
@@ -509,7 +494,7 @@ bool CLeafNode::Insert(void* value)
         m_Datas[j] = m_Datas[j - 1];
     }
 
-    // 把数据存入当前位置
+    // 把数据存入当前位置，唯一插入的地方
     m_Datas[i] = value;
 
     m_Count++;
@@ -559,7 +544,7 @@ void* CLeafNode::Split(CNode* pNode)
     {
         j++;
         pNode->SetElement(j, this->GetElement(i));
-        this->SetElement(i, INVALID);
+        this->SetElement(i, Invalid(this->key_kind));
     }
     // 设置好Count个数
     this->SetCount(this->GetCount() - j);
@@ -588,20 +573,21 @@ bool CLeafNode::Combine(CNode* pNode)
 
 void CLeafNode::SetPrevNode(CLeafNode* node){
     this->m_pPrevNode = node;
-    this->offt_PrevNode = node->offt_self;
+    if(node!=NULL){this->offt_PrevNode = node->offt_self;}
 }
 CLeafNode* CLeafNode::GetPrevNode(){
-    if(this->offt_PrevNode<LOC_ROOT)return NULL;
+    if(this->offt_PrevNode<=LOC_GRAPH)return NULL;
     char type = FileManager::getInstance()->get_BlockType(this->fname, this->offt_PrevNode);
     if(type!=BLOCK_LEAF)return NULL;
     return new CLeafNode(this->fname, this->key_kind, this->max_size, this->offt_PrevNode);
 }
 void CLeafNode::SetNextNode(CLeafNode* node){
     this->m_pNextNode = node;
-    this->offt_NextNode = node->offt_self;
+    if(node!=NULL){this->offt_NextNode = node->offt_self;}
+    
 }
 CLeafNode* CLeafNode::GetNextNode(){
-    if(this->offt_NextNode<LOC_ROOT)return NULL;
+    if(this->offt_NextNode<=LOC_GRAPH)return NULL;
     char type = FileManager::getInstance()->get_BlockType(this->fname, this->offt_NextNode);
     if(type!=BLOCK_LEAF)return NULL;
     return new CLeafNode(this->fname, this->key_kind, this->max_size, this->offt_NextNode);
@@ -619,24 +605,31 @@ BPlusTree::BPlusTree(const char* fname)
 {
     memcpy(fpath, fname, sizeof(fname)+1);
     this->fpath[sizeof(fname)+1]='\0';
-    table t=FileManager::getInstance()->getTable(fname, 0);
-    this->m_Depth = t.m_Depth;
     this->offt_self = 0;
-    this->max_key_size= t.max_key_size;
-    this->key_kind=t.key_kind;
-    this->offt_root=t.offt_root;
-    this->key_use_block=t.key_use_block;
-    this->value_use_block=t.value_use_block;
-    this->offt_leftHead=NULL;
-    this->offt_rightHead=NULL;
-
+    // table t=FileManager::getInstance()->getTable(fname, 0);
+    // this->m_Depth = t.m_Depth;
+    // this->max_key_size= t.max_key_size;
+    // this->key_kind=t.key_kind;
+    // this->offt_root=t.offt_root;
+    // this->key_use_block=t.key_use_block;
+    // this->value_use_block=t.value_use_block;
+    // this->offt_leftHead=t.offt_leftHead;
+    // this->offt_rightHead=t.offt_rightHead;
+    get_file();
+    this->m_Root=NULL;
+    this->m_pLeafHead=NULL;
+    this->m_pLeafTail=NULL;
     FileManager::getInstance()->get_BlockGraph(fname, this->Block_GRAPH);
-    if(this->Block_GRAPH[LOC_ROOT]==BLOCK_LEAF){
-        this->m_Root=new CLeafNode(fname, t.key_kind, t.max_key_size, t.offt_root);
+    cout<<"初始化位图为："<<endl;
+    for(int i=0;i<10;i++){
+        cout<<this->Block_GRAPH[i]<<" ";
+    }
+    if(this->Block_GRAPH[offt_root]==BLOCK_LEAF){
+        this->m_Root=new CLeafNode(fname, this->key_kind, this->max_key_size, this->offt_root);
 
     }
-    else if(this->Block_GRAPH[LOC_ROOT]==BLOCK_INTER){
-        this->m_Root=new CInternalNode(fname, t.key_kind, t.max_key_size, t.offt_root);
+    else if(this->Block_GRAPH[offt_root]==BLOCK_INTER){
+        this->m_Root=new CInternalNode(fname, this->key_kind, this->max_key_size, this->offt_root);
     }
     
 }
@@ -658,11 +651,11 @@ CLeafNode* BPlusTree::GetLeafTail(){
 }
 void BPlusTree::SetLeafHead(CLeafNode* node){
     this->m_pLeafHead = node;
-    this->offt_leftHead = node->getPtSelf();
+    if(node!=NULL)this->offt_leftHead = node->getPtSelf();
 }
 void BPlusTree::SetLeafTail(CLeafNode* node){
     this->m_pLeafTail = node;
-    this->offt_rightHead = node->getPtSelf();
+    if(node!=NULL)this->offt_rightHead = node->getPtSelf();
 }
 // 在树中查找数据
 bool BPlusTree::Search(void* data, char* sPath)
@@ -686,7 +679,7 @@ bool BPlusTree::Search(void* data, char* sPath)
         }
 
         // 找到第一个键值大于等于key的位置
-        for (i = 1; cmp(data , pNode->GetElement(i),this->key_kind) && (i <= pNode->GetCount()); i++)
+        for (i = 1; cmp(data , pNode->GetElement(i),this->key_kind)&& eql(data,pNode,this->key_kind)&& (i <= pNode->GetCount()); i++)
         {
         }
 
@@ -777,7 +770,7 @@ bool BPlusTree::Insert(void* data)  //
     {
         bool success= pOldNode->Insert(data);
         //插入完立马更新数据
-        pOldNode->flush_file();
+        SetRoot(pOldNode);
         delete pOldNode;
         return success;
     }
@@ -787,6 +780,7 @@ bool BPlusTree::Insert(void* data)  //
     void* key = INVALID;
     key = pOldNode->Split(pNewNode);
 
+    cout<<"split leaf node "<<*(int*)key<<endl;
     // 在双向链表中插入结点
     // CLeafNode* pOldNext = pOldNode->m_pNextNode;
     // pOldNode->m_pNextNode = pNewNode;
@@ -810,7 +804,7 @@ bool BPlusTree::Insert(void* data)  //
 
 
     // 判断是插入到原结点还是新结点中，确保是按数据值排序的
-    if (data < key)
+    if (cmp(key, data, this->key_kind))
     {
         pOldNode->Insert(data);    // 插入原结点
     }
@@ -835,10 +829,8 @@ bool BPlusTree::Insert(void* data)  //
 
         SetRoot(pNode1);
         delete pNode1;                                           // 指定新的根结点
-        pFather->flush_file();
         pOldNode->flush_file();
         pNewNode->flush_file();
-        pOldNode->flush_file();
         delete pFather;
         delete pNewNode;
         delete pOldNode;
@@ -903,7 +895,7 @@ bool BPlusTree::Delete(void* data)
     // 删除后叶子结点填充度仍>=50%，对应情况1
     if (pOldNode->GetCount() >= ORDER_V)
     {
-        for (int i = 1; (data >= pFather->GetElement(i)) && (i <= pFather->GetCount()); i++)
+        for (int i = 1; cmp(data , pFather->GetElement(i),this->key_kind)&&eql(data, pFather->GetElement(i), this->key_kind) && (i <= pFather->GetCount()); i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
             if (pFather->GetElement(i) == data)
@@ -1313,7 +1305,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     // 删除后结点填充度仍>=50%
     if (pNode->GetCount() >= ORDER_V)
     {
-        for (int i = 1; (key >= pFather->GetElement(i)) && (i <= pFather->GetCount()); i++)
+        for (int i = 1; cmp(key , pFather->GetElement(i),this->key_kind) && eql(key, pFather->GetElement(i), this->key_kind) && (i <= pFather->GetCount()); i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
             if (pFather->GetElement(i) == key)
