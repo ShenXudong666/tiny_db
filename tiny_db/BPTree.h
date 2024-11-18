@@ -67,7 +67,16 @@ static int cmp(void* a, void* b,KEY_KIND key_kind) {
     return (char*)a > (char*)b;
 }
 
-
+static int eql(void* a, void* b,KEY_KIND key_kind) {
+    if(key_kind == INT_KEY) {
+        return *(int*)a == *(int*)b;
+    }
+    else if(key_kind == LL_KEY) {
+        return *(long long*)a == *(long long*)b;
+    }
+    //后面可能要改
+    return (char*)a == (char*)b;
+}
 
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -95,13 +104,19 @@ public:
     virtual void* GetElement(int i) { return 0; }
     virtual void SetElement(int i, void* value) { }
 
+    //读写文件
+    virtual bool flush_file() { return false; }
+    virtual bool get_file() { return false; }
     // 获取和设置某个指针，对中间结点指指针，对叶子结点无意义
     virtual CNode* GetPointer(int i) { return NULL; }
     virtual void SetPointer(int i, CNode* pointer) { }
 
     // 获取和设置父结点,这里需要位置偏移读取文件
     CNode* GetFather();
-    void SetFather(CNode* father) { m_pFather = father; }
+    void SetFather(CNode* father) { 
+        m_pFather = father; 
+        offt_father = father->getPtSelf();
+    }
 
     off_t getPtFather() {
         return this->offt_father;
@@ -312,15 +327,8 @@ public:
     }
 
     bool flush_file() {
-        leaf_node node;
-        /*这一部分后面会根据数据的需求进行变更*/
-        //memcmp(node.m_Datas, this->m_Datas, sizeof(this->m_Datas));
         
-        node.offt_self = this->offt_self;
-        node.offt_father = this->offt_father;
-        node.offt_NextNode = this->offt_NextNode;
-        node.offt_PrevNode = this->offt_PrevNode;
-        node.count = this->m_Count;
+        leaf_node node(this->offt_self,this->GetCount(),NODE_TYPE_LEAF,this->offt_father,this->offt_PrevNode,this->offt_NextNode);
         Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
         FileManager::getInstance()->flushLeafNode(node, index,this->m_Datas);
 
@@ -342,6 +350,12 @@ public:
         this->offt_self=node.offt_self;
         return true;
     }
+    void SetPrevNode(CLeafNode* node);
+    CLeafNode* GetPrevNode();
+    void SetNextNode(CLeafNode* node);
+    CLeafNode* GetNextNode();
+        
+    
 public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pPrevNode;                 // 前一个结点
@@ -389,7 +403,10 @@ public:
 
     // 递归检查结点及其子树是否满足B+树的定义
     bool CheckNode(CNode* pNode);
-
+    CLeafNode* GetLeafHead();
+    CLeafNode* GetLeafTail();
+    void SetLeafHead(CLeafNode* node);
+    void SetLeafTail(CLeafNode* node);
     // 获取和设置根结点
     CNode* GetRoot()
     {
@@ -404,8 +421,10 @@ public:
     }
 
     void SetRoot(CNode* root)
-    {
+    {   //同步更新文件
         m_Root = root;
+        m_Root->setPtSelf(LOC_ROOT);
+        m_Root->flush_file();
     }
 
     // 获取和设置深度

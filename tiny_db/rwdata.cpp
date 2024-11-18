@@ -111,10 +111,12 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		perror("Failed to seek");
 		fclose(file);
 	}
+
 	if (index.key_kind == INT_KEY) {
 		int temp[MAXNUM_DATA];
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			temp[i] = *(int*)value[i];
+			cout << "写入数据前为" << *(int*)value[i] << endl;
 		}
 		fwrite(&temp, sizeof(int), MAXNUM_DATA, file);
 	}
@@ -181,16 +183,17 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 	cout << index.key_kind << endl;
 
 	if (index.key_kind == INT_KEY) {
-		int *temp = new int();
+		
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
-
+			int *temp = new int();
 			if (fread(temp, sizeof(int), 1, file) != 1) {
-				cout << *(int*)value[i] << endl;
+				
 				perror("Failed to read data");
 				fclose(file);
 				return;
 			}
 			value[i] = (void*)temp;
+			//cout<<"读取后数据为"<<*(int*)value[i]<<endl;
 		}
 	}
 	else if (index.key_kind == LL_KEY) {
@@ -198,7 +201,7 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
 
 			if (fread(temp, sizeof(long long), 1, file) != 1) {
-				//cout << *(long long*)value[i] << endl;
+				
 				perror("Failed to read data");
 				fclose(file);
 				return;
@@ -243,7 +246,7 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 		return;
 	}
 	fclose(file);
-	cout << "读取成功,前10位为：" << endl;
+	
 	for (int i = 0; i < 10; i++)cout << freeBlock[i];
 	//这一步是防止出问题,已使用的块大于文件真正的大小
 	size_t i=getFileSize(fname);
@@ -251,7 +254,6 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 	for (int j=i; j < NUM_ALL_BLOCK; j++) {
 		freeBlock[j] = BLOCK_UNAVA;
 	}
-	cout << endl;
 
 }
 char FileManager::get_BlockType(const char* fname, off_t offt){
@@ -269,9 +271,6 @@ void FileManager::flush_BlockGraph(Index index, char* freeBlock)
 
 	fwrite(freeBlock, sizeof(char), index.max_size, file);
 	fclose(file);
-	cout << "读取成功,空闲块的分布为,前10位为：" << endl;
-	for (int i = 0; i < 10; i++)cout << freeBlock[i];
-	cout << endl;
 
 }
 
@@ -434,5 +433,14 @@ size_t FileManager::getFileSize(const char* fileName)
 
 	return filesize / DB_BLOCK_SIZE;
 	
+}
+bool FileManager::flushBlock(const char* filename, off_t offt, char type){
+	char* block_graph = new char[NUM_ALL_BLOCK];
+	get_BlockGraph(filename, block_graph);
+	if(offt<0||offt>=NUM_ALL_BLOCK)return false;
+	block_graph[offt] = type;
+	Index index(filename, LOC_GRAPH, NUM_ALL_BLOCK, 1);
+	flush_BlockGraph(index, block_graph);
+	return true;
 }
 

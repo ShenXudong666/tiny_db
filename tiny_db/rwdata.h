@@ -76,6 +76,7 @@ struct leaf_node {
 	off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
 	off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
 	size_t count;
+	//有点没意义，后面可能会废除
 	NODE_TYPE node_type;
 	leaf_node(){}
 	leaf_node(off_t offt, size_t count, NODE_TYPE node_type,off_t
@@ -121,6 +122,7 @@ public:
 	char get_BlockType(const char* fname, off_t offt);
 	void flush_BlockGraph(Index index, char* freeBlock);
 	off_t getFreeBlock(const char* filename,char type_block);
+	bool flushBlock(const char* filename, off_t offt, char type);
 	off_t newBlock(const char* filename);
 	//获取文件总共有多少块
 	size_t getFileSize(const char* fileName);

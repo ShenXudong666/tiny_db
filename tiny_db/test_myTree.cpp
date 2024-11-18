@@ -12,10 +12,19 @@ void xiebiao(KEY_KIND key) {
 }
 int main(){
     const char* fname = "table.bin";
-    xiebiao(INT_KEY);
+    //xiebiao(INT_KEY);
     BPlusTree* bp = new BPlusTree(fname);
-    bp->Insert((void*)new int(1));
-	cout<<bp->m_Root->GetType()<<endl;
+	//bp->GetRoot();
+	bp->Insert((void*)(new int(18)));
+	//cout<<"根节点的值有 "<<*(int*)(bp->GetRoot()->GetElement(2));
+	
+	// cout<<"bp的根的有效值为:"<<endl;
+	// cout<<bp->GetRoot()->GetCount();
+	
+	//if(bp->m_Root==NULL)cout<<"NULL"<<endl;
+	
+    // bp->Insert((void*)new int(1));
+	// cout<<bp->m_Root->GetType()<<endl;
 
 	return 0;
 }
