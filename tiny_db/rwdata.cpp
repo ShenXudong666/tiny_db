@@ -42,7 +42,6 @@ bool FileManager::flushInterNode(inter_node node, Index index,void** key) {
 leaf_node FileManager::getLeafNode(Index index, void *data[MAXNUM_DATA], off_t offt) {
 
 	FILE* file = fopen(index.fpath, "rb");
-	cout << "读取叶节点的文件名为 " << index.fpath << endl;
 	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -105,7 +104,6 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
-	cout << "写进value的偏移量为" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
@@ -115,7 +113,7 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		int temp[MAXNUM_DATA];
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			temp[i] = *(int*)value[i];
-			cout << "写入数据前为" << *(int*)value[i] << endl;
+			cout << "写入数据为" << *(int*)value[i] << endl;
 		}
 		fwrite(&temp, sizeof(int), MAXNUM_DATA, file);
 	}
@@ -190,7 +188,7 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 				return;
 			}
 			key[i] = (void*)temp;
-			//cout << "读取后字符串数据为 " << (char*)value[i] << endl;
+			
 			
 		}
 	}
@@ -201,13 +199,11 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb");
-	cout<<"index的文件" << index.fpath << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 	//void* temp;
-	cout << "读取value的偏移量为" << index.offt_self << endl;
 
 	if (index.key_kind == INT_KEY) {
 		

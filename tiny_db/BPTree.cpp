@@ -110,6 +110,10 @@ CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max
     for(int i=0; i < MAXNUM_KEY; i++) {
         this->m_Keys[i] = Invalid(this->key_kind);
     }
+    for(int i = 0; i < MAXNUM_POINTER; i++)
+    {
+        this->offt_pointers[i] = INT_MIN;
+    }
     if(this->offt_self != NEW_OFFT){
         this->get_file();
     }
@@ -176,14 +180,14 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
     int j = 0;
 
     // 找到要插入键的位置,这里的比较规则要改,这里相当于大于等于
-    for (i = 0; (cmp(value , m_Keys[i],this->key_kind)||eql(value , m_Keys[i],this->key_kind)) && (i < m_Count); i++)
+    for (i = 0;  (i < m_Count)&&(cmp(value , m_Keys[i],this->key_kind)||eql(value , m_Keys[i],this->key_kind)) ; i++)
     {
     }
 
     // 当前位置及其后面的键依次后移，空出当前位置
     for (j = m_Count; j > i; j--)
     {
-        m_Keys[j] = m_Keys[j - 1];
+        m_Keys[j] = (void*)(new int(*(int*)m_Keys[j - 1]));
     }
 
     // 当前位置及其后面的指针依次后移
@@ -196,7 +200,7 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
     m_Keys[i] = value;
     this->offt_pointers[i + 1] = pNode->getPtSelf();    // 注意是第i+1个指针而不是第i个指针
     pNode->SetFather(this);      // 非常重要  该函数的意思是插入关键字value及其所指向子树
-
+    pNode->flush_file();
     m_Count++;
 
 
@@ -208,7 +212,7 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
 bool CInternalNode::Delete(void* key)
 {
     int i, j, k;
-    for (i = 0; cmp(key ,m_Keys[i],this->key_kind) && (i < m_Count); i++)
+    for (i = 0; (i < m_Count)&&cmp(key ,m_Keys[i],this->key_kind)  ; i++)
     {
     }
 
@@ -276,8 +280,11 @@ void* CInternalNode::Split(CInternalNode* pNode, void* key)  //key是新插入�
 
     // 判断是提取第V还是V+1个键
     int position = 0;
-    if (key < this->GetElement(ORDER_V))
-    {
+    // if (key < this->GetElement(ORDER_V))
+    // {
+    //     position = ORDER_V;
+    // }
+    if(cmp(this->GetElement(ORDER_V + 1),key,this->key_kind)){
         position = ORDER_V;
     }
     else
@@ -422,14 +429,6 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
 CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t offt):CNode(fname,key_kind,max_size,offt)
 {
     this->node_Type = NODE_TYPE_LEAF;
-    // memcpy(this->fname, fname, strlen((char*)fname));
-    // this->fname[strlen((char*)fname)] = '\0';
-    // this->key_kind = key_kind;
-    // this->max_size = max_size;
-    // this->offt_self = offt;
-    // m_Count = 0;
-    // m_pFather = NULL;
-    // this->offt_father=NULL;
     m_pPrevNode = NULL;
     m_pNextNode = NULL;
     this->offt_NextNode=NULL;
@@ -599,9 +598,10 @@ BPlusTree::BPlusTree(const char* fname)
     this->m_pLeafTail=NULL;
     FileManager::getInstance()->get_BlockGraph(fname, this->Block_GRAPH);
     cout<<"初始化位图为："<<endl;
-    for(int i=0;i<10;i++){
+    for(int i=0;i<20;i++){
         cout<<this->Block_GRAPH[i]<<" ";
     }
+    cout<<endl;
     if(this->Block_GRAPH[offt_root]==BLOCK_LEAF){
         this->m_Root=new CLeafNode(fname, this->key_kind, this->max_key_size, this->offt_root);
 
@@ -657,7 +657,7 @@ bool BPlusTree::Search(void* data, char* sPath)
         }
 
         // 找到第一个键值大于等于key的位置
-        for (i = 1;  (i <= pNode->GetCount())&&(cmp(data , pNode->GetElement(i),this->key_kind)|| eql(data,pNode,this->key_kind)); i++)
+        for (i = 1;  (i <= pNode->GetCount())&&(cmp(data , pNode->GetElement(i),this->key_kind)|| eql(data,pNode->GetElement(i),this->key_kind)); i++)
         {
         }
 
@@ -1216,7 +1216,9 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
     // 结点未满，直接插入
     if (pNode->GetCount() < MAXNUM_KEY)
     {
-        return pNode->Insert(key, pRightSon);
+        bool ans=pNode->Insert(key, pRightSon);
+        pNode->flush_file();
+        return ans;
     }
 
     CInternalNode* pBrother = new CInternalNode(this->fpath, this->key_kind, this->max_key_size, NEW_OFFT);  //C++中new 类名表示分配一个类需要的内存空间，并返回其首地址；
@@ -1251,10 +1253,12 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
         pBrother->SetFather(pFather);                            // 指定父结点
         pFather->SetCount(1);
 
-        SetRoot(pFather);                                        // 指定新的根结点
+        pBrother->flush_file();
+        SetRoot(pFather);
+                                                // 指定新的根结点
         return true;
     }
-
+    
     // 递归
     return InsertInternalNode(pFather, NewKey, pBrother);
 }

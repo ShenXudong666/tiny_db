@@ -92,13 +92,13 @@ static void* Invalid(KEY_KIND key_kind) {
 
 static void print_key(void* key, KEY_KIND key_kind) {
     if(key_kind == INT_KEY) {
-       cout<<*(int*)key<<endl;
+       cout<<*(int*)key<<" ";
     }
     else if(key_kind == LL_KEY) {
-        cout<<*(long long*)key<<endl;
+        cout<<*(long long*)key<<" ";
     }
     //char*类型后面肯定要改，可能多传一个参数，表示字符串长度
-    else cout<<(char*)key<<endl;
+    else cout<<(char*)key<<" ";
 }
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -286,6 +286,7 @@ public:
     }
 
     void print_data(){
+        cout<<"偏移量为："<<this->offt_self<<" "<<"中间节点"<<endl;
         for(int i=0;i<MAXNUM_KEY;i++){
             print_key(this->m_Keys[i], this->key_kind);
         }
@@ -400,6 +401,7 @@ public:
     CLeafNode* GetNextNode();
         
     void print_data(){
+        cout<<"偏移量为："<<this->getPtSelf()<<" 叶节点"<<endl;
         for(int i=0;i<MAXNUM_DATA;i++){
             print_key(this->m_Datas[i], this->key_kind);
         }
@@ -546,6 +548,7 @@ public:
     char fpath[100];     //文件，也即表的路径
     size_t max_key_size;
     CNode* m_Root;    // 根结点
+    char Block_GRAPH[NUM_ALL_BLOCK];
 protected:
 
     // 为插入而查找叶子结点
@@ -563,7 +566,7 @@ protected:
     
     off_t offt_self;
     //后面定义宏来改大小，先这样
-    char Block_GRAPH[NUM_ALL_BLOCK];
+    
 };
 
 static void updateNode(CNode* node) {
