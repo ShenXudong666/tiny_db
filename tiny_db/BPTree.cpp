@@ -106,35 +106,17 @@ CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max
 {
 
     node_Type = NODE_TYPE_INTERNAL;
-    // memcpy(this->fname, fname, strlen((char*)fname));
-    // this->fname[strlen((char*)fname)] = '\0';
-    // this->key_kind = key_kind;
-    // this->max_size = max_size;
-    // this->offt_self = offt;
-    // m_Count = 0;
-    // m_pFather = NULL;
-    // this->offt_father=NULL;
+    //其实这里的offt有点不安全，后面可能会修改
+    for(int i=0; i < MAXNUM_KEY; i++) {
+        this->m_Keys[i] = Invalid(this->key_kind);
+    }
     if(this->offt_self != NEW_OFFT){
         this->get_file();
     }
     else{
         this->offt_self=FileManager::getInstance()->getFreeBlock(filename, BLOCK_INTER);
-        if(this->key_kind==INT_KEY){
-            for(int i=0;i<MAXNUM_KEY;i++){
-                this->m_Keys[i]=(void*)new int(INT_MIN);
-            }
-        }
-        else if(this->key_kind==LL_KEY){
-            for(int i=0;i<MAXNUM_KEY;i++){
-                this->m_Keys[i]=(void*)new int(INT_MIN);
-            }
-        }
-        else{
-            for(int i=0;i<MAXNUM_KEY;i++){
-                this->m_Keys[i]=(void*)new char[this->max_size];
-        }
         
-    }
+    
     }
     //后面一定一定要记得更新
     FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_INTER);
@@ -194,7 +176,7 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
     int j = 0;
 
     // 找到要插入键的位置,这里的比较规则要改,这里相当于大于等于
-    for (i = 0; (cmp(value , m_Keys[i],this->key_kind)&&eql(value , m_Keys[i],this->key_kind)) && (i < m_Count); i++)
+    for (i = 0; (cmp(value , m_Keys[i],this->key_kind)||eql(value , m_Keys[i],this->key_kind)) && (i < m_Count); i++)
     {
     }
 
@@ -234,7 +216,7 @@ bool CInternalNode::Delete(void* key)
     {
         m_Keys[j] = m_Keys[j + 1];
     }
-    m_Keys[j] = INVALID;
+    m_Keys[j] = Invalid(this->key_kind);
 
     for (k = i; k < m_Count; k++)
     {
@@ -269,7 +251,7 @@ void* CInternalNode::Split(CInternalNode* pNode, void* key)  //key是新插入�
         {
             j++;
             pNode->SetElement(j, this->GetElement(i));
-            this->SetElement(i, INVALID);
+            this->SetElement(i, Invalid(this->key_kind));
         }
 
         // 把第V+2 -- 2V+1个指针移到指定的结点中
@@ -312,7 +294,7 @@ void* CInternalNode::Split(CInternalNode* pNode, void* key)  //key是新插入�
     {
         j++;
         pNode->SetElement(j, this->GetElement(i));
-        this->SetElement(i, INVALID);
+        this->SetElement(i, Invalid(this->key_kind));
     }
 
     // 把第position+1 -- 2V+1个指针移到指定的结点中(注意指针比键多一个)
@@ -326,7 +308,7 @@ void* CInternalNode::Split(CInternalNode* pNode, void* key)  //key是新插入�
     }
 
     // 清除提取出的位置
-    this->SetElement(position, INVALID);
+    this->SetElement(position, Invalid(this->key_kind));
 
     // 设置好Count个数
     this->SetCount(position - 1);
@@ -395,7 +377,7 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
         this->offt_pointers[0] = pNode->GetPointer(pNode->GetCount() + 1)->getPtSelf();
 
         // 修改兄弟结点
-        pNode->SetElement(pNode->GetCount(), INVALID);
+        pNode->SetElement(pNode->GetCount(), Invalid(this->key_kind));
         pNode->SetPointer(pNode->GetCount() + 1, INVALID);
     }
     else    // 兄弟结点在本结点右边
@@ -456,10 +438,6 @@ CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t o
 
     if(this->offt_self != NEW_OFFT){
         this->get_file();
-        cout<<"get file"<<endl;
-        for(int i=0;i<MAXNUM_DATA;i++){
-            cout<<*(int*)m_Datas[i]<<endl;
-        }
     }
     else{
         this->offt_self=FileManager::getInstance()->getFreeBlock(fname, BLOCK_LEAF);
@@ -484,7 +462,7 @@ bool CLeafNode::Insert(void* value)
     }
 
     // 找到要插入数据的位置
-    for (i = 0; cmp(value , m_Datas[i],this->key_kind) && (i < m_Count); i++)
+    for (i = 0; (i < m_Count)&&cmp(value , m_Datas[i],this->key_kind) ; i++)
     {
     }
 
@@ -527,7 +505,7 @@ bool CLeafNode::Delete(void* value)
         m_Datas[j] = m_Datas[j + 1];
     }
 
-    m_Datas[j] = INVALID;
+    m_Datas[j] = Invalid(this->key_kind);
     m_Count--;
 
     // 返回成功
@@ -679,7 +657,7 @@ bool BPlusTree::Search(void* data, char* sPath)
         }
 
         // 找到第一个键值大于等于key的位置
-        for (i = 1; cmp(data , pNode->GetElement(i),this->key_kind)&& eql(data,pNode,this->key_kind)&& (i <= pNode->GetCount()); i++)
+        for (i = 1;  (i <= pNode->GetCount())&&(cmp(data , pNode->GetElement(i),this->key_kind)|| eql(data,pNode,this->key_kind)); i++)
         {
         }
 
@@ -769,8 +747,10 @@ bool BPlusTree::Insert(void* data)  //
     if (pOldNode->GetCount() < MAXNUM_DATA)
     {
         bool success= pOldNode->Insert(data);
+        pOldNode->flush_file();
+        if(pOldNode->getPtSelf()==this->offt_root)this->SetRoot(pOldNode);
         //插入完立马更新数据
-        SetRoot(pOldNode);
+        //SetRoot(pOldNode);
         delete pOldNode;
         return success;
     }
@@ -895,7 +875,7 @@ bool BPlusTree::Delete(void* data)
     // 删除后叶子结点填充度仍>=50%，对应情况1
     if (pOldNode->GetCount() >= ORDER_V)
     {
-        for (int i = 1; cmp(data , pFather->GetElement(i),this->key_kind)&&eql(data, pFather->GetElement(i), this->key_kind) && (i <= pFather->GetCount()); i++)
+        for (int i = 1; (cmp(data , pFather->GetElement(i),this->key_kind)||eql(data, pFather->GetElement(i), this->key_kind)) && (i <= pFather->GetCount()); i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
             if (pFather->GetElement(i) == data)
@@ -1243,7 +1223,8 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
     void* NewKey = INVALID;
     // 分裂本结点
     NewKey = pNode->Split(pBrother, key);
-
+    cout<<"中间节点的分裂键为："<<endl;
+    print_key(NewKey, this->key_kind);
     if (pNode->GetCount() < pBrother->GetCount())
     {
         pNode->Insert(key, pRightSon);
@@ -1305,7 +1286,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     // 删除后结点填充度仍>=50%
     if (pNode->GetCount() >= ORDER_V)
     {
-        for (int i = 1; cmp(key , pFather->GetElement(i),this->key_kind) && eql(key, pFather->GetElement(i), this->key_kind) && (i <= pFather->GetCount()); i++)
+        for (int i = 1; (cmp(key , pFather->GetElement(i),this->key_kind) || eql(key, pFather->GetElement(i), this->key_kind)) && (i <= pFather->GetCount()); i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
             if (pFather->GetElement(i) == key)
@@ -1322,7 +1303,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     CInternalNode* pBrother = (CInternalNode*)(pNode->GetBrother(flag));
 
     // 兄弟结点填充度>50%
-    KEY_TYPE NewData = INVALID;
+    void* NewData = INVALID;
     if (pBrother->GetCount() > ORDER_V)
     {
         pNode->MoveOneElement(pBrother);

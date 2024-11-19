@@ -90,6 +90,16 @@ static void* Invalid(KEY_KIND key_kind) {
     return new char[1];
 }
 
+static void print_key(void* key, KEY_KIND key_kind) {
+    if(key_kind == INT_KEY) {
+       cout<<*(int*)key<<endl;
+    }
+    else if(key_kind == LL_KEY) {
+        cout<<*(long long*)key<<endl;
+    }
+    //char*类型后面肯定要改，可能多传一个参数，表示字符串长度
+    else cout<<(char*)key<<endl;
+}
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
 /*备注： 为简单起见，叶子结点的数据也只存储键值*/
@@ -123,11 +133,12 @@ public:
     virtual CNode* GetPointer(int i) { return NULL; }
     virtual void SetPointer(int i, CNode* pointer) { }
 
+    virtual void print_data() { }
     // 获取和设置父结点,这里需要位置偏移读取文件
     CNode* GetFather();
     void SetFather(CNode* father) { 
-        m_pFather = father; 
-        offt_father = father->getPtSelf();
+        m_pFather = father;
+        if(father != NULL) offt_father = father->getPtSelf();
     }
 
     off_t getPtFather() {
@@ -217,7 +228,8 @@ public:
     {
         if ((i > 0) && (i <= MAXNUM_POINTER))
         {
-            offt_pointers[i - 1] = pointer->getPtSelf();
+            if(pointer != NULL)offt_pointers[i - 1] = pointer->getPtSelf();
+            else offt_pointers[i - 1] = INVALID;
         }
     }
 
@@ -273,7 +285,11 @@ public:
         return true;
     }
 
-    
+    void print_data(){
+        for(int i=0;i<MAXNUM_KEY;i++){
+            print_key(this->m_Keys[i], this->key_kind);
+        }
+    }
     
 protected:
 
@@ -383,7 +399,11 @@ public:
     void SetNextNode(CLeafNode* node);
     CLeafNode* GetNextNode();
         
-    
+    void print_data(){
+        for(int i=0;i<MAXNUM_DATA;i++){
+            print_key(this->m_Datas[i], this->key_kind);
+        }
+    }
 public:
     // 以下两个变量用于实现双向链表
     CLeafNode* m_pPrevNode;                 // 前一个结点
@@ -513,6 +533,9 @@ public:
         return true;
     }
 
+    off_t getPtRoot(){
+        return this->offt_root;
+    }
 
 public:
     // 以下两个变量用于实现双向链表

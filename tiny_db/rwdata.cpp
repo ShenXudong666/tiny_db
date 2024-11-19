@@ -93,14 +93,13 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 
 	FILE* file = fopen(filename, "rb+");
 	offt = offt * DB_BLOCK_SIZE;
-	cout << filename << endl;
 	if (fseek(file, offt, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
 	}
 	fwrite(&t, 1, sizeof(table), file);
 	fclose(file);
-	cout<<"表创建成功"<<endl;
+	cout<<"表更新成功"<<endl;
 	return true;
 }
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
@@ -209,8 +208,6 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 	}
 	//void* temp;
 	cout << "读取value的偏移量为" << index.offt_self << endl;
-	cout << "index.key_type" << endl;
-	cout << index.key_kind << endl;
 
 	if (index.key_kind == INT_KEY) {
 		
@@ -438,6 +435,7 @@ off_t FileManager::newBlock(const char* filename) {
 	char zero[DB_BLOCK_SIZE] = { 0 };
 	fwrite(zero, 1, sizeof(zero), file);
 	off_t now=ftell(file)/DB_BLOCK_SIZE;
+	now--;
 	fclose(file);
 	char* graph=new char[NUM_ALL_BLOCK];
 	//读获取位图
