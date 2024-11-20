@@ -348,7 +348,7 @@ bool CInternalNode::Combine(CNode* pNode)
         m_Count++;
         this->offt_pointers[m_Count] = pNode->GetPointer(i + 1)->getPtSelf();
     }
-
+    pNode->FreeBlock();
     return true;
 }
 
@@ -545,7 +545,7 @@ bool CLeafNode::Combine(CNode* pNode)
     {
         this->Insert(pNode->GetElement(i));
     }
-
+    pNode->FreeBlock();
     return true;
 }
 
@@ -867,8 +867,11 @@ bool BPlusTree::Delete(void* data)
         {
             
             delete pOldNode;
-            m_pLeafHead = NULL;
-            m_pLeafTail = NULL;
+            pOldNode->FreeBlock();
+            this->SetLeafHead(NULL);
+            this->SetLeafTail(NULL);
+            //m_pLeafHead = NULL;
+            //m_pLeafTail = NULL;
             SetRoot(NULL);
         }
         delete pOldNode;
