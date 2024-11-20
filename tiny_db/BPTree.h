@@ -154,7 +154,9 @@ public:
 
     // 删除结点
     void DeleteChildren();
-
+    void FreeBlock() {
+        FileManager::getInstance()->flushBlock(this->fname, this->offt_self, BLOCK_FREE);
+     }
     off_t getPtSelf() {
         return this->offt_self;
     }
@@ -473,9 +475,12 @@ public:
     void SetRoot(CNode* root)
     {   //同步更新文件
         m_Root = root;
-        m_Root->flush_file();
+        if( m_Root != NULL){
+            m_Root->flush_file();
         this->offt_root = m_Root->getPtSelf();
         cout<<"root offt"<<this->offt_root<<endl;
+        }
+        
     }
 
     // 获取和设置深度

@@ -59,7 +59,7 @@ CNode* CNode::GetBrother(int& flag)
     for (int i = 1; i <= pFather->GetCount() + 1; i++)   //GetCount()表示获取数据或关键字数，要比指针数小1。
     {
         // 找到本结点的位置
-        if (pFather->GetPointer(i) == this)
+        if (pFather->GetPointer(i)->getPtSelf() == this->offt_self)
         {
             if (i == (pFather->GetCount() + 1))   //表示其为父结点的最右边孩子。
             {
@@ -80,19 +80,20 @@ CNode* CNode::GetBrother(int& flag)
 // 递归删除子结点
 void CNode::DeleteChildren()   // 疑问：这里的指针下标是否需要从0开始
 {
-    for (int i = 1; i <= GetCount(); i++)   //GetCount()为返回结点中关键字即数据的个数
+    //这里的+1是我自己添加的fixbug
+    for (int i = 1; i <= GetCount()+1; i++)   //GetCount()为返回结点中关键字即数据的个数
     {
         CNode* pNode = GetPointer(i);
         if (NULL != pNode)    // 叶子结点没有指针
         {
             pNode->DeleteChildren();
         }
-
+        //this->FreeBlock(); // 删除结点
         delete pNode;
     }
 }
 CNode* CNode::GetFather(){
-    if(this->offt_father<=LOC_GRAPH) return NULL;
+    if(this->offt_father<=LOC_GRAPH||this->offt_father>NUM_ALL_BLOCK) return NULL;
     char type=FileManager::getInstance()->get_BlockType(this->fname, this->offt_father);
     if(type==BLOCK_INTER)return new CInternalNode(this->fname, this->key_kind, this->max_size, this->offt_father);
 
@@ -212,7 +213,7 @@ bool CInternalNode::Insert(void* value, CNode* pNode)
 bool CInternalNode::Delete(void* key)
 {
     int i, j, k;
-    for (i = 0; (i < m_Count)&&cmp(key ,m_Keys[i],this->key_kind)  ; i++)
+    for (i = 0; (i < m_Count)&&(cmp(key ,m_Keys[i],this->key_kind)||eql(key , m_Keys[i],this->key_kind))  ; i++)
     {
     }
 
@@ -229,7 +230,7 @@ bool CInternalNode::Delete(void* key)
     this->offt_pointers[k] = NULL;
 
     m_Count--;
-
+    this->flush_file();
     return true;
 }
 
@@ -486,7 +487,7 @@ bool CLeafNode::Delete(void* value)
     bool found = false;
     for (i = 0; i < m_Count; i++)
     {
-        if (value == m_Datas[i])
+        if (eql(value, this->m_Datas[i], this->key_kind))
         {
             found = true;
             break;
@@ -506,7 +507,7 @@ bool CLeafNode::Delete(void* value)
 
     m_Datas[j] = Invalid(this->key_kind);
     m_Count--;
-
+    this->flush_file();
     // 返回成功
     return true;
 
@@ -850,6 +851,7 @@ bool BPlusTree::Delete(void* data)
 
     // 删除数据，如果失败一定是没有找到，直接返回失败
     bool success = pOldNode->Delete(data);
+    pOldNode->flush_file();
     if (false == success)
     {
         return false;
@@ -859,15 +861,17 @@ bool BPlusTree::Delete(void* data)
     CInternalNode* pFather = (CInternalNode*)(pOldNode->GetFather());
     if (NULL == pFather)
     {
+        pOldNode->flush_file();
         // 如果一个数据都没有了，删除根结点(只有根节点可能出现此情况)
         if (0 == pOldNode->GetCount())
         {
+            
             delete pOldNode;
             m_pLeafHead = NULL;
             m_pLeafTail = NULL;
             SetRoot(NULL);
         }
-
+        delete pOldNode;
         return true;
     }
 
@@ -875,15 +879,16 @@ bool BPlusTree::Delete(void* data)
     // 删除后叶子结点填充度仍>=50%，对应情况1
     if (pOldNode->GetCount() >= ORDER_V)
     {
-        for (int i = 1; (cmp(data , pFather->GetElement(i),this->key_kind)||eql(data, pFather->GetElement(i), this->key_kind)) && (i <= pFather->GetCount()); i++)
+        for (int i = 1; (i <= pFather->GetCount())&& (cmp(data , pFather->GetElement(i),this->key_kind)||eql(data, pFather->GetElement(i), this->key_kind)) ; i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
-            if (pFather->GetElement(i) == data)
+            if (eql(pFather->GetElement(i) ,data,this->key_kind))
             {
                 pFather->SetElement(i, pOldNode->GetElement(1));    // 更改为叶子结点新的第一个元素
             }
         }
-
+        updateNode(pFather);
+        updateNode(pOldNode);
         return true;
     }
 
@@ -933,7 +938,9 @@ bool BPlusTree::Delete(void* data)
             }
         }
 
-
+        updateNode(pFather);
+        updateNode(pOldNode);
+        updateNode(pBrother);
         return true;
     }
 
@@ -946,40 +953,48 @@ bool BPlusTree::Delete(void* data)
 
     if (FLAG_LEFT == flag)
     {
-        (void)pBrother->Combine(pOldNode);
+        pBrother->Combine(pOldNode);
         NewKey = pOldNode->GetElement(1);
-
+        cout<<"删除过程中，删除的中间结点键为"<<endl;
+        print_key(NewKey, this->key_kind);
         CLeafNode* pOldNext = pOldNode->m_pNextNode;
         pBrother->m_pNextNode = pOldNext;
         // 在双向链表中删除结点
         if (NULL == pOldNext)
         {
-            m_pLeafTail = pBrother;
+            this->SetLeafTail(pBrother);
+            //m_pLeafTail = pBrother;
         }
         else
         {
-            pOldNext->m_pPrevNode = pBrother;
+            pOldNext->SetPrevNode(pBrother);
+            //pOldNext->m_pPrevNode = pBrother;
         }
         // 删除本结点
+        pBrother->flush_file();
         delete pOldNode;
     }
     else
     {
-        (void)pOldNode->Combine(pBrother);
+        pOldNode->Combine(pBrother);
         NewKey = pBrother->GetElement(1);
 
-        CLeafNode* pOldNext = pBrother->m_pNextNode;
-        pOldNode->m_pNextNode = pOldNext;
+        CLeafNode* pOldNext = pBrother->GetNextNode();
+        pOldNode->SetNextNode(pOldNext);
+        //pOldNode->m_pNextNode = pOldNext;
         // 在双向链表中删除结点
         if (NULL == pOldNext)
         {
-            m_pLeafTail = pOldNode;
+            this->SetLeafTail(pOldNode);
+            //m_pLeafTail = pOldNode;
         }
         else
         {
-            pOldNext->m_pPrevNode = pOldNode;
+            pOldNext->SetPrevNode(pOldNode);
+            //pOldNext->m_pPrevNode = pOldNode;
         }
         // 删除本结点
+        pOldNode->flush_file();
         delete pBrother;
     }
 
@@ -1255,6 +1270,8 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
 
         pBrother->flush_file();
         SetRoot(pFather);
+        delete pBrother;
+        delete pFather;
                                                 // 指定新的根结点
         return true;
     }
@@ -1268,6 +1285,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
 {
     // 删除键，如果失败一定是没有找到，直接返回失败
     bool success = pNode->Delete(key);
+    
     if (false == success)
     {
         return false;
@@ -1283,6 +1301,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
             SetRoot(pNode->GetPointer(1));
             delete pNode;
         }
+        else SetRoot(pNode);
 
         return true;
     }
@@ -1337,7 +1356,9 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
                 }
             }
         }
-
+        updateNode(pFather);
+        updateNode(pBrother);
+        
         return true;
     }
 

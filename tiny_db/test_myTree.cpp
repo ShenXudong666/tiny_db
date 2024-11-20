@@ -29,40 +29,16 @@ int main(){
     const char* fname = "table.bin";
     //xiebiao(INT_KEY);
     BPlusTree* bp = new BPlusTree(fname);
-	// for(int i=1;i<=40;i++){
+	// for(int i=1;i<=10;i++){
 	// 	bp->Insert((void*)new int(i));
 	// }
-	
+	//bp->Delete(new int(2));
 	CInternalNode* root=(CInternalNode*)bp->GetRoot();
 	cout<<root->getPtSelf()<<endl;
 	print_add_leaf(bp);
-	//cout<<bp->Search((void*)new int(13), (char*)fname)<<endl;
-	//bp->PrintTree();
-	// CInternalNode* root=(CInternalNode*)bp->GetRoot();
-	// cout<<root->getPtSelf()<<endl;
-	// cout<<root->getPointer(0)<<" ";
-	// cout<<root->getPointer(1)<<" ";
-	// cout<<root->getPointer(2)<<" ";
-	// cout<<root->getPointer(3)<<endl;
-	// CInternalNode* c = new CInternalNode(fname,INT_KEY,sizeof(int),4);
-	// cout<<c->getPointer(0)<<endl;
-	// cout<<c->getPointer(1)<<endl;
-	// cout<<c->getPointer(2)<<endl;
-	// cout<<c->getPointer(3)<<endl;
-	// CInternalNode* c1 = new CInternalNode(fname,INT_KEY,sizeof(int),9);
-	// cout<<c1->getPointer(0)<<endl;
-	// cout<<c1->getPointer(1)<<endl;
-	// cout<<c1->getPointer(2)<<endl;
-	// cout<<c1->getPointer(3)<<endl;
-	// cout<<bp->Search(new int(15), (char *)fname);
+	
 
-	// CLeafNode* c = new CLeafNode(fname,INT_KEY,sizeof(int),2);
-	// c->print_data();
-	// CLeafNode* c1 = new CLeafNode(fname,INT_KEY,sizeof(int),3);
-	// c1->print_data();
-	// CLeafNode * c2 = new CLeafNode(fname,INT_KEY,sizeof(int),5);
-	// c2->print_data();
-
+	
 
 	bp->flush_file();
 	
