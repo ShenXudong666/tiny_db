@@ -100,6 +100,17 @@ static void print_key(void* key, KEY_KIND key_kind) {
     //char*类型后面肯定要改，可能多传一个参数，表示字符串长度
     else cout<<(char*)key<<" ";
 }
+static void assign(void* a, void* b, KEY_KIND key_kind) {
+    if(key_kind == INT_KEY) {
+        a=new int(*(int*)b);
+    }
+    else if(key_kind == LL_KEY) {
+        a=new long long(*(long long*)b);
+    }
+    //char*可能要改
+    else a=(char*)b;
+    
+}
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
 /*备注： 为简单起见，叶子结点的数据也只存储键值*/

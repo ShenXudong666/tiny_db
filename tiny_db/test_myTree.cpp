@@ -27,19 +27,38 @@ void print_add_leaf(BPlusTree* bp){
 }
 int main(){
     const char* fname = "table.bin";
-    //xiebiao(INT_KEY);
+    xiebiao(INT_KEY);
     BPlusTree* bp = new BPlusTree(fname);
-	// for(int i=1;i<=10;i++){
-	// 	bp->Insert((void*)new int(i));
+	for(int i=1;i<=15;i++){
+		bp->Insert((void*)new int(i));
+	}
+	bp->Delete(new int(12));
+	bp->Delete(new int(3));
+	
+	// for(int i=1;i<=15;i++){
+	// 	bool a=bp->Search((void*)new int(i),(char*)fname);
+	// 	cout<<i<<" "<<a<<endl;
 	// }
+	// CInternalNode* c=new CInternalNode("table.bin",INT_KEY,sizeof(int),9);
+	// cout<<c->GetCount()<<endl;
+	//bp->Insert(new int(2));
 	//bp->Delete(new int(2));
-	CInternalNode* root=(CInternalNode*)bp->GetRoot();
-	cout<<root->getPtSelf()<<endl;
-	print_add_leaf(bp);
+	// bp->Delete(new int(12));
+	//bp->Delete(new int(12));
+	//cout<<bp->Search(new int(3),(char *)fname)<<endl;
+	bp->flush_file();
+	delete bp;
+	BPlusTree* bp1 = new BPlusTree(fname);
+	//bp->Delete(new int(2));
+	CInternalNode* root=(CInternalNode*)bp1->GetRoot();
+	for(int i=1;i<=15;i++){
+		bool a=bp1->Search((void*)new int(i),(char*)fname);
+		cout<<i<<" "<<a<<endl;
+	}
 	
-
+	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
+	print_add_leaf(bp1);
 	
-
 	bp->flush_file();
 	
 	

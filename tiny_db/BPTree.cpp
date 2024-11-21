@@ -336,8 +336,9 @@ bool CInternalNode::Combine(CNode* pNode)
     }
 
     // 取待合并结点的第一个孩子的第一个元素作为新键值
-    void* NewKey = pNode->GetPointer(1)->GetElement(1);  //疑问：感觉应该改为KEY_TYPE NewKey = pNode->GetElement(1);
-
+    void* NewKey=NULL;
+    NewKey = pNode->GetPointer(1)->GetElement(1);
+    //assign(NewKey,pNode->GetPointer(1)->GetElement(1) , this->key_kind);
     m_Keys[m_Count] = NewKey;
     m_Count++;
     this->offt_pointers[m_Count] = pNode->GetPointer(1)->getPtSelf();   //疑问：感觉应该为m_Pointers[m_Count+1] = pNode->GetPointer(1);
@@ -397,10 +398,15 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
         this->offt_pointers[m_Count + 1] = pNode->GetPointer(1)->getPtSelf();
 
         // 修改兄弟结点
-        for (i = 1; i < pNode->GetCount() - 1; i++)
+        // for (i = 1; i < pNode->GetCount() - 1; i++)
+        // {
+        //     pNode->SetElement(i, pNode->GetElement(i + 1));
+        // }
+        for (i = 1; i < pNode->GetCount(); i++)
         {
             pNode->SetElement(i, pNode->GetElement(i + 1));
         }
+        pNode->SetElement(pNode->GetCount(), Invalid(this->key_kind));
         for (j = 1; j < pNode->GetCount(); j++)
         {
             pNode->SetPointer(j, pNode->GetPointer(j + 1));
@@ -410,7 +416,8 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
     // 设置数目
     this->SetCount(this->GetCount() + 1);
     pNode->SetCount(pNode->GetCount() - 1);
-
+    this->flush_file();
+    pNode->flush_file();
     return true;
 }
 
@@ -914,13 +921,14 @@ bool BPlusTree::Delete(void* data)
 
         pOldNode->Insert(NewData);
         pBrother->Delete(NewData);
-
+        pOldNode->flush_file();
+        pBrother->flush_file();
         // 修改父结点的键值
         if (FLAG_LEFT == flag)
         {
             for (int i = 1; i <= pFather->GetCount() + 1; i++)
             {
-                if (pFather->GetPointer(i) == pOldNode && i > 1)
+                if (pFather->GetPointer(i)->getPtSelf()== pOldNode->getPtSelf()&&i > 1)
                 {
                     pFather->SetElement(i - 1, pOldNode->GetElement(1));    // 更改本结点对应的键
                 }
@@ -930,11 +938,11 @@ bool BPlusTree::Delete(void* data)
         {
             for (int i = 1; i <= pFather->GetCount() + 1; i++)
             {
-                if (pFather->GetPointer(i) == pOldNode && i > 1)
+                if (pFather->GetPointer(i)->getPtSelf()==pOldNode->getPtSelf() &&i > 1)
                 {
                     pFather->SetElement(i - 1, pOldNode->GetElement(1));    // 更改本结点对应的键
                 }
-                if (pFather->GetPointer(i) == pBrother && i > 1)
+                if (pFather->GetPointer(i)->getPtSelf()==pBrother->getPtSelf() && i > 1)
                 {
                     pFather->SetElement(i - 1, pBrother->GetElement(1));    // 更改兄弟结点对应的键
                 }
@@ -960,8 +968,9 @@ bool BPlusTree::Delete(void* data)
         NewKey = pOldNode->GetElement(1);
         cout<<"删除过程中，删除的中间结点键为"<<endl;
         print_key(NewKey, this->key_kind);
-        CLeafNode* pOldNext = pOldNode->m_pNextNode;
-        pBrother->m_pNextNode = pOldNext;
+        CLeafNode* pOldNext = pOldNode->GetNextNode();
+        pBrother->SetPrevNode(pOldNext);
+        //pBrother->m_pNextNode = pOldNext;
         // 在双向链表中删除结点
         if (NULL == pOldNext)
         {
@@ -1302,6 +1311,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
         if (0 == pNode->GetCount())
         {
             SetRoot(pNode->GetPointer(1));
+            pNode->FreeBlock(); // 释放结点
             delete pNode;
         }
         else SetRoot(pNode);
@@ -1312,7 +1322,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     // 删除后结点填充度仍>=50%
     if (pNode->GetCount() >= ORDER_V)
     {
-        for (int i = 1; (cmp(key , pFather->GetElement(i),this->key_kind) || eql(key, pFather->GetElement(i), this->key_kind)) && (i <= pFather->GetCount()); i++)
+        for (int i = 1; (i <= pFather->GetCount())&&(cmp(key , pFather->GetElement(i),this->key_kind) || eql(key, pFather->GetElement(i), this->key_kind)) ; i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
             if (pFather->GetElement(i) == key)
@@ -1320,7 +1330,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
                 pFather->SetElement(i, pNode->GetElement(1));    // 更改为叶子结点新的第一个元素
             }
         }
-
+        pNode->flush_file();
         return true;
     }
 
@@ -1333,15 +1343,18 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     if (pBrother->GetCount() > ORDER_V)
     {
         pNode->MoveOneElement(pBrother);
-
         // 修改父结点的键值
         if (FLAG_LEFT == flag)
         {
             for (int i = 1; i <= pFather->GetCount() + 1; i++)
             {
-                if (pFather->GetPointer(i) == pNode && i > 1)
+                // if (pFather->GetPointer(i)->getPtSelf() == pNode->getPtSelf() && i > 1)
+                // {
+                //     pFather->SetElement(i - 1, pNode->GetElement(1));    // 更改本结点对应的键
+                // }
+                 if (pFather->GetPointer(i)->getPtSelf() == pNode->getPtSelf() && i > 1)
                 {
-                    pFather->SetElement(i - 1, pNode->GetElement(1));    // 更改本结点对应的键
+                    pFather->SetElement(i - 1, pNode->GetPointer(1)->GetElement(1));    // 更改本结点对应的键
                 }
             }
         }
@@ -1349,19 +1362,27 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
         {
             for (int i = 1; i <= pFather->GetCount() + 1; i++)
             {
-                if (pFather->GetPointer(i) == pNode && i > 1)
+                // if (pFather->GetPointer(i)->getPtSelf() == pNode->getPtSelf() && i > 1)
+                // {
+                //     pFather->SetElement(i - 1, pNode->GetElement(1));    // 更改本结点对应的键
+                // }
+                // if (pFather->GetPointer(i)->getPtSelf() == pBrother->getPtSelf() && i > 1)
+                // {
+                //     pFather->SetElement(i - 1, pBrother->GetElement(1));    // 更改兄弟结点对应的键
+                // }
+                if (pFather->GetPointer(i)->getPtSelf() == pNode->getPtSelf() && i > 1)
                 {
-                    pFather->SetElement(i - 1, pNode->GetElement(1));    // 更改本结点对应的键
+                    pFather->SetElement(i - 1, pNode->GetPointer(1)->GetElement(1));    // 更改本结点对应的键
                 }
-                if (pFather->GetPointer(i) == pBrother && i > 1)
+                if (pFather->GetPointer(i)->getPtSelf() == pBrother->getPtSelf() && i > 1)
                 {
-                    pFather->SetElement(i - 1, pBrother->GetElement(1));    // 更改兄弟结点对应的键
+                    pFather->SetElement(i - 1, pBrother->GetPointer(1)->GetElement(1));    // 更改兄弟结点对应的键
                 }
             }
         }
         updateNode(pFather);
         updateNode(pBrother);
-        
+        pNode->flush_file();
         return true;
     }
 
@@ -1371,14 +1392,18 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     // 把本结点与兄弟结点合并，无论如何合并到数据较小的结点，这样父结点就无需修改指针
     if (FLAG_LEFT == flag)
     {
-        (void)pBrother->Combine(pNode);
+        pBrother->Combine(pNode);
         NewKey = pNode->GetElement(1);
+        pBrother->flush_file();
+        pNode->FreeBlock();
         delete pNode;
     }
     else
     {
-        (void)pNode->Combine(pBrother);
+        pNode->Combine(pBrother);
         NewKey = pBrother->GetElement(1);
+        pNode->flush_file();
+        //pBrother->FreeBlock();
         delete pBrother;
     }
 
