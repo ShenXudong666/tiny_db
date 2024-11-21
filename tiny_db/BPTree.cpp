@@ -407,7 +407,7 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
             pNode->SetElement(i, pNode->GetElement(i + 1));
         }
         pNode->SetElement(pNode->GetCount(), Invalid(this->key_kind));
-        for (j = 1; j < pNode->GetCount(); j++)
+        for (j = 1; j <= pNode->GetCount(); j++)
         {
             pNode->SetPointer(j, pNode->GetPointer(j + 1));
         }
@@ -1253,7 +1253,8 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
     // 分裂本结点
     NewKey = pNode->Split(pBrother, key);
     cout<<"中间节点的分裂键为："<<endl;
-    print_key(NewKey, this->key_kind);
+    cout<<*(int*)NewKey<<endl;
+    //print_key(NewKey, this->key_kind);
     if (pNode->GetCount() < pBrother->GetCount())
     {
         pNode->Insert(key, pRightSon);
@@ -1267,7 +1268,7 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
         pBrother->SetPointer(1, pRightSon);
         pRightSon->SetFather(pBrother);
     }
-
+    pRightSon->flush_file();
     CInternalNode* pFather = (CInternalNode*)(pNode->GetFather());
     // 直到根结点都满了，新生成根结点
     if (NULL == pFather)
@@ -1281,13 +1282,14 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
         pFather->SetCount(1);
 
         pBrother->flush_file();
+        pNode->flush_file();
         SetRoot(pFather);
         delete pBrother;
         delete pFather;
                                                 // 指定新的根结点
         return true;
     }
-    
+    pNode->flush_file();
     // 递归
     return InsertInternalNode(pFather, NewKey, pBrother);
 }
