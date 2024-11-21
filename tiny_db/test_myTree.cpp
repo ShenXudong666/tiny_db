@@ -51,10 +51,10 @@ int main(){
 	BPlusTree* bp1 = new BPlusTree(fname);
 	//bp->Delete(new int(2));
 	CInternalNode* root=(CInternalNode*)bp1->GetRoot();
-	for(int i=1;i<=15;i++){
-		bool a=bp1->Search((void*)new int(i),(char*)fname);
-		cout<<i<<" "<<a<<endl;
-	}
+	// for(int i=1;i<=15;i++){
+	// 	bool a=bp1->Search((void*)new int(i),(char*)fname);
+	// 	cout<<i<<" "<<a<<endl;
+	// }
 	
 	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
 	print_add_leaf(bp1);

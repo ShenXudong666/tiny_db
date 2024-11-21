@@ -1325,12 +1325,15 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
         for (int i = 1; (i <= pFather->GetCount())&&(cmp(key , pFather->GetElement(i),this->key_kind) || eql(key, pFather->GetElement(i), this->key_kind)) ; i++)
         {
             // 如果删除的是父结点的键值，需要更改该键
-            if (pFather->GetElement(i) == key)
+            if (eql(pFather->GetElement(i) , key,this->key_kind))
             {
-                pFather->SetElement(i, pNode->GetElement(1));    // 更改为叶子结点新的第一个元素
+                CNode* node= pNode->GetPointer(i+1);
+                while(node->GetType()!=NODE_TYPE_LEAF)node=node->GetPointer(1);
+                pFather->SetElement(i, node->GetElement(1));    // 更改为叶子结点新的第一个元素
+                pFather->flush_file();
             }
         }
-        pNode->flush_file();
+        delete pFather;
         return true;
     }
 
@@ -1354,7 +1357,9 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
                 // }
                  if (pFather->GetPointer(i)->getPtSelf() == pNode->getPtSelf() && i > 1)
                 {
-                    pFather->SetElement(i - 1, pNode->GetPointer(1)->GetElement(1));    // 更改本结点对应的键
+                    CNode* node= pNode->GetPointer(1);
+                    while(node->GetType()!=NODE_TYPE_LEAF)node=node->GetPointer(1);
+                    pFather->SetElement(i - 1, node->GetElement(1));    // 更改本结点对应的键
                 }
             }
         }
@@ -1372,11 +1377,16 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
                 // }
                 if (pFather->GetPointer(i)->getPtSelf() == pNode->getPtSelf() && i > 1)
                 {
-                    pFather->SetElement(i - 1, pNode->GetPointer(1)->GetElement(1));    // 更改本结点对应的键
+                    CNode* node= pNode->GetPointer(1);
+                    while(node->GetType()!=NODE_TYPE_LEAF)node=node->GetPointer(1);
+                    pFather->SetElement(i - 1, node->GetElement(1));    // 更改本结点对应的键
+                    //pFather->SetElement(i - 1, pNode->GetPointer(1)->GetElement(1));    // 更改本结点对应的键
                 }
                 if (pFather->GetPointer(i)->getPtSelf() == pBrother->getPtSelf() && i > 1)
                 {
-                    pFather->SetElement(i - 1, pBrother->GetPointer(1)->GetElement(1));    // 更改兄弟结点对应的键
+                    CNode* node= pBrother->GetPointer(1);
+                    while(node->GetType()!=NODE_TYPE_LEAF)node=node->GetPointer(1);
+                    pFather->SetElement(i - 1, node->GetElement(1));    // 更改兄弟结点对应的键
                 }
             }
         }
