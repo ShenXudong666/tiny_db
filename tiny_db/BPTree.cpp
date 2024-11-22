@@ -1279,7 +1279,38 @@ bool BPlusTree::SetCorrentFather(CLeafNode* leaf){
     }
     
 }
+bool BPlusTree::SetCorrentFather(CInternalNode* node){
+    int i = 0;
 
+    CNode* pNode = GetRoot();
+    CNode* p1 = NULL;
+    // 循环查找对应的叶子结点，真怕后面直接死循环
+    while (pNode->getPtSelf()!=node->getPtSelf())
+    {
+        
+        // 找到第一个键值大于等于key的位置
+        for (i = 1; i <= pNode->GetCount(); i++)
+        {
+            if (cmp(pNode->GetElement(i), node->GetElement(1),this->key_kind))
+            {
+                break;
+            }
+        }
+        if(pNode->getPtSelf()==node->getPtSelf())break;
+        delete p1;
+        p1 = new CInternalNode(this->fpath, this->key_kind, this->max_key_size, pNode->getPtSelf());
+        pNode = pNode->GetPointer(i);
+    }
+    if(i!=0&&p1!=NULL&&p1->GetType()==NODE_TYPE_INTERNAL){
+        node->SetFather(p1);
+        node->flush_file();
+        delete p1;
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 //递归函数：插入键到中间结点
 bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRightSon)
 {
@@ -1390,7 +1421,14 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     //找到一个最近的兄弟结点(根据B+树的定义，除了根结点，总是能找到的)
     int flag = FLAG_LEFT;
     CInternalNode* pBrother = (CInternalNode*)(pNode->GetBrother(flag));
-
+    //对找不到兄弟结点的情况，作修复处理
+    if (NULL == pBrother)
+    {
+        bool a=this->SetCorrentFather(pNode);
+        if(a)pBrother = (CInternalNode*)(pNode->GetBrother(flag));
+        
+    }
+    if(pBrother==NULL)return true;//无可奈何地返回
     // 兄弟结点填充度>50%
     void* NewData = INVALID;
     if (pBrother->GetCount() > ORDER_V)

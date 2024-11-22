@@ -575,7 +575,7 @@ protected:
     // 在中间结点中删除键
     bool DeleteInternalNode(CInternalNode* pNode, void* key);
     bool SetCorrentFather(CLeafNode* leaf);
-
+    bool SetCorrentFather(CInternalNode* leaf);
     off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
     size_t key_use_block;
