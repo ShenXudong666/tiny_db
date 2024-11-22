@@ -489,6 +489,7 @@ public:
         if( m_Root != NULL){
             m_Root->flush_file();
         this->offt_root = m_Root->getPtSelf();
+        m_Root->setPtFather(INVALID);
         cout<<"root offt"<<this->offt_root<<endl;
         }
         
@@ -573,6 +574,7 @@ protected:
     bool InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRightSon);
     // 在中间结点中删除键
     bool DeleteInternalNode(CInternalNode* pNode, void* key);
+    bool SetCorrentFather(CLeafNode* leaf);
 
     off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度

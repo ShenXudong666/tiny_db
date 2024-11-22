@@ -14,6 +14,7 @@ void print_add_leaf(BPlusTree* bp){
 	for(int i=2;i<NUM_ALL_BLOCK;i++){
 		if(bp->Block_GRAPH[i]==BLOCK_LEAF){
 			CLeafNode* c=new CLeafNode("table.bin",INT_KEY,sizeof(int),i);
+			cout<<"父亲为"<<c->getPtFather()<<endl;
 			c->print_data();
 			cout<<endl;
 		}
@@ -29,17 +30,19 @@ int main(){
     const char* fname = "table.bin";
     xiebiao(INT_KEY);
     BPlusTree* bp = new BPlusTree(fname);
-	for(int i=1;i<=40;i++){
+	for(int i=1;i<=100;i++){
 		bp->Insert((void*)new int(i));
 	}
-	//bp->Insert((void*)new int(37));
-	bp->Delete(new int(3));
 	
-	for(int i=1;i<=40;i++){
+	bp->Delete(new int(88));
+
+	
+	for(int i=1;i<=100;i++){
 		bool a=bp->Search((void*)new int(i),(char*)fname);
 		cout<<i<<" "<<a<<endl;
 	}
-	// CInternalNode* c=new CInternalNode("table.bin",INT_KEY,sizeof(int),9);
+	// CLeafNode* c=new CLeafNode("table.bin",INT_KEY,sizeof(int),64);
+	// cout<<"父亲的偏移为:"<<c->getPtFather()<<endl;
 	// cout<<c->GetCount()<<endl;
 	//bp->Insert(new int(2));
 	//bp->Delete(new int(2));
@@ -53,7 +56,7 @@ int main(){
 
 	
 	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
-	print_add_leaf(bp1);
+	//print_add_leaf(bp1);
 	
 	
 	

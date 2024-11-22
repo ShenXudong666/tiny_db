@@ -55,7 +55,7 @@ CNode* CNode::GetBrother(int& flag)
     }
 
     CNode* pBrother = NULL;
-
+    cout<<*(int*)pFather->GetElement(1)<<" "<<*(int*)pFather->GetElement(2)<<endl;
     for (int i = 1; i <= pFather->GetCount() + 1; i++)   //GetCount()表示获取数据或关键字数，要比指针数小1。
     {
         // 找到本结点的位置
@@ -97,7 +97,11 @@ CNode* CNode::GetFather(){
     char type=FileManager::getInstance()->get_BlockType(this->fname, this->offt_father);
     if(type==BLOCK_INTER)return new CInternalNode(this->fname, this->key_kind, this->max_size, this->offt_father);
 
-    return new CLeafNode(this->fname, this->key_kind, this->max_size, this->offt_father);
+    else if(type==BLOCK_LEAF)return new CLeafNode(this->fname, this->key_kind, this->max_size, this->offt_father);
+    else {
+        this->offt_father=INVALID;
+        return NULL;
+    }
     
 }
 
@@ -907,7 +911,16 @@ bool BPlusTree::Delete(void* data)
     // 找到一个最近的兄弟结点(根据B+树的定义，除了叶子结点，总是能找到的)
     int flag = FLAG_LEFT;
     CLeafNode* pBrother = (CLeafNode*)(pOldNode->GetBrother(flag));
-
+    //这里可能会因为特殊原因找不到父亲节点，导致pBrother为空，所以需要判断一下
+    if (pBrother == NULL){
+        //修复正确的父亲节点
+        bool b=this->SetCorrentFather(pOldNode);
+        if(b)CLeafNode* pBrother = (CLeafNode*)(pOldNode->GetBrother(flag));
+    }
+    if(NULL == pBrother)
+    {
+        return true;//无可奈何，无法向上传播了。
+    }
     // 兄弟结点填充度>50%，对应情况2A
     void* NewData = INVALID;
     if (pBrother->GetCount() > ORDER_V)
@@ -1232,6 +1245,39 @@ CLeafNode* BPlusTree::SearchLeafNode(void* data)
     }
 
     return (CLeafNode*)pNode;
+}
+
+bool BPlusTree::SetCorrentFather(CLeafNode* leaf){
+    int i = 0;
+
+    CNode* pNode = GetRoot();
+    CNode* p1 = NULL;
+    // 循环查找对应的叶子结点，真怕后面直接死循环
+    while (pNode->GetType()!=NODE_TYPE_LEAF)
+    {
+        
+        // 找到第一个键值大于等于key的位置
+        for (i = 1; i <= pNode->GetCount(); i++)
+        {
+            if (cmp(pNode->GetElement(i), leaf->GetElement(1),this->key_kind))
+            {
+                break;
+            }
+        }
+        delete p1;
+        p1 = new CInternalNode(this->fpath, this->key_kind, this->max_key_size, pNode->getPtSelf());
+        pNode = pNode->GetPointer(i);
+    }
+    if(i!=0&&p1!=NULL&&p1->GetType()==NODE_TYPE_INTERNAL){
+        leaf->SetFather(p1);
+        leaf->flush_file();
+        delete p1;
+        return true;
+    }
+    else{
+        return false;
+    }
+    
 }
 
 //递归函数：插入键到中间结点
