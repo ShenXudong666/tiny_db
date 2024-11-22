@@ -337,7 +337,9 @@ bool CInternalNode::Combine(CNode* pNode)
 
     // 取待合并结点的第一个孩子的第一个元素作为新键值
     void* NewKey=NULL;
-    NewKey = pNode->GetPointer(1)->GetElement(1);
+    CNode* node=pNode->GetPointer(1);
+    while(node->GetType()!=NODE_TYPE_LEAF)node=node->GetPointer(1);
+    NewKey = node->GetElement(1);
     //assign(NewKey,pNode->GetPointer(1)->GetElement(1) , this->key_kind);
     m_Keys[m_Count] = NewKey;
     m_Count++;
@@ -1414,6 +1416,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     {
         pNode->Combine(pBrother);
         NewKey = pBrother->GetElement(1);
+        cout<<"NewKey:"<<*(int*)NewKey<<endl;
         pNode->flush_file();
         //pBrother->FreeBlock();
         delete pBrother;

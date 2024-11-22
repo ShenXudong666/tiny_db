@@ -35,10 +35,10 @@ int main(){
 	//bp->Insert((void*)new int(37));
 	bp->Delete(new int(3));
 	
-	// for(int i=1;i<=40;i++){
-	// 	bool a=bp->Search((void*)new int(i),(char*)fname);
-	// 	cout<<i<<" "<<a<<endl;
-	// }
+	for(int i=1;i<=40;i++){
+		bool a=bp->Search((void*)new int(i),(char*)fname);
+		cout<<i<<" "<<a<<endl;
+	}
 	// CInternalNode* c=new CInternalNode("table.bin",INT_KEY,sizeof(int),9);
 	// cout<<c->GetCount()<<endl;
 	//bp->Insert(new int(2));
@@ -47,16 +47,15 @@ int main(){
 	//bp->Delete(new int(12));
 	//cout<<bp->Search(new int(3),(char *)fname)<<endl;
 	bp->flush_file();
-	// delete bp;
+	delete bp;
 	BPlusTree* bp1 = new BPlusTree(fname);
-	// //bp->Delete(new int(2));
 	CInternalNode* root=(CInternalNode*)bp1->GetRoot();
 
 	
 	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
 	print_add_leaf(bp1);
 	
-	bp->flush_file();
+	
 	
 	
 
