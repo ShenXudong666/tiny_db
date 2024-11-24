@@ -10,11 +10,19 @@ void xiebiao(KEY_KIND key) {
 	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
 	else FileManager::getInstance()->table_create(fname, key, 100);
 }
+char* getString(int index){
+	char* s=new char[1024];
+	
+	s[0]=(char)('a'+index-1);
+	s[1]=(char)('a'+index-1);
+	s[2]='\0';
+	return s;
+}
 void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 	int size=0;
 	if (key==INT_KEY)size=sizeof(int);
 	else if(key==LL_KEY)size=sizeof(long long);
-	else size=100;//string的最大大小先写死
+	else if(key==STRING_KEY) size=100;//string的最大大小先写死
 	for(int i=2;i<NUM_ALL_BLOCK;i++){
 		if(bp->Block_GRAPH[i]==BLOCK_LEAF){
 			CLeafNode* c=new CLeafNode("table.bin",key,size,i);
@@ -60,7 +68,7 @@ int test_key_int(){
 
 	
 	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
-	//print_add_leaf(bp1);
+	print_add_leaf(bp1,INT_KEY);
 	
 	
 	
@@ -68,7 +76,7 @@ int test_key_int(){
 
 	return 0;
 }
-int main(){
+int test_key_ll(){
 	const char* fname = "table.bin";
 	// xiebiao(LL_KEY);
 	// BPlusTree* bp = new BPlusTree(fname);
@@ -86,4 +94,32 @@ int main(){
 	CInternalNode* root=(CInternalNode*)bp1->GetRoot();
 	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
 	print_add_leaf(bp1,LL_KEY);
+	return 0;
+}
+int main(){
+	//cout<<getString(1)<<endl;
+	const char* fname = "table.bin";
+	xiebiao(STRING_KEY);
+	BPlusTree* bp = new BPlusTree(fname);
+	for(int i=1;i<=26;i++){
+		bp->Insert(getString(i));
+	}
+	bp->Delete(getString(5));
+	
+	
+	// // bp->Delete((void*)new long long(88));
+	// // for(int i=1;i<=100;i++){
+	// // 	bool a=bp->Search((void*)new long long(i),(char*)fname);
+	// // 	cout<<i<<" "<<a<<endl;
+	// // }
+	bp->flush_file();
+	delete bp;
+	BPlusTree* bp1 = new BPlusTree(fname);
+	CInternalNode* root=(CInternalNode*)bp1->GetRoot();
+	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
+	print_add_leaf(bp1,STRING_KEY);
+
+
+
+	return 0;
 }

@@ -65,7 +65,8 @@ static int cmp(void* a, void* b,KEY_KIND key_kind) {
     else if(key_kind == LL_KEY) {
         return *(long long*)a > *(long long*)b;
     }
-    return (char*)a > (char*)b;
+    int i= strncmp((char *)a, (char *)b, 1024);
+    return i>0;
 }
 
 static int eql(void* a, void* b,KEY_KIND key_kind) {
@@ -76,7 +77,7 @@ static int eql(void* a, void* b,KEY_KIND key_kind) {
         return *(long long*)a == *(long long*)b;
     }
     //后面可能要改
-    return (char*)a == (char*)b;
+    return strncmp((char *)a, (char *)b, 1024)==0;
 }
 
 static void* Invalid(KEY_KIND key_kind) {
@@ -87,7 +88,11 @@ static void* Invalid(KEY_KIND key_kind) {
         return new long long(LLONG_MIN);
     }
     //char*类型后面肯定要改，可能多传一个参数，表示字符串长度
-    return new char[1];
+    
+    char* a=new char[1024];
+    for(int i=0;i<6;i++)a[i]='z';
+    a[6]='\0';
+    return a;
 }
 
 static void print_key(void* key, KEY_KIND key_kind) {

@@ -127,7 +127,6 @@ CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max
         
     
     }
-    //后面一定一定要记得更新
     FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_INTER);
 
 }
@@ -489,6 +488,11 @@ bool CLeafNode::Insert(void* value)
     m_Datas[i] = value;
 
     m_Count++;
+    //测试一下string
+    cout<<"Insert:"<<endl;
+    for(int i=0;i<MAXNUM_DATA;i++){
+        cout<<(char*)this->m_Datas[i]<<endl;
+    }
 
     // 返回成功
     return true;
@@ -774,7 +778,7 @@ bool BPlusTree::Insert(void* data)  //
     void* key = INVALID;
     key = pOldNode->Split(pNewNode);
 
-    cout<<"split leaf node "<<*(int*)key<<endl;
+    cout<<"split leaf node "<<(char*)key<<endl;
     // 在双向链表中插入结点
     // CLeafNode* pOldNext = pOldNode->m_pNextNode;
     // pOldNode->m_pNextNode = pNewNode;
@@ -1332,7 +1336,7 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
     // 分裂本结点
     NewKey = pNode->Split(pBrother, key);
     cout<<"中间节点的分裂键为："<<endl;
-    cout<<*(int*)NewKey<<endl;
+    cout<<(char*)NewKey<<endl;
     //print_key(NewKey, this->key_kind);
     if (pNode->GetCount() < pBrother->GetCount())
     {

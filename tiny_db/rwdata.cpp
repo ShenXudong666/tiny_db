@@ -129,12 +129,12 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		
 
 		for (int i = 0; i < MAXNUM_DATA; i++) {
-			char* temp = new char(index.max_size);
+			//char* temp = new char(index.max_size);
+			char* temp;
 			temp = (char*)value[i];
 			cout << "写入数据前为" << temp << endl;
 			int t=fwrite(temp, sizeof(char), index.max_size, file);
-			//cout << "写了位数为：" << t << endl;
-			delete temp;
+			//delete temp;
 		}
 		
 	}
@@ -236,14 +236,14 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		
 		
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
-			char temp[1024] = { 0 };
+			char* temp=new char[1024];
 			if (fread(temp, sizeof(char), index.max_size, file) != index.max_size) {
 				//cout << *(long long*)value[i] << endl;
 				perror("Failed to read data");
 				fclose(file);
 				return;
 			}
-			value[i] = (void*)temp;
+			value[i] =temp;
 			//cout << "读取后字符串数据为 " << (char*)value[i] << endl;
 			
 			
@@ -344,12 +344,10 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 
 
 		for (int i = 0; i < MAXNUM_KEY; i++) {
-			char* temp = new char(index.max_size);
-			temp = (char*)key[i];
+			
+			char* temp = (char*)key[i];
 			cout << "写入数据前为" << temp << endl;
 			int t = fwrite(temp, sizeof(char), index.max_size, file);
-			cout << "写了位数为：" << t << endl;
-			delete temp;
 		}
 
 	}
