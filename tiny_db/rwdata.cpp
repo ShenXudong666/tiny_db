@@ -133,7 +133,7 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 			temp = (char*)value[i];
 			cout << "写入数据前为" << temp << endl;
 			int t=fwrite(temp, sizeof(char), index.max_size, file);
-			cout << "写了位数为：" << t << endl;
+			//cout << "写了位数为：" << t << endl;
 			delete temp;
 		}
 		
