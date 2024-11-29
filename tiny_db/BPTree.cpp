@@ -447,7 +447,7 @@ CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t o
     this->offt_NextNode=NULL;
     this->offt_PrevNode=NULL;
     for (int i = 0; i < MAXNUM_DATA; i++)m_Datas[i] = Invalid(this->key_kind);
-
+    for(int i=0;i<MAXNUM_DATA;i++)this->offt_data[i]=INVALID;
     if(this->offt_self != NEW_OFFT){
         this->get_file();
     }
@@ -464,7 +464,7 @@ CLeafNode::~CLeafNode()
 }
 
 // 在叶子结点中插入数据
-bool CLeafNode::Insert(void* value)
+bool CLeafNode::Insert(void* value,off_t offt_data)
 {
     int i, j;
     // 如果叶子结点已满，直接返回失败
@@ -482,17 +482,15 @@ bool CLeafNode::Insert(void* value)
     for (j = m_Count; j > i; j--)
     {
         m_Datas[j] = m_Datas[j - 1];
+        this->offt_data[j]=this->offt_data[j-1];
     }
 
     // 把数据存入当前位置，唯一插入的地方
     m_Datas[i] = value;
+    this->offt_data[i]=offt_data;
 
     m_Count++;
-    //测试一下string
-    cout<<"Insert:"<<endl;
-    for(int i=0;i<MAXNUM_DATA;i++){
-        cout<<(char*)this->m_Datas[i]<<endl;
-    }
+    
 
     // 返回成功
     return true;
@@ -560,7 +558,7 @@ bool CLeafNode::Combine(CNode* pNode)
 
     for (int i = 1; i <= pNode->GetCount(); i++)
     {
-        this->Insert(pNode->GetElement(i));
+        this->Insert(pNode->GetElement(i),((CLeafNode*)pNode)->GetElement_offt(i));
     }
     pNode->FreeBlock();
     return true;
@@ -736,19 +734,21 @@ bool BPlusTree::Search(void* data, char* sPath)
 (4) 叶子结点已满，且其父结点已满。需要首先把叶子结点分裂，然后选择插入原结点或新结点，接着把父结点分裂，再修改祖父结点的指针。
     因为祖父结点也可能满，所以可能需要一直递归到未满的祖先结点为止。
 */
-bool BPlusTree::Insert(void* data)  //
+off_t BPlusTree::Insert(void* data)  //
 {
     // 检查是否重复插入
     bool found = Search(data, NULL);
     if (true == found)
     {
-        return false;
+        return INVALID;
     }
     // for debug
     //if (289 == data)
     //{
     //    printf("\n%d,check failed!",data);
     //}
+    //在文件中拿到一个空闲块
+    off_t offt_data = FileManager::getInstance()->getFreeBlock(this->fpath, BLOCK_DATA);
 
     // 查找理想的叶子结点
     CLeafNode* pOldNode = SearchLeafNode(data);
@@ -764,7 +764,7 @@ bool BPlusTree::Insert(void* data)  //
     // 叶子结点未满，对应情况1，直接插入
     if (pOldNode->GetCount() < MAXNUM_DATA)
     {
-        bool success= pOldNode->Insert(data);
+        bool success= pOldNode->Insert(data,offt_data);
         pOldNode->flush_file();
         if(pOldNode->getPtSelf()==this->offt_root)this->SetRoot(pOldNode);
         //插入完立马更新数据
@@ -804,11 +804,11 @@ bool BPlusTree::Insert(void* data)  //
     // 判断是插入到原结点还是新结点中，确保是按数据值排序的
     if (cmp(key, data, this->key_kind))
     {
-        pOldNode->Insert(data);    // 插入原结点
+        pOldNode->Insert(data,offt_data);    // 插入原结点
     }
     else
     {
-        pNewNode->Insert(data);    // 插入新结点
+        pNewNode->Insert(data,offt_data);    // 插入新结点
     }
 
     // 父结点
@@ -927,18 +927,21 @@ bool BPlusTree::Delete(void* data)
     }
     // 兄弟结点填充度>50%，对应情况2A
     void* NewData = INVALID;
+    off_t NewDataPos = 0;
     if (pBrother->GetCount() > ORDER_V)
     {
         if (FLAG_LEFT == flag)    // 兄弟在左边，移最后一个数据过来
         {
             NewData = pBrother->GetElement(pBrother->GetCount());
+            NewDataPos = pBrother->GetElement_offt( pBrother->GetCount());
         }
         else    // 兄弟在右边，移第一个数据过来
         {
             NewData = pBrother->GetElement(1);
+            NewDataPos = pBrother->GetElement_offt(1);
         }
 
-        pOldNode->Insert(NewData);
+        pOldNode->Insert(NewData, NewDataPos);
         pBrother->Delete(NewData);
         pOldNode->flush_file();
         pBrother->flush_file();

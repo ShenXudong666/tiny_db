@@ -33,7 +33,8 @@ using namespace std;
 #define BLOCK_GRAPH '2'
 #define BLOCK_INTER '3'
 #define BLOCK_LEAF '4'
-#define BLOCK_UNAVA '5'
+#define BLOCK_DATA '5'
+#define BLOCK_UNAVA '6'
 #define BLOCK_FREE '0'
 
 #define LOC_TABLE 0
@@ -78,12 +79,17 @@ struct leaf_node {
 	size_t count;
 	//有点没意义，后面可能会废除
 	NODE_TYPE node_type;
+	off_t offt_data[MAXNUM_DATA];
 	leaf_node(){}
 	leaf_node(off_t offt, size_t count, NODE_TYPE node_type,off_t
 		offt_father=NULL, off_t offt_PrevNode=NULL
-		, off_t offt_NextNode=NULL) : offt_self(offt), count(count), node_type(node_type),
+		, off_t offt_NextNode=NULL, off_t offt_arr[MAXNUM_DATA]=NULL) : offt_self(offt), count(count), node_type(node_type),
 		offt_father(offt_father), offt_PrevNode(offt_PrevNode),
-		offt_NextNode(offt_NextNode) {}
+		offt_NextNode(offt_NextNode) {
+		for (int i = 0; i < MAXNUM_DATA; i++) {
+			offt_data[i] = offt_arr[i];
+		}
+		}
 	
 };
 

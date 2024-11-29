@@ -1,8 +1,6 @@
 #include"rwdata.h"
 #include "BPTree.h"
-#include <cstring>
 #include<iostream>
-#include<fstream>
 using namespace std;
 void xiebiao(KEY_KIND key) {
 	const char* fname = "table.bin";
@@ -38,6 +36,10 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 		
 	}
 }
+struct node{
+    void* a;
+	int b;
+};
 int test_key_int(){
     const char* fname = "table.bin";
     xiebiao(INT_KEY);
@@ -96,7 +98,7 @@ int test_key_ll(){
 	print_add_leaf(bp1,LL_KEY);
 	return 0;
 }
-int main(){
+int test_string(){
 	//cout<<getString(1)<<endl;
 	const char* fname = "table.bin";
 	xiebiao(STRING_KEY);
@@ -120,6 +122,18 @@ int main(){
 	print_add_leaf(bp1,STRING_KEY);
 
 
+
+	return 0;
+}
+int main(){
+	const char* fname = "table.bin";
+    xiebiao(INT_KEY);
+	CLeafNode* c=new CLeafNode(fname,INT_KEY,sizeof(int),NEW_OFFT);
+	c->offt_data[0]=1;
+	c->offt_data[1]=2;
+	c->flush_file();
+	delete c;
+	CLeafNode* c1=new CLeafNode(fname,INT_KEY,sizeof(int),2);
 
 	return 0;
 }

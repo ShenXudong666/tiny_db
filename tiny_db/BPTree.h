@@ -340,6 +340,16 @@ public:
             return INVALID;
         }
     }
+    off_t GetElement_offt(int i){
+        if ((i > 0) && (i <= MAXNUM_DATA))
+        {
+            return this->offt_data[i - 1];
+        }
+        else
+        {
+            return INVALID;
+        }
+    }
 
     void SetElement(int i, void* data)
     {
@@ -357,6 +367,7 @@ public:
             }
         }
     }
+    
 
     // 获取和设置指针，对叶子结点无意义，只是实行父类的虚函数
     CNode* GetPointer(int i)
@@ -365,7 +376,7 @@ public:
     }
 
     // 插入数据
-    bool Insert(void* value);
+    bool Insert(void* value,off_t offt_data);
     // 删除数据
     bool Delete(void* value);
 
@@ -391,7 +402,7 @@ public:
 
     bool flush_file() {
         
-        leaf_node node(this->offt_self,this->GetCount(),NODE_TYPE_LEAF,this->offt_father,this->offt_PrevNode,this->offt_NextNode);
+        leaf_node node(this->offt_self,this->GetCount(),NODE_TYPE_LEAF,this->offt_father,this->offt_PrevNode,this->offt_NextNode,this->offt_data);
         Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
         FileManager::getInstance()->flushLeafNode(node, index,this->m_Datas);
 
@@ -411,6 +422,9 @@ public:
         this->m_Count = node.count;
         this->node_Type = node.node_type;
         this->offt_self=node.offt_self;
+        for(int i=0;i<MAXNUM_DATA;i++){
+            this->offt_data[i]=node.offt_data[i];
+        }
         return true;
     }
     void SetPrevNode(CLeafNode* node);
@@ -430,7 +444,7 @@ public:
     CLeafNode* m_pNextNode;                 // 后一个结点
     off_t offt_PrevNode;                    //前一个节点在文件中的偏移位置
     off_t offt_NextNode;                    //后一个位置在文件中的偏移位置
-
+    off_t offt_data[MAXNUM_DATA];    // 数据在文件中的偏移位置
 protected:
     void* m_Datas[MAXNUM_DATA];    // 数据数组，后面完成自己的调试后删掉
     
@@ -450,7 +464,7 @@ public:
     // 查找指定的数据
     bool Search(void* data, char* sPath);
     // 插入指定的数据
-    bool Insert(void* data);
+    off_t Insert(void* data);
     // 删除指定的数据
     bool Delete(void* data);
 
