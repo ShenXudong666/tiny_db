@@ -220,7 +220,7 @@ public:
             return INVALID;
         }
     }
-
+    // 获取和设置键值，对用户来说，数字从1开始，实际在结点中是从0开始的
     void SetElement(int i, void* key)
     {
         if ((i > 0) && (i <= MAXNUM_KEY))
@@ -367,7 +367,12 @@ public:
             }
         }
     }
-    
+    void SetElement_offt(int i,off_t offt){
+        if ((i > 0) && (i <= MAXNUM_KEY))
+        {
+            this->offt_data[i - 1] = offt;
+        }
+    }
 
     // 获取和设置指针，对叶子结点无意义，只是实行父类的虚函数
     CNode* GetPointer(int i)
@@ -436,6 +441,10 @@ public:
         cout<<"偏移量为："<<this->getPtSelf()<<" 叶节点"<<endl;
         for(int i=0;i<MAXNUM_DATA;i++){
             print_key(this->m_Datas[i], this->key_kind);
+        }
+        cout<<"数据块的位置为 ";
+        for(int i=0;i<MAXNUM_DATA;i++){
+            cout<<this->offt_data[i]<<" ";
         }
     }
 public:

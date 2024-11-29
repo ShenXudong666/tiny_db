@@ -40,36 +40,32 @@ struct node{
     void* a;
 	int b;
 };
-int test_key_int(){
+int main(){
     const char* fname = "table.bin";
     xiebiao(INT_KEY);
     BPlusTree* bp = new BPlusTree(fname);
-	for(int i=1;i<=100;i++){
+	for(int i=1;i<=13;i++){
 		bp->Insert((void*)new int(i));
 	}
 	
-	bp->Delete(new int(88));
+	//bp->Delete(new int(88));
 
 	
-	for(int i=1;i<=100;i++){
-		bool a=bp->Search((void*)new int(i),(char*)fname);
-		cout<<i<<" "<<a<<endl;
-	}
-	// CLeafNode* c=new CLeafNode("table.bin",INT_KEY,sizeof(int),64);
-	// cout<<"父亲的偏移为:"<<c->getPtFather()<<endl;
-	// cout<<c->GetCount()<<endl;
-	//bp->Insert(new int(2));
-	//bp->Delete(new int(2));
-	// bp->Delete(new int(12));
-	//bp->Delete(new int(12));
+	// for(int i=1;i<=4;i++){
+	// 	bool a=bp->Search((void*)new int(i),(char*)fname);
+	// 	cout<<i<<" "<<a<<endl;
+	// }
+
 	//cout<<bp->Search(new int(3),(char *)fname)<<endl;
 	bp->flush_file();
 	delete bp;
 	BPlusTree* bp1 = new BPlusTree(fname);
-	CInternalNode* root=(CInternalNode*)bp1->GetRoot();
-
+	// CNode* root=bp1->GetRoot();
+	// for(int i=0;i<MAXNUM_DATA;i++){
+	// 	cout<<((CLeafNode*)root)->offt_data[i]<<endl;
+	// }
 	
-	cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
+	// cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
 	print_add_leaf(bp1,INT_KEY);
 	
 	
@@ -125,15 +121,4 @@ int test_string(){
 
 	return 0;
 }
-int main(){
-	const char* fname = "table.bin";
-    xiebiao(INT_KEY);
-	CLeafNode* c=new CLeafNode(fname,INT_KEY,sizeof(int),NEW_OFFT);
-	c->offt_data[0]=1;
-	c->offt_data[1]=2;
-	c->flush_file();
-	delete c;
-	CLeafNode* c1=new CLeafNode(fname,INT_KEY,sizeof(int),2);
 
-	return 0;
-}

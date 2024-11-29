@@ -521,6 +521,8 @@ bool CLeafNode::Delete(void* value)
     }
 
     m_Datas[j] = Invalid(this->key_kind);
+    //FileManager::getInstance()->flushBlock(this->fname, this->offt_data[j], BLOCK_FREE);
+    this->offt_data[j]=INVALID;
     m_Count--;
     this->flush_file();
     // 返回成功
@@ -537,7 +539,9 @@ void* CLeafNode::Split(CNode* pNode)
     {
         j++;
         pNode->SetElement(j, this->GetElement(i));
+        ((CLeafNode*)pNode)->SetElement_offt(j, this->GetElement_offt(i));
         this->SetElement(i, Invalid(this->key_kind));
+        this->SetElement_offt(i, INVALID);
     }
     // 设置好Count个数
     this->SetCount(this->GetCount() - j);
@@ -776,6 +780,7 @@ off_t BPlusTree::Insert(void* data)  //
     // 原叶子结点已满，新建叶子结点，并把原结点后一半数据剪切到新结点
     CLeafNode* pNewNode = new CLeafNode(this->fpath, this->key_kind, this->max_key_size, NEW_OFFT);
     void* key = INVALID;
+    off_t offt_key = INVALID;
     key = pOldNode->Split(pNewNode);
 
     cout<<"split leaf node "<<(char*)key<<endl;

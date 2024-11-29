@@ -320,7 +320,6 @@ off_t FileManager::getFreeBlock(const char* fname,char type_block)
 void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 {
 	FILE* file = fopen(index.fpath, "rb+");
-	cout << "写进key的偏移量为" << index.offt_self << endl;
 	if (fseek(file, index.offt_self, SEEK_SET) != 0) {
 		perror("Failed to seek");
 		fclose(file);
