@@ -521,7 +521,8 @@ bool CLeafNode::Delete(void* value)
     }
 
     m_Datas[j] = Invalid(this->key_kind);
-    //FileManager::getInstance()->flushBlock(this->fname, this->offt_data[j], BLOCK_FREE);
+    //将这个数据块释放
+    FileManager::getInstance()->flushBlock(this->fname, this->offt_data[j], BLOCK_FREE);
     this->offt_data[j]=INVALID;
     m_Count--;
     this->flush_file();

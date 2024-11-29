@@ -48,8 +48,9 @@ int main(){
 		bp->Insert((void*)new int(i));
 	}
 	
-	//bp->Delete(new int(88));
-
+	bp->Delete(new int(2));
+	bp->Insert(new int(14));
+	bp->Insert(new int(15));
 	
 	// for(int i=1;i<=4;i++){
 	// 	bool a=bp->Search((void*)new int(i),(char*)fname);
