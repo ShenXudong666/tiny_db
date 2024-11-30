@@ -42,6 +42,7 @@ using namespace std;
 #define LOC_GRAPH 1
 
 #define ATTR_MAX_NUM 20
+#define MAXSIZE_ATTR_NAME 20
 
 enum NODE_TYPE
 {
@@ -51,7 +52,7 @@ enum NODE_TYPE
 };
 
 struct attribute {
-	char name[20];
+	char name[MAXSIZE_ATTR_NAME];
 	KEY_KIND key_kind;
 	size_t max_size;
 	attribute(char* fname, KEY_KIND fkey_kind, size_t fmax_size) : key_kind(fkey_kind), max_size(fmax_size) {
@@ -76,7 +77,7 @@ typedef struct {
 	size_t key_use_block;               /** 数据块为btree_key类型的总数 */
 	size_t value_use_block;
 	attribute attr[ATTR_MAX_NUM];
-	char key_attr[20]; //索引键对应的属性名
+	char key_attr[MAXSIZE_ATTR_NAME]; //索引键对应的属性名
 	int attr_num;
 }table;
 

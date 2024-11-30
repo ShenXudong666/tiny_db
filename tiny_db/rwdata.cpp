@@ -114,7 +114,7 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		int temp[MAXNUM_DATA];
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			temp[i] = *(int*)value[i];
-			cout << "写入数据为" << *(int*)value[i] << endl;
+			//cout << "写入数据为" << *(int*)value[i] << endl;
 		}
 		fwrite(&temp, sizeof(int), MAXNUM_DATA, file);
 	}
@@ -130,7 +130,6 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		
 
 		for (int i = 0; i < MAXNUM_DATA; i++) {
-			//char* temp = new char(index.max_size);
 			char* temp;
 			temp = (char*)value[i];
 			cout << "写入数据前为" << temp << endl;

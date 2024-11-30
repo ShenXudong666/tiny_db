@@ -11,7 +11,4 @@ class DataBase {
         void update(char* tableName, char* set, char* condition);
         void select(char* sql);
 
-        //BPlusTree* bp;
-        //void* data[ATTR_MAX_NUM];//这里代表的是一整条数据的多个属性值
-
 };

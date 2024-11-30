@@ -474,7 +474,7 @@ public:
     off_t Search(void* data);
     // 插入指定的数据
     off_t Insert(void* data);
-    bool Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][20],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt);
+    bool Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt);
     void Get_Data(void* data[ATTR_MAX_NUM],off_t offt);
     void Print_Data(void* data[ATTR_MAX_NUM]);
     // 删除指定的数据
@@ -521,7 +521,7 @@ public:
             m_Root->flush_file();
         this->offt_root = m_Root->getPtSelf();
         m_Root->setPtFather(INVALID);
-        cout<<"root offt"<<this->offt_root<<endl;
+        //cout<<"root offt"<<this->offt_root<<endl;
         }
         
     }
@@ -569,7 +569,7 @@ public:
             t.attr[i] = this->attr[i];
         }
         memcpy(t.key_attr,this->key_attr, strlen(this->key_attr));
-        t.key_attr[strlen(this->key_attr)] = '\0';
+        if(strlen(this->key_attr)<MAXSIZE_ATTR_NAME)t.key_attr[strlen(this->key_attr)] = '\0';
 
         FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
         return true;
@@ -593,7 +593,6 @@ public:
         }
         memcpy(this->key_attr,t.key_attr, strlen(t.key_attr));
         this->key_attr[strlen(t.key_attr)] = '\0';
-        cout<<this->key_attr<<endl;
         return true;
     }
 
@@ -629,7 +628,7 @@ protected:
     
     off_t offt_self;
     attribute attr[ATTR_MAX_NUM];
-    char key_attr[21];
+    char key_attr[MAXSIZE_ATTR_NAME];
     int attr_num;
     
 };

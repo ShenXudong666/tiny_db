@@ -848,18 +848,8 @@ off_t BPlusTree::Insert(void* data)  //
     }
     return INVALID;
 }
-bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][20],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt){
-    //在这一步主要是检查输入的数据是否和之前定义的表头一致，顺序也一致
-    // for(int i=0;i<ATTR_MAX_NUM;i++){
-    //     if(key_kind[i]!=this->attr[i].key_kind){
-    //         return false;
-    //     }
-    // }
-    // for(int i=0;i<ATTR_MAX_NUM;i++){
-    //     if(strcmp(attribute_name[i],this->attr[i].name)!=0){
-    //         return false;
-    //     }
-    // }
+bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt){
+   
     void* newdata[ATTR_MAX_NUM];
     for(int i=0;i<attr_num;i++){
         for(int j=0;j<ATTR_MAX_NUM;j++){

@@ -38,7 +38,7 @@ void DataBase::insert(char* sql){
 
     void* data[ATTR_MAX_NUM];
     void* key;
-    char attribute_name[ATTR_MAX_NUM][20];
+    char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME];
     KEY_KIND key_kind[ATTR_MAX_NUM];
     //插入数据
     key=new int(1);
