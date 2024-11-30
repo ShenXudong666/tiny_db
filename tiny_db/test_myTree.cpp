@@ -1,6 +1,8 @@
 #include"rwdata.h"
 #include "DataBase.h"
+#include <cstring>
 #include<iostream>
+#include <vector>
 
 using namespace std;
 // void xiebiao(KEY_KIND key) {
@@ -55,7 +57,19 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 
 int main(){
     const char* fname = "table.bin";
-	test_table_op();
+	//test_table_op();
+	DataBase* db=new DataBase();
+	
+	char sql[1024];
+	char sql2[1024];
+	strcpy(sql, "CREATE TABLE student(id INT,name varchar(100),age INT);");
+	strcpy(sql2, "select * FROM student2;");
+	cout<<db->extractTableName(sql)<<endl;
+	cout<<db->extractTableName(sql2)<<endl;
+	vector<attribute>attr=db->parseCreateTableStatement(sql);
+	for(int i=0;i<attr.size();i++){
+		cout<<attr[i].name<<" "<<attr[i].key_kind<<" "<<attr[i].max_size<<endl;
+	}
 	//BPlusTree* bp = new BPlusTree(fname);
 	// bp->flush_file();
 	//FileManager::getInstance()->newBlock(fname);
