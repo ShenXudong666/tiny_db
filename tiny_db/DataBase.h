@@ -7,7 +7,7 @@ class DataBase {
         void run();
         bool createTable(char* sql);
         void insert(char* sql);
-        void deleteRow(char* tableName, char* condition);
+        void Delete(char* sql);
         void update(char* tableName, char* set, char* condition);
         void select(char* sql);
 

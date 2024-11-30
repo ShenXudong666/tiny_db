@@ -474,8 +474,9 @@ public:
     off_t Search(void* data);
     // 插入指定的数据
     off_t Insert(void* data);
-    bool Insert_Data(void* data[ATTR_MAX_NUM],char* attribute_name[ATTR_MAX_NUM],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt);
+    bool Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][20],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt);
     void Get_Data(void* data[ATTR_MAX_NUM],off_t offt);
+    void Print_Data(void* data[ATTR_MAX_NUM]);
     // 删除指定的数据
     bool Delete(void* data);
 

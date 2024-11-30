@@ -9,11 +9,20 @@ using namespace std;
 // 	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
 // 	else FileManager::getInstance()->table_create(fname, key, 100);
 // }
-void test_table_create() {
+void test_table_op() {
 	const char* fname = "table.bin";
 	DataBase* db=new DataBase();
 	
-	db->createTable((char*)"我是你爹");
+	cout<<"创建表============"<<endl;
+	db->createTable((char*)"创建表");
+	cout<<"开始插入数据============"<<endl;
+	db->insert((char*)"创建条数据");
+	cout<<"查询数据============"<<endl;
+	db->select((char*)"查询一条数据");
+	cout<<"删除数据============"<<endl;
+	db->Delete((char*)"删除一条数据");
+	cout<<"查询数据============"<<endl;
+	db->select((char*)"查询一条数据");
 }
 char* getString(int index){
 	char* s=new char[1024];
@@ -43,17 +52,13 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 		
 	}
 }
-struct node{
-    void* a;
-	int b;
-};
+
 int main(){
     const char* fname = "table.bin";
-    //xiebiao(INT_KEY);
-	// test_table_create();
-	// BPlusTree* bp = new BPlusTree(fname);
+	test_table_op();
+	//BPlusTree* bp = new BPlusTree(fname);
 	// bp->flush_file();
-	FileManager::getInstance()->newBlock(fname);
+	//FileManager::getInstance()->newBlock(fname);
 
 
     // BPlusTree* bp = new BPlusTree(fname);

@@ -733,7 +733,7 @@ off_t BPlusTree::Insert(void* data)  //
 {
     // 检查是否重复插入
     off_t found = Search(data);
-    if (INVALID == found)
+    if (found!=INVALID)
     {
         return INVALID;
     }
@@ -765,7 +765,8 @@ off_t BPlusTree::Insert(void* data)  //
         //插入完立马更新数据
         //SetRoot(pOldNode);
         delete pOldNode;
-        return success;
+        if(success)return offt_data;
+        return INVALID;
     }
 
     // 原叶子结点已满，新建叶子结点，并把原结点后一半数据剪切到新结点
@@ -829,7 +830,7 @@ off_t BPlusTree::Insert(void* data)  //
         delete pNewNode;
         delete pOldNode;
         delete pOldNext;
-        return true;
+        return offt_data;
     }
    
     // 情况3和情况4在这里实现
@@ -842,20 +843,23 @@ off_t BPlusTree::Insert(void* data)  //
     delete pNewNode;
     delete pOldNode;
     delete pOldNext;
-    return ret;
+    if(ret){
+        return offt_data;
+    }
+    return INVALID;
 }
-bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char* attribute_name[ATTR_MAX_NUM],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt){
+bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][20],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt){
     //在这一步主要是检查输入的数据是否和之前定义的表头一致，顺序也一致
-    for(int i=0;i<ATTR_MAX_NUM;i++){
-        if(key_kind[i]!=this->attr[i].key_kind){
-            return false;
-        }
-    }
-    for(int i=0;i<ATTR_MAX_NUM;i++){
-        if(strcmp(attribute_name[i],this->attr[i].name)!=0){
-            return false;
-        }
-    }
+    // for(int i=0;i<ATTR_MAX_NUM;i++){
+    //     if(key_kind[i]!=this->attr[i].key_kind){
+    //         return false;
+    //     }
+    // }
+    // for(int i=0;i<ATTR_MAX_NUM;i++){
+    //     if(strcmp(attribute_name[i],this->attr[i].name)!=0){
+    //         return false;
+    //     }
+    // }
     void* newdata[ATTR_MAX_NUM];
     for(int i=0;i<attr_num;i++){
         for(int j=0;j<ATTR_MAX_NUM;j++){
@@ -869,11 +873,21 @@ bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char* attribute_name[ATTR_M
             }
         }
     }
-    FileManager::getInstance()->flush_data(this->fpath, newdata, this->attr,  this->attr_num,  this->offt_self);
+    FileManager::getInstance()->flush_data(this->fpath, newdata, this->attr,  this->attr_num,  offt);
     return true;
 }
 void BPlusTree::Get_Data(void* data[ATTR_MAX_NUM],off_t offt){
     FileManager::getInstance()->get_data(this->fpath, data, this->attr, this->attr_num, offt);
+}
+void BPlusTree::Print_Data(void* data[ATTR_MAX_NUM]){
+    for(int i=0;i<attr_num;i++){
+        cout<<this->attr[i].name<<" ";
+    }
+    cout<<endl;
+    for(int i=0;i<attr_num;i++){
+        print_key(data[i], attr[i].key_kind);
+    }
+    cout<<endl;
 }
 /* 删除某数据
 删除数据的算法如下：
@@ -909,7 +923,6 @@ bool BPlusTree::Delete(void* data)
         if (0 == pOldNode->GetCount())
         {
             
-            delete pOldNode;
             pOldNode->FreeBlock();
             this->SetLeafHead(NULL);
             this->SetLeafTail(NULL);
