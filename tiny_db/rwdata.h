@@ -15,6 +15,7 @@ typedef int KEY_KIND;    /* 为简单起见，定义为int类型，实际的B+�
 #include<iostream>
 #include<fstream>
 #include <sys/stat.h>
+#include <stdexcept>
 using namespace std;
 #define INT_KEY 1
 #define LL_KEY 2
@@ -40,6 +41,8 @@ using namespace std;
 #define LOC_TABLE 0
 #define LOC_GRAPH 1
 
+#define ATTR_MAX_NUM 20
+
 enum NODE_TYPE
 {
 	NODE_TYPE_ROOT = 1,    // 根结点
@@ -47,7 +50,21 @@ enum NODE_TYPE
 	NODE_TYPE_LEAF = 3,    // 叶子结点
 };
 
-
+struct attribute {
+	char name[20];
+	KEY_KIND key_kind;
+	size_t max_size;
+	attribute(char* fname, KEY_KIND fkey_kind, size_t fmax_size) : key_kind(fkey_kind), max_size(fmax_size) {
+		memcpy(name, fname, strlen(fname));
+		name[strlen(fname)] = '\0';
+	}
+	attribute(){
+		//先写死，后面再改，方便debug
+		strcpy(name, "table");
+		key_kind = INT_KEY;
+		max_size = sizeof(int);
+	}
+};
 typedef struct {
 	char fpath[100];
 	off_t offt_root;
@@ -58,6 +75,9 @@ typedef struct {
 	size_t max_key_size;
 	size_t key_use_block;               /** 数据块为btree_key类型的总数 */
 	size_t value_use_block;
+	attribute attr[ATTR_MAX_NUM];
+	char key_attr[20]; //索引键对应的属性名
+	int attr_num;
 }table;
 
 
@@ -119,7 +139,7 @@ public:
 	bool flushLeafNode(leaf_node node, Index index, void** value);
 	table getTable(const char* filename, off_t offt);
 	bool flushTable(table t, const char* filename, off_t offt);
-	bool table_create(const char* path, KEY_KIND key_type, size_t max_key_size);
+	bool table_create(const char* path, size_t attr_num,attribute attr[ATTR_MAX_NUM],const char* key_arrt);
 	void flush_key(void* key[MAXNUM_KEY], Index index);
 	void flush_value(void* value[MAXNUM_DATA], Index index);
 	void get_key(void* key[MAXNUM_KEY], Index index);
@@ -132,7 +152,8 @@ public:
 	off_t newBlock(const char* filename);
 	//获取文件总共有多少块
 	size_t getFileSize(const char* fileName);
-
+	bool flush_data(const char* filename,void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM],int attrnum,off_t offt);
+	void get_data(const char* filename, void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM], int attrnum, off_t offt);
 	protected:
 	static FileManager* object;
 	

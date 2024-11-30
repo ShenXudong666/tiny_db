@@ -1,7 +1,8 @@
 #include "rwdata.h"
 #include <cstdio>
+#include <cstring>
 #include <sys/types.h>
-
+#include <string.h>
  FileManager* FileManager::getInstance() {
 	static FileManager* m = new FileManager();
 	
@@ -354,9 +355,17 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 	fclose(file);
 }
 
-bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_key_size)
+bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr[ATTR_MAX_NUM],const char * key_attr)
 {
 	size_t size = 0;
+	int max_key_size = 0;
+	KEY_KIND key_type = INT_KEY;
+	for(int i=0;i<attr_num;i++){
+		if(strcmp(attr[i].name, key_attr)==0){
+			max_key_size = attr[i].max_size;
+			key_type = attr[i].key_kind;
+		}
+	}
 	//纠正最大索引所占空间
 	switch (key_type)
 	{
@@ -382,34 +391,29 @@ bool FileManager::table_create(const char* path, KEY_KIND key_type, size_t max_k
 		cout << "File deleted successfully." << endl;
 	}
 	for(int i=0;i<6;i++)newBlock(path);
-
+	fclose(file);
 	table t;
 	memcpy(t.fpath, path, sizeof(path)+1);
 	t.fpath[sizeof(path)+1] = '\0';
-
+	memcpy(t.key_attr, key_attr, sizeof(key_attr)+1);
+	t.key_attr[sizeof(path)+1] = '\0';
+	for(int i=0;i<ATTR_MAX_NUM;i++)t.attr[i]=attr[i];
 	t.key_kind = key_type;
 	t.m_Depth = 1;
 	t.offt_root = 2;
 	t.key_use_block = 1;
 	t.value_use_block = 0;
-	
+	for(int i=0;i<attr_num;i++)t.attr[i]=attr[i];
+	t.attr_num = attr_num;
+	memcpy(t.key_attr, key_attr, strlen(key_attr));
+	t.key_attr[strlen(key_attr)] = '\0';
 	t.max_key_size = size;
+
 	//将表的信息写在文件的头部
 	flushTable(t,t.fpath ,0);
-	//===========表信息写入完成=================================
+
 	
-	//将根的信息写在文件头部的后面一块
-	// leaf_node root(2,0,NODE_TYPE_ROOT);
-	// void* data[MAXNUM_DATA];
-	// //初次创建表，根的值默认为最大的0
-	// for (int i = 0; i < MAXNUM_DATA; i++) {
-	// 	data[i] = (void*)new int(666);
-	// }
-	// Index index(path,2,t.max_key_size,t.key_kind);
-	// cout<<index.fpath<<endl;
-	// flushLeafNode(root, index,data);
-	// //======================根信息写入成功========================
-	// cout<<"根信息写入成功"<<endl;
+	
 	char block_graph[NUM_ALL_BLOCK];
 	block_graph[0] = BLOCK_TLABE;
 	block_graph[1] = BLOCK_GRAPH;
@@ -465,3 +469,56 @@ bool FileManager::flushBlock(const char* filename, off_t offt, char type){
 	return true;
 }
 
+bool FileManager::flush_data(const char* filename,void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM],int attrnum,off_t offt){
+	FILE* file = fopen(filename, "rb+");
+	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+		perror("Failed to seek");
+		fclose(file);
+	}
+	for(int i=0;i<attrnum;i++){
+		int data_int;
+		long long data_long;
+		char* data_string;
+		if(attr[i].key_kind==INT_KEY){
+			data_int = *(int*)data[i];
+			fwrite(&data_int, 1, sizeof(int), file);
+		}
+		else if(attr[i].key_kind==LL_KEY){
+		    data_long = *(long long*)data[i];
+			fwrite(&data_long, 1, sizeof(long long), file);
+		}
+		else if(attr[i].key_kind==STRING_KEY){
+			data_string = (char*)data[i];
+			fwrite(data_string, 1, attr[i].max_size, file);
+		}
+		
+	}
+	fclose(file);
+	return true;
+}
+void FileManager::get_data(const char* filename, void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM], int attrnum, off_t offt){
+
+	FILE* file = fopen(filename, "rb+");
+	if (fseek(file, offt * DB_BLOCK_SIZE, SEEK_SET) != 0) {
+		perror("Failed to seek");
+		fclose(file);
+	}
+	for(int i=0;i<attrnum;i++){
+		if(attr[i].key_kind==INT_KEY){
+			int* data_int = new int();
+			fread(data_int, 1, sizeof(int), file);
+			data[i] = data_int;
+		}
+		else if(attr[i].key_kind==LL_KEY){
+			long long* data_long = new long long();
+			fread(&data_long, 1, sizeof(long long), file);
+			data[i] = data_long;
+		}
+		else if(attr[i].key_kind==STRING_KEY){
+			char* data_string=new char[1024];
+			fread(data_string, 1, attr[i].max_size, file);
+			data[i]= data_string;
+		}
+	}
+	fclose(file);
+}

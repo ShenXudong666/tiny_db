@@ -6,7 +6,6 @@
 #include <climits>
 #include <cstring>
 #include <iostream>
-#include <iterator>
 #include <limits.h>
 #include <sys/types.h>
 
@@ -604,22 +603,13 @@ BPlusTree::BPlusTree(const char* fname)
     memcpy(fpath, fname, sizeof(fname)+1);
     this->fpath[sizeof(fname)+1]='\0';
     this->offt_self = 0;
-    // table t=FileManager::getInstance()->getTable(fname, 0);
-    // this->m_Depth = t.m_Depth;
-    // this->max_key_size= t.max_key_size;
-    // this->key_kind=t.key_kind;
-    // this->offt_root=t.offt_root;
-    // this->key_use_block=t.key_use_block;
-    // this->value_use_block=t.value_use_block;
-    // this->offt_leftHead=t.offt_leftHead;
-    // this->offt_rightHead=t.offt_rightHead;
     get_file();
     this->m_Root=NULL;
     this->m_pLeafHead=NULL;
     this->m_pLeafTail=NULL;
     FileManager::getInstance()->get_BlockGraph(fname, this->Block_GRAPH);
     cout<<"初始化位图为："<<endl;
-    for(int i=0;i<20;i++){
+    for(int i=0;i<30;i++){
         cout<<this->Block_GRAPH[i]<<" ";
     }
     cout<<endl;
@@ -657,7 +647,7 @@ void BPlusTree::SetLeafTail(CLeafNode* node){
     if(node!=NULL)this->offt_rightHead = node->getPtSelf();
 }
 // 在树中查找数据
-bool BPlusTree::Search(void* data, char* sPath)
+off_t BPlusTree::Search(void* data)
 {
     int i = 0;
     int offset = 0;
@@ -694,7 +684,7 @@ bool BPlusTree::Search(void* data, char* sPath)
     // 没找到，这里可能会有情况，为null的情况
     if (NULL == pNode)
     {
-        return false;
+        return INVALID;
     }
 
     // if (NULL != sPath)
@@ -704,12 +694,12 @@ bool BPlusTree::Search(void* data, char* sPath)
     // }
 
     // 在叶子结点中继续找
-    bool found = false;
+    off_t found = INVALID;
     for (i = 1; (i <= pNode->GetCount()); i++)
     {
         if (eql(data,pNode->GetElement(i),this->key_kind))
         {
-            found = true;
+            found = ((CLeafNode*)pNode)->GetElement_offt(i);
         }
     }
 
@@ -742,8 +732,8 @@ bool BPlusTree::Search(void* data, char* sPath)
 off_t BPlusTree::Insert(void* data)  //
 {
     // 检查是否重复插入
-    bool found = Search(data, NULL);
-    if (true == found)
+    off_t found = Search(data);
+    if (INVALID == found)
     {
         return INVALID;
     }
@@ -854,7 +844,37 @@ off_t BPlusTree::Insert(void* data)  //
     delete pOldNext;
     return ret;
 }
-
+bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char* attribute_name[ATTR_MAX_NUM],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt){
+    //在这一步主要是检查输入的数据是否和之前定义的表头一致，顺序也一致
+    for(int i=0;i<ATTR_MAX_NUM;i++){
+        if(key_kind[i]!=this->attr[i].key_kind){
+            return false;
+        }
+    }
+    for(int i=0;i<ATTR_MAX_NUM;i++){
+        if(strcmp(attribute_name[i],this->attr[i].name)!=0){
+            return false;
+        }
+    }
+    void* newdata[ATTR_MAX_NUM];
+    for(int i=0;i<attr_num;i++){
+        for(int j=0;j<ATTR_MAX_NUM;j++){
+            if(strcmp(attribute_name[i],this->attr[j].name)==0){
+                newdata[i]=data[j];
+                break;
+            }
+            if(j==ATTR_MAX_NUM-1){
+                //保证每个属性都不可空
+                return false;
+            }
+        }
+    }
+    FileManager::getInstance()->flush_data(this->fpath, newdata, this->attr,  this->attr_num,  this->offt_self);
+    return true;
+}
+void BPlusTree::Get_Data(void* data[ATTR_MAX_NUM],off_t offt){
+    FileManager::getInstance()->get_data(this->fpath, data, this->attr, this->attr_num, offt);
+}
 /* 删除某数据
 删除数据的算法如下：
 (1) 如果删除后叶子结点填充度仍>=50%，只需要修改叶子结点，如果删除的是父结点的键，父结点也要相应修改；

@@ -1,12 +1,19 @@
 #include"rwdata.h"
-#include "BPTree.h"
+#include "DataBase.h"
 #include<iostream>
+
 using namespace std;
-void xiebiao(KEY_KIND key) {
+// void xiebiao(KEY_KIND key) {
+// 	const char* fname = "table.bin";
+// 	if(key==INT_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(int));
+// 	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
+// 	else FileManager::getInstance()->table_create(fname, key, 100);
+// }
+void test_table_create() {
 	const char* fname = "table.bin";
-	if(key==INT_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(int));
-	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
-	else FileManager::getInstance()->table_create(fname, key, 100);
+	DataBase* db=new DataBase();
+	
+	db->createTable((char*)"我是你爹");
 }
 char* getString(int index){
 	char* s=new char[1024];
@@ -42,32 +49,38 @@ struct node{
 };
 int main(){
     const char* fname = "table.bin";
-    xiebiao(INT_KEY);
-    BPlusTree* bp = new BPlusTree(fname);
-	for(int i=1;i<=13;i++){
-		bp->Insert((void*)new int(i));
-	}
-	
-	bp->Delete(new int(2));
-	bp->Insert(new int(14));
-	bp->Insert(new int(15));
-	
-	// for(int i=1;i<=4;i++){
-	// 	bool a=bp->Search((void*)new int(i),(char*)fname);
-	// 	cout<<i<<" "<<a<<endl;
-	// }
+    //xiebiao(INT_KEY);
+	// test_table_create();
+	// BPlusTree* bp = new BPlusTree(fname);
+	// bp->flush_file();
+	FileManager::getInstance()->newBlock(fname);
 
-	//cout<<bp->Search(new int(3),(char *)fname)<<endl;
-	bp->flush_file();
-	delete bp;
-	BPlusTree* bp1 = new BPlusTree(fname);
-	// CNode* root=bp1->GetRoot();
-	// for(int i=0;i<MAXNUM_DATA;i++){
-	// 	cout<<((CLeafNode*)root)->offt_data[i]<<endl;
+
+    // BPlusTree* bp = new BPlusTree(fname);
+	// for(int i=1;i<=13;i++){
+	// 	bp->Insert((void*)new int(i));
 	// }
 	
-	// cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
-	print_add_leaf(bp1,INT_KEY);
+	// bp->Delete(new int(2));
+	// bp->Insert(new int(14));
+	// bp->Insert(new int(15));
+	
+	// // for(int i=1;i<=4;i++){
+	// // 	bool a=bp->Search((void*)new int(i),(char*)fname);
+	// // 	cout<<i<<" "<<a<<endl;
+	// // }
+
+	// //cout<<bp->Search(new int(3),(char *)fname)<<endl;
+	// bp->flush_file();
+	// delete bp;
+	// BPlusTree* bp1 = new BPlusTree(fname);
+	// // CNode* root=bp1->GetRoot();
+	// // for(int i=0;i<MAXNUM_DATA;i++){
+	// // 	cout<<((CLeafNode*)root)->offt_data[i]<<endl;
+	// // }
+	
+	// // cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
+	// print_add_leaf(bp1,INT_KEY);
 	
 	
 	
@@ -98,7 +111,7 @@ int test_key_ll(){
 int test_string(){
 	//cout<<getString(1)<<endl;
 	const char* fname = "table.bin";
-	xiebiao(STRING_KEY);
+	//xiebiao(STRING_KEY);
 	BPlusTree* bp = new BPlusTree(fname);
 	for(int i=1;i<=26;i++){
 		bp->Insert(getString(i));

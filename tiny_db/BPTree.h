@@ -471,9 +471,11 @@ public:
     virtual ~BPlusTree();
 
     // 查找指定的数据
-    bool Search(void* data, char* sPath);
+    off_t Search(void* data);
     // 插入指定的数据
     off_t Insert(void* data);
+    bool Insert_Data(void* data[ATTR_MAX_NUM],char* attribute_name[ATTR_MAX_NUM],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt);
+    void Get_Data(void* data[ATTR_MAX_NUM],off_t offt);
     // 删除指定的数据
     bool Delete(void* data);
 
@@ -560,6 +562,14 @@ public:
         t.value_use_block = this->value_use_block;
         t.key_kind = this->key_kind;
         t.m_Depth = this->m_Depth;
+        t.max_key_size = this->max_key_size;
+        t.attr_num = this->attr_num;
+        for(int i=0;i<ATTR_MAX_NUM;i++){
+            t.attr[i] = this->attr[i];
+        }
+        memcpy(t.key_attr,this->key_attr, strlen(this->key_attr));
+        t.key_attr[strlen(this->key_attr)] = '\0';
+
         FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
         return true;
 
@@ -571,12 +581,18 @@ public:
         this->offt_root = t.offt_root;
         this->offt_leftHead = t.offt_leftHead;
         this->offt_rightHead = t.offt_rightHead;
-        this->key_kind = t.key_kind;
         this->key_use_block = t.key_use_block;
         this->value_use_block = t.value_use_block;
         this->m_Depth = t.m_Depth;
         this->max_key_size = t.max_key_size;
-
+        this->key_kind = t.key_kind;
+        this->attr_num = t.attr_num;
+        for(int i=0;i<ATTR_MAX_NUM;i++){
+            this->attr[i] = t.attr[i];
+        }
+        memcpy(this->key_attr,t.key_attr, strlen(t.key_attr));
+        this->key_attr[strlen(t.key_attr)] = '\0';
+        cout<<this->key_attr<<endl;
         return true;
     }
 
@@ -611,7 +627,9 @@ protected:
     KEY_KIND key_kind;
     
     off_t offt_self;
-    //后面定义宏来改大小，先这样
+    attribute attr[ATTR_MAX_NUM];
+    char key_attr[21];
+    int attr_num;
     
 };
 

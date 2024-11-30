@@ -3,12 +3,10 @@ project(tiny_db)
 
 # 工程的源码，不需要包含头文件，当然你也可以包含
 set(TINY_DB_SOURCE 
-BPlusTree.cpp
 BPTree.cpp
-Demo.cpp
 rwdata.cpp
 test_myTree.cpp
-test.cpp
+DataBase.cpp
 )
 
 add_executable(${PROJECT_NAME} ${TINY_DB_SOURCE})
@@ -19,9 +17,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC .)
 
 # 如果你需要添加额外的二进制文件，在这里写入，会自动复制到可执行文件目录下面
 set(COPY_BINARY_FILE 
-${CMAKE_CURRENT_SOURCE_DIR}/example.bin
-${CMAKE_CURRENT_SOURCE_DIR}/example.txt
-${CMAKE_CURRENT_SOURCE_DIR}/output.bin
+ ${CMAKE_CURRENT_SOURCE_DIR}/example.bin
+
 )
 
 # 复制的具体命令
