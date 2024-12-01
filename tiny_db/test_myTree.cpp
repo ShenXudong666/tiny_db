@@ -1,3 +1,4 @@
+#include "BPTree.h"
 #include"rwdata.h"
 #include "DataBase.h"
 #include <cstring>
@@ -16,15 +17,18 @@ void test_table_op() {
 	DataBase* db=new DataBase();
 	
 	cout<<"创建表============"<<endl;
-	db->createTable((char*)"创建表");
-	cout<<"开始插入数据============"<<endl;
-	db->insert((char*)"创建条数据");
-	cout<<"查询数据============"<<endl;
-	db->select((char*)"查询一条数据");
-	cout<<"删除数据============"<<endl;
-	db->Delete((char*)"删除一条数据");
-	cout<<"查询数据============"<<endl;
-	db->select((char*)"查询一条数据");
+	string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
+	db->createTable((char*)sql_create.c_str());
+	BPlusTree* bp = new BPlusTree(fname);
+	cout<<0;
+	// cout<<"开始插入数据============"<<endl;
+	// db->insert((char*)"创建条数据");
+	// cout<<"查询数据============"<<endl;
+	// db->select((char*)"查询一条数据");
+	// cout<<"删除数据============"<<endl;
+	// db->Delete((char*)"删除一条数据");
+	// cout<<"查询数据============"<<endl;
+	// db->select((char*)"查询一条数据");
 }
 char* getString(int index){
 	char* s=new char[1024];
@@ -57,19 +61,19 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 
 int main(){
     const char* fname = "table.bin";
-	//test_table_op();
-	DataBase* db=new DataBase();
+	test_table_op();
+	// DataBase* db=new DataBase();
 	
-	char sql[1024];
-	char sql2[1024];
-	strcpy(sql, "CREATE TABLE student(id INT,name varchar(100),age INT);");
-	strcpy(sql2, "select * FROM student2;");
-	cout<<db->extractTableName(sql)<<endl;
-	cout<<db->extractTableName(sql2)<<endl;
-	vector<attribute>attr=db->parseCreateTableStatement(sql);
-	for(int i=0;i<attr.size();i++){
-		cout<<attr[i].name<<" "<<attr[i].key_kind<<" "<<attr[i].max_size<<endl;
-	}
+	// char sql[1024];
+	// char sql2[1024];
+	// strcpy(sql, "CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);");
+	// strcpy(sql2, "select * FROM student2;");
+	// cout<<db->extractTableName(sql)<<endl;
+	// cout<<db->extractTableName(sql2)<<endl;
+	// vector<attribute>attr=db->parseCreateTableStatement(sql);
+	// for(int i=0;i<attr.size();i++){
+	// 	cout<<attr[i].name<<" "<<attr[i].key_kind<<" "<<attr[i].max_size<<endl;
+	// }
 	//BPlusTree* bp = new BPlusTree(fname);
 	// bp->flush_file();
 	//FileManager::getInstance()->newBlock(fname);

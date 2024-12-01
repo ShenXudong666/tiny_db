@@ -3,6 +3,7 @@
 #include "rwdata.h"
 #include <vector>
 #include <regex>
+#include <cstring>
 class DataBase {
     public:
         DataBase();
@@ -14,6 +15,6 @@ class DataBase {
         void update(char* tableName, char* set, char* condition);
         void select(char* sql);
         string extractTableName(char* sql);
-        vector<attribute> parseCreateTableStatement(const std::string& sql);
+        vector<attribute> parseCreateTableStatement(const std::string& sql,char keyname[MAXSIZE_ATTR_NAME]);
 
 };

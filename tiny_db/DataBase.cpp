@@ -4,22 +4,27 @@
 #include <cstddef>
 #include <cstring>
 #include <sys/types.h>
+#include <vector>
 DataBase::DataBase(){
 
 }
 bool DataBase::createTable(char* sql){
+    string tablename=this->extractTableName(sql);
+    tablename+=".bin";
+    char key_attr[MAXSIZE_ATTR_NAME];
+    vector<attribute> ture_attr=this->parseCreateTableStatement(sql, key_attr);
+    if(ture_attr.size()==0){
+        cout<<"创建表失败"<<endl;
+        return false;
+    }
+
     //解析sql语句，这一步后面再做
     attribute attr[ATTR_MAX_NUM];
-    int attr_num=2;
-    const char* key_attr="id";  
-    strcpy(attr[0].name,"id");
-    attr[0].key_kind=INT_KEY;
-    attr[0].max_size=sizeof(int);
-    strcpy(attr[1].name,"name");
-    attr[1].key_kind=STRING_KEY;
-    attr[1].max_size=100;
+    int attr_num=ture_attr.size();
+    for(int i=0;i<attr_num;i++){
+        attr[i]=ture_attr[i];
+    }
     
-    const char* fpath="table.bin";
     //检查文件是否存在
     // if(FILE *file=fopen(fpath,"r")){
     //     fclose(file);
@@ -27,8 +32,7 @@ bool DataBase::createTable(char* sql){
     //     return false;
     // }
       
-
-    FileManager::getInstance()->table_create(fpath, attr_num, attr,key_attr);
+    FileManager::getInstance()->table_create(tablename.c_str(), attr_num, attr,key_attr);
     return true;
 }
 void DataBase::insert(char* sql){
@@ -36,15 +40,16 @@ void DataBase::insert(char* sql){
     //尝试解析sql语句，得到一些values
     
     BPlusTree* bp=new BPlusTree(fpath);
-
-    void* data[ATTR_MAX_NUM];
+    char data[ATTR_MAX_NUM][1024];
+    
     void* key;
     char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME];
     KEY_KIND key_kind[ATTR_MAX_NUM];
     //插入数据
     key=new int(1);
-    data[0]=new int(1);
-    data[1]=new char[100];
+    // void* data[ATTR_MAX_NUM];
+    // data[0]=new int(1);
+    // data[1]=new char[100];
     strcpy((char*)data[1],"zhangsan");
     
     strcpy(attribute_name[0], "id");
@@ -104,7 +109,7 @@ string DataBase::extractTableName(char* sql) {
     }
     return "";
 }
-vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
+vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql,char keyname[MAXSIZE_ATTR_NAME]) {
     vector<attribute> attr_arry;
     string columnsPart;
     string pattern = "CREATE TABLE .*?\\((.*)\\).*";
@@ -117,9 +122,10 @@ vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
 
     istringstream columnStream(columnsPart);
     string columnDef;
+    int keynum=0;
     while (getline(columnStream, columnDef, ',')) {
         istringstream columnDetails(columnDef);
-        string columnName, columnType;
+        string columnName, columnType,columeConstraint;
         int maxLength = 0;
         if (std::getline(columnDetails, columnName, ' ')) {
             if (std::getline(columnDetails, columnType, ' ')) {
@@ -132,6 +138,21 @@ vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
                     maxLength = std::stoi(lengthPart);
                     columnType = columnType.substr(0,leftPos); // 更新类型，去掉长度部分
                 }
+            }
+            if (std::getline(columnDetails, columeConstraint)) {
+
+                // 解析约束条件
+                if(_stricmp(columeConstraint.c_str(), "PRIMARY KEY") == 0){
+                    if(keynum>1){
+                        cout<<"主键只能有一个"<<endl;
+                        return vector<attribute>();
+                    }
+                    strcpy(keyname,columnName.c_str());
+                    keynum++;
+                }
+                    
+                    
+            
             }
                 KEY_KIND key_kind;
                 if(columnType=="INT"){
