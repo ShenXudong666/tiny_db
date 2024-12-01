@@ -58,7 +58,7 @@ void DataBase::insert(char* sql){
     key_kind[1]=STRING_KEY;
 
     off_t offt_data=bp->Insert(key);
-    bp->Insert_Data(data, attribute_name, key_kind,offt_data);
+    //bp->Insert_Data(data, attribute_name, key_kind,offt_data);
     bp->flush_file();
     delete bp;
 

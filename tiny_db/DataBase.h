@@ -4,6 +4,7 @@
 #include <vector>
 #include <regex>
 #include <cstring>
+#include <SQLParser.h>
 class DataBase {
     public:
         DataBase();
