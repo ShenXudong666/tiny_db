@@ -14,7 +14,7 @@ add_executable(${PROJECT_NAME} ${TINY_DB_SOURCE})
 
 # 添加头文件目录，这里说明头文件会自动在这个cmake文件的同级目录下面
 target_include_directories(${PROJECT_NAME} PUBLIC .)
-target_link_libraries(tiny_db PRIVATE sql-parser)
+target_link_libraries(${PROJECT_NAME} sqlparser)
 
 # 如果你需要添加额外的二进制文件，在这里写入，会自动复制到可执行文件目录下面
 set(COPY_BINARY_FILE 

@@ -8,6 +8,5 @@ if(MSVC)
 endif()
 
 add_subdirectory(sql-parser)
-include_directories(sql-parser/include)
 add_subdirectory(tiny_db)
 
