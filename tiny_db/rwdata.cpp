@@ -354,17 +354,12 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 	fclose(file);
 }
 
-bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr[ATTR_MAX_NUM],const char * key_attr)
+bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr[ATTR_MAX_NUM])
 {
 	size_t size = 0;
 	int max_key_size = 0;
 	KEY_KIND key_type = INT_KEY;
-	for(int i=0;i<attr_num;i++){
-		if(strcmp(attr[i].name, key_attr)==0){
-			max_key_size = attr[i].max_size;
-			key_type = attr[i].key_kind;
-		}
-	}
+	
 	//纠正最大索引所占空间
 	switch (key_type)
 	{
@@ -394,8 +389,6 @@ bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr
 	table t;
 	memcpy(t.fpath, path, sizeof(path)+1);
 	t.fpath[sizeof(path)+1] = '\0';
-	memcpy(t.key_attr, key_attr, sizeof(key_attr)+1);
-	t.key_attr[sizeof(path)+1] = '\0';
 	for(int i=0;i<ATTR_MAX_NUM;i++)t.attr[i]=attr[i];
 	t.key_kind = key_type;
 	t.m_Depth = 1;
@@ -404,15 +397,11 @@ bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr
 	t.value_use_block = 0;
 	for(int i=0;i<attr_num;i++)t.attr[i]=attr[i];
 	t.attr_num = attr_num;
-	memcpy(t.key_attr, key_attr, strlen(key_attr));
-	t.key_attr[strlen(key_attr)] = '\0';
 	t.max_key_size = size;
 
 	//将表的信息写在文件的头部
 	flushTable(t,t.fpath ,0);
 
-	
-	
 	char block_graph[NUM_ALL_BLOCK];
 	block_graph[0] = BLOCK_TLABE;
 	block_graph[1] = BLOCK_GRAPH;

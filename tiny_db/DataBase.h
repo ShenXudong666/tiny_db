@@ -4,18 +4,19 @@
 #include <vector>
 #include <regex>
 #include <cstring>
-#include <SQLParser.h>
+
 class DataBase {
     public:
         DataBase();
         ~DataBase();
         void run();
-        bool createTable(char* sql);
-        void insert(char* sql);
+        bool createTable(const std::string& sql);
+        void insert(const std::string& sql);
         void Delete(char* sql);
         void update(char* tableName, char* set, char* condition);
         void select(char* sql);
-        string extractTableName(char* sql);
-        vector<attribute> parseCreateTableStatement(const std::string& sql,char keyname[MAXSIZE_ATTR_NAME]);
+        string extractTableName(const std::string& sql);
+        vector<attribute> parseCreateTableStatement(const std::string& sql);
+        vector<vector<string>> parseInsertStatement(const std::string& sql);
 
 };

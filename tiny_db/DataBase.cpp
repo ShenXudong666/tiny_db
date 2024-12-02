@@ -8,11 +8,10 @@
 DataBase::DataBase(){
 
 }
-bool DataBase::createTable(char* sql){
+bool DataBase::createTable(const std::string& sql){
     string tablename=this->extractTableName(sql);
     tablename+=".bin";
-    char key_attr[MAXSIZE_ATTR_NAME];
-    vector<attribute> ture_attr=this->parseCreateTableStatement(sql, key_attr);
+    vector<attribute> ture_attr=this->parseCreateTableStatement(sql);
     if(ture_attr.size()==0){
         cout<<"创建表失败"<<endl;
         return false;
@@ -32,11 +31,11 @@ bool DataBase::createTable(char* sql){
     //     return false;
     // }
       
-    FileManager::getInstance()->table_create(tablename.c_str(), attr_num, attr,key_attr);
+    FileManager::getInstance()->table_create(tablename.c_str(), attr_num, attr);
     return true;
 }
-void DataBase::insert(char* sql){
-    const char* fpath="table.bin";
+void DataBase::insert(const std::string& sql){
+    string fpath=this->extractTableName(sql);
     //尝试解析sql语句，得到一些values
     
     BPlusTree* bp=new BPlusTree(fpath);
@@ -89,27 +88,27 @@ void DataBase::Delete(char* sql){
     bp->flush_file();
     delete bp;
 }
-string DataBase::extractTableName(char* sql) {
-    string nsql(sql);
+string DataBase::extractTableName(const std::string& sql) {
+    
     regex patternCreate(R"(\bCREATE TABLE \b)", std::regex_constants::icase);
     regex patternSelect(R"(\bFROM\s+(\w+))", std::regex_constants::icase);
     smatch matches;
 
     // 检查是否是创建表语句
-    if (regex_search(nsql, matches, patternCreate)) {
+    if (regex_search(sql, matches, patternCreate)) {
         size_t pos = matches.position(0) + matches.length(0);
-        size_t end = nsql.find('(', pos);
+        size_t end = sql.find('(', pos);
         if (end != string::npos) {
-            return nsql.substr(pos, end - pos);
+            return sql.substr(pos, end - pos);
         }
     }
     // 检查是否是查询语句，并提取表名
-    else if (regex_search(nsql, matches, patternSelect) && matches.size() > 1) {
+    else if (regex_search(sql, matches, patternSelect) && matches.size() > 1) {
         return matches[1];
     }
     return "";
 }
-vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql,char keyname[MAXSIZE_ATTR_NAME]) {
+vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
     vector<attribute> attr_arry;
     string columnsPart;
     string pattern = "CREATE TABLE .*?\\((.*)\\).*";
@@ -139,21 +138,7 @@ vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql,cha
                     columnType = columnType.substr(0,leftPos); // 更新类型，去掉长度部分
                 }
             }
-            if (std::getline(columnDetails, columeConstraint)) {
 
-                // 解析约束条件
-                if(_stricmp(columeConstraint.c_str(), "PRIMARY KEY") == 0){
-                    if(keynum>1){
-                        cout<<"主键只能有一个"<<endl;
-                        return vector<attribute>();
-                    }
-                    strcpy(keyname,columnName.c_str());
-                    keynum++;
-                }
-                    
-                    
-            
-            }
                 KEY_KIND key_kind;
                 if(columnType=="INT"){
                     key_kind=INT_KEY;
@@ -164,11 +149,80 @@ vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql,cha
                 }
                 else key_kind=STRING_KEY;
 
-                attribute column((char*)columnName.c_str(), key_kind, maxLength);
+            if (std::getline(columnDetails, columeConstraint)) {
+
+                // 解析约束条件
+                if(_stricmp(columeConstraint.c_str(), "PRIMARY KEY") == 0){
+                    if(keynum>1){
+                        cout<<"主键只能有一个"<<endl;
+                        return vector<attribute>();
+                    }
+                    attribute column(columnName, key_kind, maxLength,columeConstraint);
+                    attr_arry.push_back(column);
+                    keynum++;
+                    continue;
+                }
+                    
+            }
                 
+                attribute column(columnName, key_kind, maxLength);
                 attr_arry.push_back(column);
             }
         }
     
     return attr_arry;
+}
+vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
+    vector<vector<string>> rows;
+    vector<string> columns;
+    istringstream stream(sql);
+    string word;
+    string valuesPart;
+    // 跳过 "INSERT INTO table_name" 部分
+    for(int i=0;i<4;i++)
+        getline(stream, word, ' ');
+    
+    if (word[0] == '(') {
+        std::string columnsPart = word.substr(1, word.size() - 2); // 去掉括号
+        std::istringstream columnsStream(columnsPart);
+        std::string columnName;
+        while (std::getline(columnsStream, columnName, ',')) {
+            columns.push_back(columnName);
+        }
+    }
+    getline(stream, word, ' '); // 读取 "VALUES"
+    getline(stream, word, ' '); // 读取 "VALUES"
+    getline(stream, word, '('); // 读取 "("
+    valuesPart = word.substr(6); // 获取值部分，去掉最后的括号
+
+    size_t pos1, pos2;
+    string valueRow;
+    while ((pos1 = valuesPart.find("(")) != std::string::npos) {
+        pos2 = valuesPart.find(")", pos1);
+        valueRow = valuesPart.substr(pos1 + 1, pos2 - pos1 - 1);
+        valuesPart.erase(0, pos2 + 1);
+
+        std::istringstream valueStream(valueRow);
+        std::string value;
+        std::vector<string> row;
+        string column;
+        for (int i = 0; i < columns.size(); ++i) {
+            std::getline(valueStream, value, ',');
+            column = value;
+            size_t found = column.find('\'');
+            if (found != std::string::npos) {
+                column.erase(found, 1); // 去掉第一个单引号
+                found = column.find('\'');
+                if (found != std::string::npos) {
+                    column.erase(found, 1); // 去掉第二个单引号
+                }
+            }
+            row.push_back(column);
+        }
+        rows.push_back(row);
+    }
+
+    return rows;
+
+
 }

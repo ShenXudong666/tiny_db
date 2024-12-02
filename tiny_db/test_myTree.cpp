@@ -3,6 +3,7 @@
 #include "DataBase.h"
 #include <cstring>
 #include<iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -18,9 +19,16 @@ void test_table_op() {
 	
 	cout<<"创建表============"<<endl;
 	string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
-	db->createTable((char*)sql_create.c_str());
+	db->createTable(sql_create);
 	BPlusTree* bp = new BPlusTree(fname);
-	cout<<0;
+	// string sql_insert="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
+	// vector<vector<string>>s=db->parseInsertStatement(sql_insert);
+	// for(int i=0;i<s.size();i++){
+	// 	for(int j=0;j<s[i].size();j++){
+	// 		cout<<s[i][j]<<" ";
+	// 	}
+	// 	cout<<endl;
+	// }
 	// cout<<"开始插入数据============"<<endl;
 	// db->insert((char*)"创建条数据");
 	// cout<<"查询数据============"<<endl;
@@ -62,6 +70,9 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 int main(){
     const char* fname = "table.bin";
 	test_table_op();
+	//string a;
+	//getline(cin,a);
+	//cout<<a<<endl;
 	// DataBase* db=new DataBase();
 	
 	// char sql[1024];

@@ -1,6 +1,7 @@
 #pragma once
 #include "stdio.h"
 #include "stdlib.h"
+#include <cstring>
 #include <sys/types.h>
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
 #define DB_BLOCK_SIZE 4096 // block size must be pow of 2! 文件数据库的数据块大小
@@ -55,13 +56,19 @@ struct attribute {
 	char name[MAXSIZE_ATTR_NAME];
 	KEY_KIND key_kind;
 	size_t max_size;
-	attribute(char* fname, KEY_KIND fkey_kind, size_t fmax_size) : key_kind(fkey_kind), max_size(fmax_size) {
-		memcpy(name, fname, strlen(fname));
-		name[strlen(fname)] = '\0';
+	char constraint[MAXSIZE_ATTR_NAME];
+	attribute(string fname, KEY_KIND fkey_kind, size_t fmax_size) : key_kind(fkey_kind), max_size(fmax_size) {
+		strcpy(name, fname.c_str());
+		strcpy(constraint, "None");
+	}
+	attribute(string fname, KEY_KIND fkey_kind, size_t fmax_size, string fconstraint) : key_kind(fkey_kind), max_size(fmax_size) {
+		strcpy(name, fname.c_str());
+		strcpy(constraint, fconstraint.c_str());
 	}
 	attribute(){
 		//先写死，后面再改，方便debug
-		strcpy(name, "table");
+		strcpy(name, "None");
+		strcpy(constraint, "None");
 		key_kind = INT_KEY;
 		max_size = sizeof(int);
 	}
@@ -77,7 +84,6 @@ typedef struct {
 	size_t key_use_block;               /** 数据块为btree_key类型的总数 */
 	size_t value_use_block;
 	attribute attr[ATTR_MAX_NUM];
-	char key_attr[MAXSIZE_ATTR_NAME]; //索引键对应的属性名
 	int attr_num;
 }table;
 
@@ -140,7 +146,7 @@ public:
 	bool flushLeafNode(leaf_node node, Index index, void** value);
 	table getTable(const char* filename, off_t offt);
 	bool flushTable(table t, const char* filename, off_t offt);
-	bool table_create(const char* path, size_t attr_num,attribute attr[ATTR_MAX_NUM],const char* key_arrt);
+	bool table_create(const char* path, size_t attr_num,attribute attr[ATTR_MAX_NUM]);
 	void flush_key(void* key[MAXNUM_KEY], Index index);
 	void flush_value(void* value[MAXNUM_DATA], Index index);
 	void get_key(void* key[MAXNUM_KEY], Index index);

@@ -27,6 +27,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 */
 #include <climits>
 #include <cstddef>
+#include <string.h>
 #include <sys/types.h>
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
 
@@ -467,7 +468,7 @@ public:
 
     BPlusTree();
     //输入文件名初始化表，也就是这颗树
-    BPlusTree(const char* fname);
+    BPlusTree(const std::string& fname);
     virtual ~BPlusTree();
 
     // 查找指定的数据
@@ -568,8 +569,6 @@ public:
         for(int i=0;i<ATTR_MAX_NUM;i++){
             t.attr[i] = this->attr[i];
         }
-        memcpy(t.key_attr,this->key_attr, strlen(this->key_attr));
-        if(strlen(this->key_attr)<MAXSIZE_ATTR_NAME)t.key_attr[strlen(this->key_attr)] = '\0';
 
         FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
         return true;
@@ -588,11 +587,13 @@ public:
         this->max_key_size = t.max_key_size;
         this->key_kind = t.key_kind;
         this->attr_num = t.attr_num;
-        for(int i=0;i<ATTR_MAX_NUM;i++){
+        for(int i=0;i<this->attr_num;i++){
             this->attr[i] = t.attr[i];
+            if(_stricmp(t.attr[i].constraint, "PRIMARY KEY")==0){
+                strcpy(this->key_attr, t.attr[i].name);
+            }
         }
-        memcpy(this->key_attr,t.key_attr, strlen(t.key_attr));
-        this->key_attr[strlen(t.key_attr)] = '\0';
+
         return true;
     }
 
