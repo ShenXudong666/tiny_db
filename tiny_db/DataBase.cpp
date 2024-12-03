@@ -55,23 +55,15 @@ void DataBase::insert(const std::string& sql){
     delete bp;
 
 }
-void DataBase::select(char* sql){
+void DataBase::select(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
     vector<string>attributeNames;
-    vector<string>Logics;
+    vector<LOGIC>Logics;
     vector<WhereCondition>whereConditions=this->parseSelectStatement(sql,attributeNames,Logics);
     BPlusTree* bp=new BPlusTree(fpath);
-    void* key;
-    key=new int(1);
-    off_t off_data=bp->Search(key);
-    if(off_data==INVALID){
-        cout<<"没有找到该数据"<<endl;
-        return;
-    }
-    void* data[ATTR_MAX_NUM];
-    bp->Get_Data(data, off_data);
-    bp->Print_Data(data);
+    bp->Select_Data(attributeNames, Logics, whereConditions);
+    
 
     delete bp;
 
@@ -109,7 +101,7 @@ string DataBase::extractTableName(const std::string& sql) {
     }
     return "";
 }
-vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<string>&Logics){
+vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<LOGIC>&Logics){
     istringstream stream(sql);
     string word;
     for(int i=0;i<2;i++)
@@ -150,7 +142,8 @@ vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vec
 
     istringstream conditionStream(conditionPart);
     while(getline(conditionStream, word, ' ')){
-        if(word=="AND"||word=="OR")Logics.push_back(word);
+        if(word=="AND")Logics.push_back(AND_LOGIC);
+        if(word=="OR")Logics.push_back(OR_LOGIC);
     }
     
     return w; 

@@ -60,6 +60,10 @@ using namespace std;
 #define LL_KEY 2
 #define STRING_KEY 3
 #define NEW_OFFT 0
+
+typedef int LOGIC ;
+#define AND_LOGIC 0
+#define OR_LOGIC 1
 static int cmp(void* a, void* b,KEY_KIND key_kind) {
     if(key_kind == INT_KEY) {
         return *(int*)a > *(int*)b;
@@ -99,13 +103,13 @@ static void* Invalid(KEY_KIND key_kind) {
 
 static void print_key(void* key, KEY_KIND key_kind) {
     if(key_kind == INT_KEY) {
-       cout<<*(int*)key<<" ";
+       cout<<'|'<<*(int*)key<<'\t';
     }
     else if(key_kind == LL_KEY) {
-        cout<<*(long long*)key<<" ";
+        cout<<'|'<<*(long long*)key<<'\t';
     }
     //char*类型后面肯定要改，可能多传一个参数，表示字符串长度
-    else cout<<(char*)key<<" ";
+    else cout<<'|'<<(char*)key<<'\t';
 }
 static void assign(void* a, void* b, KEY_KIND key_kind) {
     if(key_kind == INT_KEY) {
@@ -507,6 +511,10 @@ public:
     bool Insert_Data(vector<vector<string>> data);
     void Get_Data(void* data[ATTR_MAX_NUM],off_t offt);
     void Print_Data(void* data[ATTR_MAX_NUM]);
+    //只打印一条数据
+    void Print_Data(void* data[ATTR_MAX_NUM],vector<string>attributenames);
+    void Print_Header(vector<string>attributenames);
+    void Select_Data(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w);
     // 删除指定的数据
     bool Delete(void* data);
 

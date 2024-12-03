@@ -1565,4 +1565,84 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     // 递归
     return DeleteInternalNode(pFather, NewKey);
 }
+void BPlusTree::Select_Data(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w){
+    //先把只有id检测的写了
+    if(w.size()==1&&_stricmp(w[0].attribute.c_str(),this->key_attr)==0){
+        void* key;
+        if(w[0].operatorSymbol=="="){
+            key=str2value(w[0].value, this->key_kind);
+        }
+        off_t offt_data=this->Search(key);
+        if(offt_data==INVALID){
+            this->Print_Header(attributenames);
+            return;
+        }
+        void* data[ATTR_MAX_NUM];
+        this->Get_Data(data, offt_data);
+        this->Print_Header(attributenames);
+        this->Print_Data(data,attributenames);
+    }
+    //后面的情况等完成遍历后再写
+}
+void BPlusTree::Print_Data(void* data[ATTR_MAX_NUM],vector<string>attributenames){
+    if(attributenames[0]=="*"){
+        for(int i=0;i<this->attr_num;i++){
+            print_key(data[i],this->attr[i].key_kind );
+        }
+        cout<<endl;
+        return;
+    }
+    vector<int>index;
+    for(int i=0;i<attributenames.size();i++){
+        for(int j=0;j<this->attr_num;j++){
+            if(_stricmp(attributenames[i].c_str(),this->attr[j].name)==0){
+                index.push_back(j);
+                break;
+            }
+            if(j==this->attr_num-1){
+                cout<<"error:attribute not found"<<endl;
+                return;
+            }
+        }
+    }
+    if(attributenames.size()!=index.size()){
+        cout<<"error:attribute not found"<<endl;
+        return;
 
+    }
+    for(int i=0;i<attributenames.size();i++)
+        print_key(data[index[i]],this->attr[index[i]].key_kind );
+    
+}
+void BPlusTree::Print_Header(vector<string>attributenames){
+    if(attributenames[0]=="*"){
+        for(int i=0;i<this->attr_num;i++){
+            cout<<'|'<<this->attr[i].name<<'\t';
+        }
+        cout<<endl;
+        return;
+    }
+
+    vector<int>index;
+    for(int i=0;i<attributenames.size();i++){
+        for(int j=0;j<this->attr_num;j++){
+            if(_stricmp(attributenames[i].c_str(),this->attr[j].name)==0){
+                index.push_back(j);
+                break;
+            }
+            if(j==this->attr_num-1){
+                cout<<"error:attribute not found"<<endl;
+                return;
+            }
+        }
+    }
+    if(attributenames.size()!=index.size()){
+        cout<<"error:attribute not found"<<endl;
+        return;
+
+    }
+    for(int i=0;i<attributenames.size();i++){
+        cout<<'|'<<attributenames[i]<<'\t';
+    }
+    cout<<endl;
+}
