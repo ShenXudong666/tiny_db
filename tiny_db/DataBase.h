@@ -18,5 +18,6 @@ class DataBase {
         string extractTableName(const std::string& sql);
         vector<attribute> parseCreateTableStatement(const std::string& sql);
         vector<vector<string>> parseInsertStatement(const std::string& sql);
+        vector<vector<string>> parseSelectStatement(const std::string& sql);
 
 };

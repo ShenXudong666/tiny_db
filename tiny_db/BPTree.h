@@ -38,6 +38,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 #include<iostream>
 #include<fstream>
 #include<cstring>
+#include <vector>
 using namespace std;
 #include"rwdata.h"
 
@@ -115,6 +116,34 @@ static void assign(void* a, void* b, KEY_KIND key_kind) {
     }
     //char*可能要改
     else a=(char*)b;
+    
+}
+static void* str2value(string value, KEY_KIND key_kind) {
+    try{
+        int a;
+        long long b;
+        switch (key_kind) {
+            case INT_KEY:
+                a=stoi(value);
+                return new int(a);
+                break;
+            case LL_KEY:
+                b=stoll(value);
+                return new long long(b);
+                break;
+            case STRING_KEY:
+                char *data=new char[1024];
+                strcpy((char*)data,value.c_str());
+                return data;
+                break;
+
+        }
+    }
+    catch (const std::invalid_argument& ia) {
+        cout << "Invalid argument: " << ia.what() << '\n';
+        return false;
+    }
+    
     
 }
 /* 键值的类型*/
@@ -475,7 +504,7 @@ public:
     off_t Search(void* data);
     // 插入指定的数据
     off_t Insert(void* data);
-    bool Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt);
+    bool Insert_Data(vector<vector<string>> data);
     void Get_Data(void* data[ATTR_MAX_NUM],off_t offt);
     void Print_Data(void* data[ATTR_MAX_NUM]);
     // 删除指定的数据

@@ -7,7 +7,9 @@
 #include <cstring>
 #include <iostream>
 #include <limits.h>
+#include <string.h>
 #include <sys/types.h>
+#include <vector>
 
 #define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
 
@@ -847,22 +849,41 @@ off_t BPlusTree::Insert(void* data)  //
     }
     return INVALID;
 }
-bool BPlusTree::Insert_Data(void* data[ATTR_MAX_NUM],char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME],KEY_KIND key_kind[ATTR_MAX_NUM],off_t offt){
-   
-    void* newdata[ATTR_MAX_NUM];
-    for(int i=0;i<attr_num;i++){
-        for(int j=0;j<ATTR_MAX_NUM;j++){
-            if(strcmp(attribute_name[i],this->attr[j].name)==0){
-                newdata[i]=data[j];
-                break;
-            }
-            if(j==ATTR_MAX_NUM-1){
-                //保证每个属性都不可空
-                return false;
-            }
+bool BPlusTree::Insert_Data(vector<vector<string>> value){
+    void* data[ATTR_MAX_NUM];
+    //先找到键值
+    void* key = INVALID;
+    int key_index = -1;
+    int key_index2=-1;
+    for(int i=0;i<value[0].size();i++){
+        if(_stricmp(this->key_attr, value[0][i].c_str())==0){
+            key_index = i;
         }
     }
-    FileManager::getInstance()->flush_data(this->fpath, newdata, this->attr,  this->attr_num,  offt);
+    for(int i=1;i<value.size();i++){
+        for(int j=0;j<attr_num;j++){
+            for(int z=0;z<value[i].size();z++){
+                if(_stricmp(this->attr[j].name, value[0][z].c_str())==0){
+                    data[j]=str2value(value[i][z].c_str(), this->attr[j].key_kind);
+                    if(z==key_index)key_index2 = j;
+                    
+                    break;
+                }
+                if(z==value[i].size()-1){
+                    data[j]=str2value("NULL", this->attr[j].key_kind);
+                }
+            }
+       
+       }
+    
+    }
+    cout<<*(int*)data[key_index2]<<endl;
+    //assign(key, data[key_index2], this->attr[key_index2].key_kind);
+    off_t offt_data = Insert(data[key_index2]);
+    if(offt_data == INVALID){
+        return false;
+    }
+    FileManager::getInstance()->flush_data(this->fpath, data, this->attr, this->attr_num, offt_data);
     return true;
 }
 void BPlusTree::Get_Data(void* data[ATTR_MAX_NUM],off_t offt){

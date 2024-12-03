@@ -36,34 +36,26 @@ bool DataBase::createTable(const std::string& sql){
 }
 void DataBase::insert(const std::string& sql){
     string fpath=this->extractTableName(sql);
+    fpath+=".bin";
     //尝试解析sql语句，得到一些values
-    
-    BPlusTree* bp=new BPlusTree(fpath);
-    char data[ATTR_MAX_NUM][1024];
-    
-    void* key;
-    char attribute_name[ATTR_MAX_NUM][MAXSIZE_ATTR_NAME];
-    KEY_KIND key_kind[ATTR_MAX_NUM];
-    //插入数据
-    key=new int(1);
-    // void* data[ATTR_MAX_NUM];
-    // data[0]=new int(1);
-    // data[1]=new char[100];
-    strcpy((char*)data[1],"zhangsan");
-    
-    strcpy(attribute_name[0], "id");
-    strcpy(attribute_name[1], "name");
-    key_kind[0]=INT_KEY;
-    key_kind[1]=STRING_KEY;
+    vector<vector<string>>values=this->parseInsertStatement(sql);
+    for(int i=0;i<values.size();i++){
+		for(int j=0;j<values[i].size();j++){
+			cout<<values[i][j]<<" ";
+		}
+		cout<<endl;
+	}
+    BPlusTree* bp=new BPlusTree(fpath);    // void* data[ATTR_MAX_NUM];
 
-    off_t offt_data=bp->Insert(key);
-    //bp->Insert_Data(data, attribute_name, key_kind,offt_data);
+    bp->Insert_Data(values);
     bp->flush_file();
     delete bp;
 
 }
 void DataBase::select(char* sql){
-    const char* fpath="table.bin";
+    string fpath=this->extractTableName(sql);
+    fpath+=".bin";
+    
     BPlusTree* bp=new BPlusTree(fpath);
     void* key;
     key=new int(1);
@@ -92,6 +84,7 @@ string DataBase::extractTableName(const std::string& sql) {
     
     regex patternCreate(R"(\bCREATE TABLE \b)", std::regex_constants::icase);
     regex patternSelect(R"(\bFROM\s+(\w+))", std::regex_constants::icase);
+    regex patternInsert(R"(\bINSERT INTO\s+(\w+))", std::regex_constants::icase);
     smatch matches;
 
     // 检查是否是创建表语句
@@ -106,7 +99,13 @@ string DataBase::extractTableName(const std::string& sql) {
     else if (regex_search(sql, matches, patternSelect) && matches.size() > 1) {
         return matches[1];
     }
+    else if (regex_search(sql, matches, patternInsert) && matches.size() > 1) {
+        return matches[1];
+    }
     return "";
+}
+vector<vector<string>> DataBase::parseSelectStatement(const std::string& sql){
+    
 }
 vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
     vector<attribute> attr_arry;
@@ -206,6 +205,7 @@ vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
         std::string value;
         std::vector<string> row;
         string column;
+        rows.push_back(columns);
         for (int i = 0; i < columns.size(); ++i) {
             std::getline(valueStream, value, ',');
             column = value;

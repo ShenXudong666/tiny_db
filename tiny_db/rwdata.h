@@ -17,6 +17,7 @@ typedef int KEY_KIND;    /* 为简单起见，定义为int类型，实际的B+�
 #include<fstream>
 #include <sys/stat.h>
 #include <stdexcept>
+#include <vector>
 using namespace std;
 #define INT_KEY 1
 #define LL_KEY 2
