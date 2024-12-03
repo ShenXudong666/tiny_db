@@ -17,12 +17,21 @@ void test_table_op() {
 	const char* fname = "table.bin";
 	DataBase* db=new DataBase();
 	
-	cout<<"创建表============"<<endl;
-	string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
-	db->createTable(sql_create);
+	// cout<<"创建表============"<<endl;
+	// string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
+	// db->createTable(sql_create);
 	
-	string sql_insert="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
-	db->insert(sql_insert);
+	// string sql_insert="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
+	// db->insert(sql_insert);
+
+	string sql_select1="SELECT * FROM table;";
+	string sql_select2="SELECT * FROM table WHERE id=1;";
+	vector<string> attributeNames;
+	vector<string> Logics;
+	db->parseSelectStatement(sql_select2, attributeNames, Logics);
+
+
+
 	// vector<vector<string>>s=db->parseInsertStatement(sql_insert);
 	// for(int i=0;i<s.size();i++){
 	// 	for(int j=0;j<s[i].size();j++){

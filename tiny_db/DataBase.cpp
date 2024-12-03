@@ -3,6 +3,9 @@
 #include "rwdata.h"
 #include <cstddef>
 #include <cstring>
+#include <ostream>
+#include <sstream>
+#include <string>
 #include <sys/types.h>
 #include <vector>
 DataBase::DataBase(){
@@ -55,7 +58,9 @@ void DataBase::insert(const std::string& sql){
 void DataBase::select(char* sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
-    
+    vector<string>attributeNames;
+    vector<string>Logics;
+    vector<WhereCondition>whereConditions=this->parseSelectStatement(sql,attributeNames,Logics);
     BPlusTree* bp=new BPlusTree(fpath);
     void* key;
     key=new int(1);
@@ -104,8 +109,103 @@ string DataBase::extractTableName(const std::string& sql) {
     }
     return "";
 }
-vector<vector<string>> DataBase::parseSelectStatement(const std::string& sql){
+vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<string>&Logics){
+    istringstream stream(sql);
+    string word;
+    for(int i=0;i<2;i++)
+    {
+        getline(stream, word, ' ');
+        cout<<word<<endl;
+    }
+    string attributePart=word;
+    if(attributePart=="*"){
+        attributeNames.push_back("*");
+    }
+    else{
+        istringstream attributeStream(attributePart);
+        string attributeName;
+        while (getline(attributeStream, attributeName, ',')) {
+            attributeNames.push_back(attributeName);
+        }
+    }
+    for(int i=0;i<2;i++)
+        getline(stream, word, ' ');
+
+    if(!getline(stream,word,' ')){
+        cout<<"无条件"<<endl;
+        return vector<WhereCondition>();
+    }
+    cout<<word<<endl;
+    if(word==""){
+        return vector<WhereCondition>();
+    }
+    if(word!="WHERE"){
+        cout<<"语法错误"<<endl;
+        return vector<WhereCondition>();
+    }
+    //把where读取完
+    string conditionPart;
+    getline(stream,conditionPart,' ');
+    vector<WhereCondition>w=this->parseWhereClause(conditionPart);
+
+    istringstream conditionStream(conditionPart);
+    while(getline(conditionStream, word, ' ')){
+        if(word=="AND"||word=="OR")Logics.push_back(word);
+    }
     
+    return w; 
+    
+}
+vector<WhereCondition> DataBase::parseWhereClause(const std::string& whereClause){
+    vector<WhereCondition> conditions;
+    vector<string>result;
+    istringstream iss(whereClause);
+    string token;
+    while (getline(iss, token, ' ')) {
+        //去掉token末尾的分号
+        if(token.back()==';')token.pop_back();
+        if(token!="AND"&&token!="OR")result.push_back(token);
+    }
+    for(int i=0;i<result.size();i++){
+        
+        vector<string> parts = this->splitCondition(result[i]);
+        WhereCondition wc(parts[0], parts[1], parts[2]);
+        for(int i=0;i<3;i++)cout<<parts[i]<<endl;
+        conditions.push_back(wc);
+        //使用>,<,=,!=,>=,<=来匹配
+
+    }
+    return conditions;
+}
+vector<string> DataBase::splitCondition(const std::string& condition){
+    vector<string> parts(3); // 初始化为3个元素，分别存储属性名、比较符号和值
+    size_t pos = 0; // 用于查找比较符号的位置
+
+    // 查找第一个非字母数字字符的位置，这通常是比较符号
+    for (pos = 0; pos < condition.length(); ++pos) {
+        if (!isalnum(condition[pos]) && condition[pos] != '_') {
+            break;
+        }
+    }
+
+    // 提取属性名
+    parts[0] = condition.substr(0, pos);
+
+    // 查找比较符号和值
+    size_t start = pos;
+    size_t end = condition.find_first_not_of("<>=!", pos + 1); // 找到值的开始位置
+    if (end == std::string::npos) {
+        // 如果没有找到值，那么整个字符串就是属性名和比较符号
+        parts[1] = condition.substr(pos);
+        parts[2] = ""; // 没有值
+    } else {
+        // 提取比较符号
+        parts[1] = condition.substr(pos, end - pos);
+        // 提取值
+        parts[2] = condition.substr(end);
+    }
+
+    return parts;
 }
 vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
     vector<attribute> attr_arry;

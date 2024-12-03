@@ -135,6 +135,13 @@ struct Index{
 	}
 };
 
+struct WhereCondition {
+    string attribute;
+    string operatorSymbol;
+    string value;
+	WhereCondition(){}
+	WhereCondition(string attr, string op, string val) : attribute(attr), operatorSymbol(op), value(val) {};
+};
 class FileManager {
 
 public:
