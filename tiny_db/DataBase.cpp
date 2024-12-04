@@ -137,7 +137,7 @@ vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vec
     }
     //把where读取完
     string conditionPart;
-    getline(stream,conditionPart,' ');
+    getline(stream,conditionPart);
     vector<WhereCondition>w=this->parseWhereClause(conditionPart);
 
     istringstream conditionStream(conditionPart);

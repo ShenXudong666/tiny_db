@@ -140,7 +140,15 @@ struct WhereCondition {
     string operatorSymbol;
     string value;
 	WhereCondition(){}
-	WhereCondition(string attr, string op, string val) : attribute(attr), operatorSymbol(op), value(val) {};
+	WhereCondition(string attr, string op, string val) : attribute(attr), operatorSymbol(op) {
+		//如果val被双引号或单引号包围，则把引号去掉
+		if (val[0] == '"' && val[val.length() - 1] == '"') {
+			value = val.substr(1, val.length() - 2);
+		}
+		else if (val[0] == '\'' && val[val.length() - 1] == '\'') {
+			value = val.substr(1, val.length() - 2);
+		}
+	};
 };
 class FileManager {
 

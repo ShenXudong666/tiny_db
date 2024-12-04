@@ -1567,7 +1567,7 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
 }
 void BPlusTree::Select_Data(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w){
     //先把只有id检测的写了
-    if(w.size()==1&&_stricmp(w[0].attribute.c_str(),this->key_attr)==0){
+    if(w.size()==1&&_stricmp(w[0].attribute.c_str(),this->key_attr)==0&&w[0].operatorSymbol=="="){
         void* key;
         if(w[0].operatorSymbol=="="){
             key=str2value(w[0].value, this->key_kind);
@@ -1581,8 +1581,19 @@ void BPlusTree::Select_Data(vector<string>attributenames,vector<LOGIC>Logics,vec
         this->Get_Data(data, offt_data);
         this->Print_Header(attributenames);
         this->Print_Data(data,attributenames);
+        return;
     }
     //后面的情况等完成遍历后再写
+    this->Print_Header(attributenames);
+    for(int i=0;i<NUM_ALL_BLOCK;i++){
+        if(this->Block_GRAPH[i]==BLOCK_DATA){
+            void* data[ATTR_MAX_NUM];
+            this->Get_Data(data, i);
+            if(this->SatisfyConditions(w, Logics, data))this->Print_Data(data,attributenames);
+        }
+    }
+
+
 }
 void BPlusTree::Print_Data(void* data[ATTR_MAX_NUM],vector<string>attributenames){
     if(attributenames[0]=="*"){
@@ -1645,4 +1656,56 @@ void BPlusTree::Print_Header(vector<string>attributenames){
         cout<<'|'<<attributenames[i]<<'\t';
     }
     cout<<endl;
+}
+
+bool BPlusTree::SatisfyCondition(WhereCondition w,void* data[ATTR_MAX_NUM]){
+    void* compare_key;
+    int j;
+    for(int i=0;i<this->attr_num;i++){
+        if(_stricmp(w.attribute.c_str(),this->attr[i].name)==0){
+            compare_key=str2value(w.value, this->attr[i].key_kind);
+            j=i;
+            break;
+        }
+    }
+    
+    if(w.operatorSymbol[0]=='='){
+        if(eql(data[j],compare_key,this->attr[j].key_kind))return true;
+        return false;
+    }
+    else if(w.operatorSymbol[0]=='<'){
+        if(cmp(data[j],compare_key,this->attr[j].key_kind))return false;
+        
+        if(w.operatorSymbol.size()==1
+            &&eql(data[j],compare_key,this->attr[j].key_kind))return false;
+
+        return true;
+    }
+    else if(w.operatorSymbol[0]=='>'){
+        if(cmp(compare_key,data[j],this->attr[j].key_kind))return false;
+        if(w.operatorSymbol.size()==1
+            &&eql(data[j],compare_key,this->attr[j].key_kind))return false;
+
+        return true;
+        }
+
+    return true;
+}
+bool BPlusTree::SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,void* data[ATTR_MAX_NUM]){
+    bool flag=true;
+    if(w.size()==0)return true;
+    bool flag1=SatisfyCondition(w[0],data);
+    if(Logics.size()==0)return flag1;
+    for(int i=1;i<w.size();i++){
+        if(Logics[i-1]==AND_LOGIC){
+            flag=SatisfyCondition(w[i],data);
+            flag1=flag1&&flag;
+        }
+        else if(Logics[i-1]==OR_LOGIC){
+            flag=SatisfyCondition(w[i],data);
+            if(flag1||flag)return true;
+            flag1=false;
+        }
+    }
+    return flag1;
 }

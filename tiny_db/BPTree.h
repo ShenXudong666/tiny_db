@@ -515,6 +515,8 @@ public:
     void Print_Data(void* data[ATTR_MAX_NUM],vector<string>attributenames);
     void Print_Header(vector<string>attributenames);
     void Select_Data(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w);
+    bool SatisfyCondition(WhereCondition w,void* data[ATTR_MAX_NUM]);
+    bool SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,void* data[ATTR_MAX_NUM]);
     // 删除指定的数据
     bool Delete(void* data);
 

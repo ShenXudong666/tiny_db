@@ -14,18 +14,26 @@ using namespace std;
 // 	else FileManager::getInstance()->table_create(fname, key, 100);
 // }
 void test_table_op() {
-	const char* fname = "table.bin";
+	//const char* fname = "table.bin";
 	DataBase* db=new DataBase();
 	
 	cout<<"创建表============"<<endl;
 	string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
 	db->createTable(sql_create);
 	
-	string sql_insert="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
-	db->insert(sql_insert);
+	string sql_insert1="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
+	db->insert(sql_insert1);
+	string sql_insert2="INSERT INTO table (id,name,age) VALUES(2,'lisi',21);";
+	db->insert(sql_insert2);
+	string sql_insert3="INSERT INTO table (id,name,age) VALUES(3,'wangwu',22);";
+	db->insert(sql_insert3);
+	string sql_insert4="INSERT INTO table (id,name,age) VALUES(4,'zhaoliu',23);";
+	db->insert(sql_insert4);
+	string sql_insert5="INSERT INTO table (id,name,age) VALUES(5,'qianshi',24);";
+	db->insert(sql_insert5);
 
 	//string sql_select1="SELECT * FROM table;";
-	string sql_select2="SELECT * FROM table WHERE id=1;";
+	string sql_select2="SELECT * FROM table WHERE name<='qianshi';";
 	vector<string> attributeNames;
 	vector<LOGIC> Logics;
 	db->select(sql_select2);
@@ -83,7 +91,19 @@ int main(){
     const char* fname = "table.bin";
 	
 	test_table_op();
-
+	
+	// DataBase* db=new DataBase();
+	// db->createTable("CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);");
+	// BPlusTree* bp = new BPlusTree(fname);
+	// for(int i=1;i<=15;i++){
+	// 	bp->Insert((void*)new int(i));
+	// 	cout<<bp->offt_leftHead<<" "<<bp->offt_rightHead<<endl;
+	// }
+	// cout<<"插入数据完成"<<endl;
+	// bp->flush_file();
+	// BPlusTree* bp1 = new BPlusTree(fname);
+	// print_add_leaf(bp1,  INT_KEY);
+	// bp1->flush_file();
 	//string a;
 	//getline(cin,a);
 	//cout<<a<<endl;

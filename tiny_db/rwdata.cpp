@@ -495,7 +495,7 @@ void FileManager::get_data(const char* filename, void* data[ATTR_MAX_NUM], attri
 		if(attr[i].key_kind==INT_KEY){
 			int* data_int = new int();
 			fread(data_int, 1, sizeof(int), file);
-			cout<<"数据读出来的值为"<<*data_int<<endl;
+			//cout<<"数据读出来的值为"<<*data_int<<endl;
 			data[i] = data_int;
 		}
 		else if(attr[i].key_kind==LL_KEY){
