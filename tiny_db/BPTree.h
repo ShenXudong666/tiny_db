@@ -417,7 +417,7 @@ public:
     // 插入数据
     bool Insert(void* value,off_t offt_data);
     // 删除数据
-    bool Delete(void* value);
+    bool Delete(void* ,bool delete_offtData);
 
     // 分裂结点
     void* Split(CNode* pNode);

@@ -496,7 +496,7 @@ bool CLeafNode::Insert(void* value,off_t offt_data)
     return true;
 }
 
-bool CLeafNode::Delete(void* value)
+bool CLeafNode::Delete(void* value,bool deleteo_offtData)
 {
     int i, j;
     bool found = false;
@@ -513,19 +513,24 @@ bool CLeafNode::Delete(void* value)
     {
         return false;
     }
-
+    if(deleteo_offtData)FileManager::getInstance()->flushBlock(this->fname, this->offt_data[i], BLOCK_FREE);
     // 后面的数据依次前移
     for (j = i; j < m_Count - 1; j++)
     {
         m_Datas[j] = m_Datas[j + 1];
     }
-
+    for(j=i;j<m_Count-1;j++){
+        this->offt_data[j]=this->offt_data[j+1];
+    }
+    // 设置最后一个数据为无效
     m_Datas[j] = Invalid(this->key_kind);
-    //将这个数据块释放
-    FileManager::getInstance()->flushBlock(this->fname, this->offt_data[j], BLOCK_FREE);
     this->offt_data[j]=INVALID;
-    m_Count--;
+    //将这个数据块释放
+    
     this->flush_file();
+    m_Count--;
+    
+    
     // 返回成功
     return true;
 
@@ -608,11 +613,11 @@ BPlusTree::BPlusTree(const std::string& fname)
     this->m_pLeafHead=NULL;
     this->m_pLeafTail=NULL;
     FileManager::getInstance()->get_BlockGraph(this->fpath, this->Block_GRAPH);
-    // cout<<"初始化位图为："<<endl;
-    // for(int i=0;i<30;i++){
-    //     cout<<this->Block_GRAPH[i]<<" ";
-    // }
-    // cout<<endl;
+    cout<<"初始化位图为："<<endl;
+    for(int i=0;i<30;i++){
+        cout<<this->Block_GRAPH[i]<<" ";
+    }
+    cout<<endl;
     if(this->Block_GRAPH[offt_root]==BLOCK_LEAF){
         this->m_Root=new CLeafNode(this->fpath, this->key_kind, this->max_key_size, this->offt_root);
 
@@ -915,7 +920,7 @@ bool BPlusTree::Delete(void* data)
     }
 
     // 删除数据，如果失败一定是没有找到，直接返回失败
-    bool success = pOldNode->Delete(data);
+    bool success = pOldNode->Delete(data,true);
     pOldNode->flush_file();
     if (false == success)
     {
@@ -989,7 +994,7 @@ bool BPlusTree::Delete(void* data)
         }
 
         pOldNode->Insert(NewData, NewDataPos);
-        pBrother->Delete(NewData);
+        pBrother->Delete(NewData,false);
         pOldNode->flush_file();
         pBrother->flush_file();
         // 修改父结点的键值

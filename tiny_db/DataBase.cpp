@@ -164,7 +164,7 @@ vector<WhereCondition> DataBase::parseWhereClause(const std::string& whereClause
         
         vector<string> parts = this->splitCondition(result[i]);
         WhereCondition wc(parts[0], parts[1], parts[2]);
-        for(int i=0;i<3;i++)cout<<parts[i]<<endl;
+        //for(int i=0;i<3;i++)cout<<parts[i]<<endl;
         conditions.push_back(wc);
         //使用>,<,=,!=,>=,<=来匹配
 
