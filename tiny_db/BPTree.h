@@ -417,7 +417,7 @@ public:
     // 插入数据
     bool Insert(void* value,off_t offt_data);
     // 删除数据
-    bool Delete(void* ,bool delete_offtData);
+    bool Delete(void* ,bool delete_offtdata);
 
     // 分裂结点
     void* Split(CNode* pNode);
@@ -520,6 +520,7 @@ public:
     // 删除指定的数据
     bool Delete(void* data);
     bool Delete_Data(vector<WhereCondition>w);
+    bool Update_Data(vector<WhereCondition>w,vector<WhereCondition>attributenames);
     // 清除树
     void ClearTree();
 

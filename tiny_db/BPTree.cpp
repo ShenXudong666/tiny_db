@@ -1718,3 +1718,24 @@ bool BPlusTree::Delete_Data(vector<WhereCondition>w){
     return this->Delete(key);
     
 }
+bool BPlusTree::Update_Data(vector<WhereCondition>w,vector<WhereCondition>attributenames){
+    void* key=str2value(w[0].value, this->key_kind);
+    cout<<"key:"<<*(int*)key<<endl;
+    off_t offt_data=this->Search(key);
+    if(offt_data==INVALID){
+        cout<<"未找到该数据，修改失败"<<endl;
+        return false;
+    }
+    void* data[ATTR_MAX_NUM];
+    this->Get_Data(data, offt_data);
+    for(int i=0;i<attributenames.size();i++){
+        for(int j=0;j<this->attr_num;j++){
+            if(_stricmp(attributenames[i].attribute.c_str(),this->attr[j].name)==0){
+                data[j]=str2value(attributenames[i].value, this->attr[j].key_kind);
+                break;
+            }
+        }
+    }
+    FileManager::getInstance()->flush_data(this->fpath, data,this->attr,this->attr_num,offt_data);
+    return true;
+}

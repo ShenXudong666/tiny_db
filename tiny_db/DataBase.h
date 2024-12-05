@@ -13,7 +13,7 @@ class DataBase {
         bool createTable(const std::string& sql);
         void insert(const std::string& sql);
         void Delete(const std::string& sql);
-        void update(char* tableName, char* set, char* condition);
+        void Update(const std::string& sql);
         void select(const std::string& sql);
         string extractTableName(const std::string& sql);
         vector<attribute> parseCreateTableStatement(const std::string& sql);
@@ -21,6 +21,8 @@ class DataBase {
         vector<WhereCondition> parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<LOGIC>&Logics);
         vector<WhereCondition> parseWhereClause(const std::string& whereClause);
         vector<WhereCondition> parseDeleteStatement(const std::string& sql);
+        vector<WhereCondition> parseUpdateStatement(const std::string& sql,vector<WhereCondition>& set_attributes);
+        vector<WhereCondition> parseSetStatement(const std::string& s);
         vector<string> splitCondition(const std::string& condition);
 
 };

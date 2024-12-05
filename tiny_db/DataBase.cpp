@@ -82,11 +82,21 @@ void DataBase::Delete(const std::string& sql){
     bp->flush_file();
     delete bp;
 }
+void DataBase::Update(const std::string& sql){
+    string fpath=this->extractTableName(sql);
+    fpath+=".bin";
+    vector<WhereCondition>setAttributes;
+    vector<WhereCondition>whereConditions=this->parseUpdateStatement(sql,setAttributes);
+    BPlusTree* bp=new BPlusTree(fpath);
+    bp->Update_Data(whereConditions, setAttributes);
+    bp->flush_file();
+}
 string DataBase::extractTableName(const std::string& sql) {
     
     regex patternCreate(R"(\bCREATE TABLE \b)", std::regex_constants::icase);
     regex patternSelect(R"(\bFROM\s+(\w+))", std::regex_constants::icase);
     regex patternInsert(R"(\bINSERT INTO\s+(\w+))", std::regex_constants::icase);
+    regex patternUpdate(R"(\Update\s+(\w+))", std::regex_constants::icase);
     smatch matches;
 
     // 检查是否是创建表语句
@@ -102,6 +112,9 @@ string DataBase::extractTableName(const std::string& sql) {
         return matches[1];
     }
     else if (regex_search(sql, matches, patternInsert) && matches.size() > 1) {
+        return matches[1];
+    }
+    else if (regex_search(sql, matches, patternUpdate) && matches.size() > 1) {
         return matches[1];
     }
     return "";
@@ -132,7 +145,7 @@ vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vec
     if(word==""){
         return vector<WhereCondition>();
     }
-    if(word!="WHERE"){
+    if(word!="WHERE"&&word!="where"){
         //cout<<"语法错误"<<endl;
         return vector<WhereCondition>();
     }
@@ -170,6 +183,21 @@ vector<WhereCondition> DataBase::parseWhereClause(const std::string& whereClause
 
     }
     return conditions;
+}
+vector<WhereCondition> DataBase::parseSetStatement(const std::string& s){
+
+    vector<WhereCondition>w;
+    vector<string>result;
+    string word;
+
+    istringstream iss(s);
+    while(getline(iss,word,',')){
+        vector<string> parts = this->splitCondition(word);
+        WhereCondition wc(parts[0], parts[1], parts[2]);
+        w.push_back(wc);
+    }
+
+    return w;
 }
 vector<string> DataBase::splitCondition(const std::string& condition){
     vector<string> parts(3); // 初始化为3个元素，分别存储属性名、比较符号和值
@@ -326,6 +354,29 @@ vector<WhereCondition> DataBase::parseDeleteStatement(const std::string& sql){
     
     istringstream stream(sql);
     for(int i=0;i<4;i++)getline(stream, word, ' ');
+
+    getline(stream,wherePart);
+    result=parseWhereClause(wherePart);
+    return result;
+}
+vector<WhereCondition> DataBase::parseUpdateStatement(const std::string& sql,vector<WhereCondition>& set_attributes){
+    vector<WhereCondition>result;
+    string word;
+    string wherePart;
+    string SetPart;
+
+    istringstream stream(sql);
+    for(int i=0;i<3;i++)getline(stream, word, ' ');
+
+    getline(stream,SetPart,' ');
+    set_attributes=this->parseSetStatement(SetPart);
+    
+
+    getline(stream,word,' ');
+    if(word!="WHERE"&&word!="where"){
+        cout<<"语法错误"<<endl;
+        return vector<WhereCondition>();
+    }
 
     getline(stream,wherePart);
     result=parseWhereClause(wherePart);
