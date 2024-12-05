@@ -3,6 +3,7 @@
 #include <cstring>
 #include <sys/types.h>
 #include <string.h>
+#include <type_traits>
  FileManager* FileManager::getInstance() {
 	static FileManager* m = new FileManager();
 	
@@ -258,7 +259,8 @@ void FileManager::get_BlockGraph(const char* fname, char* freeBlock)
 	}
 
 	if (fread(freeBlock, sizeof(char), NUM_ALL_BLOCK, file) != NUM_ALL_BLOCK) {
-		perror("Failed to read data");
+		//perror("Failed to read data");
+		//cout<<"在这里"<<endl;
 		fclose(file);
 		return;
 	}
@@ -378,11 +380,11 @@ bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr
 		//cout << "File deleted successfully." << endl;
 	}
 	for(int i=0;i<6;i++)newBlock(path);
-	fclose(file);
+	//fclose(file);
 	table t;
-	memcpy(t.fpath, path, sizeof(path)+1);
-	t.fpath[sizeof(path)+1] = '\0';
-	for(int i=0;i<ATTR_MAX_NUM;i++)t.attr[i]=attr[i];
+	// memcpy(t.fpath, path, sizeof(path)+1);
+	// t.fpath[sizeof(path)+1] = '\0';
+	strcpy(t.fpath, path);
 	t.key_kind = key_type;
 	t.m_Depth = 1;
 	t.offt_root = 2;
@@ -410,6 +412,9 @@ bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr
 off_t FileManager::newBlock(const char* filename) {
 
 	FILE* file = fopen(filename, "ab");
+	if(!file){
+		file = fopen(filename, "wb");
+	}
 	char zero[DB_BLOCK_SIZE] = { 0 };
 	fwrite(zero, 1, sizeof(zero), file);
 	off_t now=ftell(file)/DB_BLOCK_SIZE;

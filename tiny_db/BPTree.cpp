@@ -613,11 +613,11 @@ BPlusTree::BPlusTree(const std::string& fname)
     this->m_pLeafHead=NULL;
     this->m_pLeafTail=NULL;
     FileManager::getInstance()->get_BlockGraph(this->fpath, this->Block_GRAPH);
-    cout<<"初始化位图为："<<endl;
-    for(int i=0;i<30;i++){
-        cout<<this->Block_GRAPH[i]<<" ";
-    }
-    cout<<endl;
+    // cout<<"初始化位图为："<<endl;
+    // for(int i=0;i<30;i++){
+    //     cout<<this->Block_GRAPH[i]<<" ";
+    // }
+    // cout<<endl;
     if(this->Block_GRAPH[offt_root]==BLOCK_LEAF){
         this->m_Root=new CLeafNode(this->fpath, this->key_kind, this->max_key_size, this->offt_root);
 

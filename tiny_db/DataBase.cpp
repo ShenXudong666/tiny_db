@@ -11,9 +11,43 @@
 DataBase::DataBase(){
 
 }
+void DataBase::run(){
+    while(true){
+        string sql;
+        cout<<"shenxudong's sql>> ";
+        getline(cin,sql);
+        if(sql=="exit"||sql=="quit"||sql=="\\q"){
+            break;
+        }
+        //读取第一个空格前的词，判断是create还是insert还是select
+        int pos=sql.find_first_of(" ");
+        string cmd=sql.substr(0,pos);
+        if(cmd=="create"||cmd=="CREATE"){
+            this->createTable(sql);
+        }
+        else if(cmd=="insert"||cmd=="INSERT"){
+            this->insert(sql);
+        }
+        else if(cmd=="select"||cmd=="SELECT"){
+            this->select(sql);
+        }
+        else if(cmd=="delete"||cmd=="Delete"){
+            this->Delete(sql);
+        }
+        else if(cmd=="update"||cmd=="UPDATE"){
+            this->Update(sql);
+        }
+    }
+}
 bool DataBase::createTable(const std::string& sql){
     string tablename=this->extractTableName(sql);
     tablename+=".bin";
+    //检查文件是否存在
+    // if(FILE *file=fopen(tablename.c_str(),"r")){
+    //     fclose(file);
+    //     cout<<"表已经存在，创建表失败"<<endl;
+    //     return false;
+    // }
     vector<attribute> ture_attr=this->parseCreateTableStatement(sql);
     if(ture_attr.size()==0){
         cout<<"创建表失败"<<endl;
@@ -40,14 +74,16 @@ bool DataBase::createTable(const std::string& sql){
 void DataBase::insert(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
-    //尝试解析sql语句，得到一些values
+    //表不存在则插入失败
+    FILE *file=fopen(fpath.c_str(),"r");
+    if(!file){
+        cout<<"表不存在，插入失败"<<endl;
+        return;
+    }
+
+    
     vector<vector<string>>values=this->parseInsertStatement(sql);
-    // for(int i=0;i<values.size();i++){
-	// 	for(int j=0;j<values[i].size();j++){
-	// 		cout<<values[i][j]<<" ";
-	// 	}
-	// 	cout<<endl;
-	// }
+
     BPlusTree* bp=new BPlusTree(fpath);    // void* data[ATTR_MAX_NUM];
 
     bp->Insert_Data(values);
@@ -58,6 +94,11 @@ void DataBase::insert(const std::string& sql){
 void DataBase::select(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
+    FILE *file=fopen(fpath.c_str(),"r");
+    if(!file){
+        cout<<"表不存在，插入失败"<<endl;
+        return;
+    }
     vector<string>attributeNames;
     vector<LOGIC>Logics;
     vector<WhereCondition>whereConditions=this->parseSelectStatement(sql,attributeNames,Logics);
@@ -71,6 +112,11 @@ void DataBase::select(const std::string& sql){
 void DataBase::Delete(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
+    FILE *file=fopen(fpath.c_str(),"r");
+    if(!file){
+        cout<<"表不存在，插入失败"<<endl;
+        return;
+    }
     vector<WhereCondition>whereConditions=this->parseDeleteStatement(sql);
     BPlusTree* bp=new BPlusTree(fpath);
     if(bp->Delete_Data(whereConditions)){
@@ -85,6 +131,11 @@ void DataBase::Delete(const std::string& sql){
 void DataBase::Update(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
+    FILE *file=fopen(fpath.c_str(),"r");
+    if(!file){
+        cout<<"表不存在，插入失败"<<endl;
+        return;
+    }
     vector<WhereCondition>setAttributes;
     vector<WhereCondition>whereConditions=this->parseUpdateStatement(sql,setAttributes);
     BPlusTree* bp=new BPlusTree(fpath);

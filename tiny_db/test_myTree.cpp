@@ -1,10 +1,8 @@
 #include "BPTree.h"
 #include"rwdata.h"
 #include "DataBase.h"
-#include <cstring>
 #include<iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
 // void xiebiao(KEY_KIND key) {
@@ -69,6 +67,17 @@ void test_table_op() {
 	// cout<<"查询数据============"<<endl;
 	// db->select((char*)"查询一条数据");
 }
+void test2(){
+	DataBase* db=new DataBase();
+	db->run();
+	// string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
+	// db->createTable(sql_create);
+	// string sql_insert1="INSERT INTO student (id,name,age) VALUES(1,'zhangsan',20);";
+	// db->insert(sql_insert1);
+	// string sql_select1="SELECT * FROM student;";
+	// db->select(sql_select1);
+
+}
 char* getString(int index){
 	char* s=new char[1024];
 	
@@ -101,7 +110,8 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 int main(){
     const char* fname = "table.bin";
 	
-	test_table_op();
+	//test_table_op();
+	test2();
 	
 	// DataBase* db=new DataBase();
 	// db->createTable("CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);");
