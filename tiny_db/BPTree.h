@@ -519,7 +519,7 @@ public:
     bool SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,void* data[ATTR_MAX_NUM]);
     // 删除指定的数据
     bool Delete(void* data);
-
+    bool Delete_Data(vector<WhereCondition>w);
     // 清除树
     void ClearTree();
 

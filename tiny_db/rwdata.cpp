@@ -85,7 +85,6 @@ table FileManager::getTable(const char* filename, off_t offt) {
 	table t;
 	fread(&t, 1, sizeof(table), file);
 	fclose(file);
-	cout<<"读取表成功"<<endl;
 	return t;
 
 }
@@ -99,7 +98,6 @@ bool FileManager::flushTable(table t, const char* filename, off_t offt) {
 	}
 	fwrite(&t, 1, sizeof(table), file);
 	fclose(file);
-	cout<<"表更新成功"<<endl;
 	return true;
 }
 void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
@@ -132,7 +130,6 @@ void FileManager::flush_value(void* value[MAXNUM_DATA], Index index)
 		for (int i = 0; i < MAXNUM_DATA; i++) {
 			char* temp;
 			temp = (char*)value[i];
-			cout << "写入数据前为" << temp << endl;
 			int t=fwrite(temp, sizeof(char), index.max_size, file);
 			//delete temp;
 		}
@@ -182,7 +179,6 @@ void FileManager::get_key(void* key[MAXNUM_KEY], Index index)
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
 			char temp[1024] = { 0 };
 			if (fread(temp, sizeof(char), index.max_size, file) != index.max_size) {
-				//cout << *(long long*)value[i] << endl;
 				perror("Failed to read data");
 				fclose(file);
 				return;
@@ -216,7 +212,6 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 				return;
 			}
 			value[i] = (void*)temp;
-			//cout<<"读取后数据为"<<*(int*)value[i]<<endl;
 		}
 	}
 	else if (index.key_kind == LL_KEY) {
@@ -238,7 +233,6 @@ void FileManager::get_value(void* value[MAXNUM_DATA], Index index)
 		for (int i = 0; i < MAXNUM_DATA; ++i) {
 			char* temp=new char[1024];
 			if (fread(temp, sizeof(char), index.max_size, file) != index.max_size) {
-				//cout << *(long long*)value[i] << endl;
 				perror("Failed to read data");
 				fclose(file);
 				return;
@@ -345,7 +339,6 @@ void FileManager::flush_key(void* key[MAXNUM_KEY], Index index)
 		for (int i = 0; i < MAXNUM_KEY; i++) {
 			
 			char* temp = (char*)key[i];
-			cout << "写入数据前为" << temp << endl;
 			int t = fwrite(temp, sizeof(char), index.max_size, file);
 		}
 
@@ -382,7 +375,7 @@ bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr
 	if (file) {
 		fclose(file);
 		remove(path); // 删除文件
-		cout << "File deleted successfully." << endl;
+		//cout << "File deleted successfully." << endl;
 	}
 	for(int i=0;i<6;i++)newBlock(path);
 	fclose(file);
@@ -410,8 +403,8 @@ bool FileManager::table_create(const char* path,  size_t attr_num,attribute attr
 	Index index(path,LOC_GRAPH,NUM_ALL_BLOCK,1);
 	flush_BlockGraph(index, block_graph);
 	//=======================空闲表写入成功======================
-	cout<<"空闲表写入成功"<<endl;
-	cout<<"表创建成功"<<endl;
+	//cout<<"空闲表写入成功"<<endl;
+	//cout<<"表创建成功"<<endl;
 	return true;
 }
 off_t FileManager::newBlock(const char* filename) {
@@ -510,4 +503,9 @@ void FileManager::get_data(const char* filename, void* data[ATTR_MAX_NUM], attri
 		}
 	}
 	fclose(file);
+}
+bool FileManager::deleteFile(const char* filename){
+	FILE* file = fopen(filename, "w");
+	fclose(file);
+	return true;
 }

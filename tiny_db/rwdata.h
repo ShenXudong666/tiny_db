@@ -148,6 +148,7 @@ struct WhereCondition {
 		else if (val[0] == '\'' && val[val.length() - 1] == '\'') {
 			value = val.substr(1, val.length() - 2);
 		}
+		else value= val;
 	};
 };
 class FileManager {
@@ -173,6 +174,7 @@ public:
 	off_t getFreeBlock(const char* filename,char type_block);
 	bool flushBlock(const char* filename, off_t offt, char type);
 	off_t newBlock(const char* filename);
+	bool deleteFile(const char* filename);
 	//获取文件总共有多少块
 	size_t getFileSize(const char* fileName);
 	bool flush_data(const char* filename,void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM],int attrnum,off_t offt);

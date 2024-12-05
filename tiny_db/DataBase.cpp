@@ -42,12 +42,12 @@ void DataBase::insert(const std::string& sql){
     fpath+=".bin";
     //尝试解析sql语句，得到一些values
     vector<vector<string>>values=this->parseInsertStatement(sql);
-    for(int i=0;i<values.size();i++){
-		for(int j=0;j<values[i].size();j++){
-			cout<<values[i][j]<<" ";
-		}
-		cout<<endl;
-	}
+    // for(int i=0;i<values.size();i++){
+	// 	for(int j=0;j<values[i].size();j++){
+	// 		cout<<values[i][j]<<" ";
+	// 	}
+	// 	cout<<endl;
+	// }
     BPlusTree* bp=new BPlusTree(fpath);    // void* data[ATTR_MAX_NUM];
 
     bp->Insert_Data(values);
@@ -68,12 +68,17 @@ void DataBase::select(const std::string& sql){
     delete bp;
 
 }
-void DataBase::Delete(char* sql){
-    const char* fpath="table.bin";
+void DataBase::Delete(const std::string& sql){
+    string fpath=this->extractTableName(sql);
+    fpath+=".bin";
+    vector<WhereCondition>whereConditions=this->parseDeleteStatement(sql);
     BPlusTree* bp=new BPlusTree(fpath);
-    void* key;
-    key=new int(1);
-    bp->Delete(key);
+    if(bp->Delete_Data(whereConditions)){
+        cout<<"删除成功"<<endl;
+    }
+    else{
+        cout<<"未找到符合条件的数据，删除失败"<<endl;
+    }
     bp->flush_file();
     delete bp;
 }
@@ -104,13 +109,10 @@ string DataBase::extractTableName(const std::string& sql) {
 vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<LOGIC>&Logics){
     istringstream stream(sql);
     string word;
-    for(int i=0;i<2;i++)
-    {
-        getline(stream, word, ' ');
-        cout<<word<<endl;
-    }
+    getline(stream,word,' ');
+    getline(stream,word,' ');
     string attributePart=word;
-    if(attributePart=="*"){
+    if(attributePart[0]=='*'){
         attributeNames.push_back("*");
     }
     else{
@@ -124,15 +126,14 @@ vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vec
         getline(stream, word, ' ');
 
     if(!getline(stream,word,' ')){
-        cout<<"无条件"<<endl;
+        //cout<<"无条件"<<endl;
         return vector<WhereCondition>();
     }
-    cout<<word<<endl;
     if(word==""){
         return vector<WhereCondition>();
     }
     if(word!="WHERE"){
-        cout<<"语法错误"<<endl;
+        //cout<<"语法错误"<<endl;
         return vector<WhereCondition>();
     }
     //把where读取完
@@ -317,5 +318,16 @@ vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
 
     return rows;
 
+}
+vector<WhereCondition> DataBase::parseDeleteStatement(const std::string& sql){
+    vector<WhereCondition>result;
+    string word;
+    string wherePart;
+    
+    istringstream stream(sql);
+    for(int i=0;i<4;i++)getline(stream, word, ' ');
 
+    getline(stream,wherePart);
+    result=parseWhereClause(wherePart);
+    return result;
 }

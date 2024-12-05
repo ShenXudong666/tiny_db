@@ -56,7 +56,6 @@ CNode* CNode::GetBrother(int& flag)
     }
 
     CNode* pBrother = NULL;
-    cout<<*(int*)pFather->GetElement(1)<<" "<<*(int*)pFather->GetElement(2)<<endl;
     for (int i = 1; i <= pFather->GetCount() + 1; i++)   //GetCount()表示获取数据或关键字数，要比指针数小1。
     {
         // 找到本结点的位置
@@ -609,11 +608,11 @@ BPlusTree::BPlusTree(const std::string& fname)
     this->m_pLeafHead=NULL;
     this->m_pLeafTail=NULL;
     FileManager::getInstance()->get_BlockGraph(this->fpath, this->Block_GRAPH);
-    cout<<"初始化位图为："<<endl;
-    for(int i=0;i<30;i++){
-        cout<<this->Block_GRAPH[i]<<" ";
-    }
-    cout<<endl;
+    // cout<<"初始化位图为："<<endl;
+    // for(int i=0;i<30;i++){
+    //     cout<<this->Block_GRAPH[i]<<" ";
+    // }
+    // cout<<endl;
     if(this->Block_GRAPH[offt_root]==BLOCK_LEAF){
         this->m_Root=new CLeafNode(this->fpath, this->key_kind, this->max_key_size, this->offt_root);
 
@@ -776,7 +775,6 @@ off_t BPlusTree::Insert(void* data)  //
     off_t offt_key = INVALID;
     key = pOldNode->Split(pNewNode);
 
-    cout<<"split leaf node "<<(char*)key<<endl;
     // 在双向链表中插入结点
     // CLeafNode* pOldNext = pOldNode->m_pNextNode;
     // pOldNode->m_pNextNode = pNewNode;
@@ -877,7 +875,7 @@ bool BPlusTree::Insert_Data(vector<vector<string>> value){
        }
     
     }
-    cout<<*(int*)data[key_index2]<<endl;
+
     //assign(key, data[key_index2], this->attr[key_index2].key_kind);
     off_t offt_data = Insert(data[key_index2]);
     if(offt_data == INVALID){
@@ -1037,7 +1035,6 @@ bool BPlusTree::Delete(void* data)
     {
         pBrother->Combine(pOldNode);
         NewKey = pOldNode->GetElement(1);
-        cout<<"删除过程中，删除的中间结点键为"<<endl;
         print_key(NewKey, this->key_kind);
         CLeafNode* pOldNext = pOldNode->GetNextNode();
         pBrother->SetPrevNode(pOldNext);
@@ -1387,8 +1384,6 @@ bool BPlusTree::InsertInternalNode(CInternalNode* pNode, void* key, CNode* pRigh
     void* NewKey = INVALID;
     // 分裂本结点
     NewKey = pNode->Split(pBrother, key);
-    cout<<"中间节点的分裂键为："<<endl;
-    cout<<(char*)NewKey<<endl;
     //print_key(NewKey, this->key_kind);
     if (pNode->GetCount() < pBrother->GetCount())
     {
@@ -1556,7 +1551,6 @@ bool BPlusTree::DeleteInternalNode(CInternalNode* pNode, void* key)
     {
         pNode->Combine(pBrother);
         NewKey = pBrother->GetElement(1);
-        cout<<"NewKey:"<<*(int*)NewKey<<endl;
         pNode->flush_file();
         //pBrother->FreeBlock();
         delete pBrother;
@@ -1708,4 +1702,14 @@ bool BPlusTree::SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,vo
         }
     }
     return flag1;
+}
+bool BPlusTree::Delete_Data(vector<WhereCondition>w){
+    if(w.size()==0){
+        //删除整棵树
+        FileManager::getInstance()->deleteFile(this->fpath);
+        return true;
+    }
+    void* key=str2value(w[0].value, this->key_kind);
+    return this->Delete(key);
+    
 }

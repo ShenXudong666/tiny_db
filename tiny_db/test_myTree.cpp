@@ -17,26 +17,30 @@ void test_table_op() {
 	//const char* fname = "table.bin";
 	DataBase* db=new DataBase();
 	
-	cout<<"创建表============"<<endl;
-	string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
-	db->createTable(sql_create);
+	// cout<<"创建表============"<<endl;
+	// string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
+	// db->createTable(sql_create);
 	
-	string sql_insert1="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
-	db->insert(sql_insert1);
-	string sql_insert2="INSERT INTO table (id,name,age) VALUES(2,'lisi',21);";
-	db->insert(sql_insert2);
-	string sql_insert3="INSERT INTO table (id,name,age) VALUES(3,'wangwu',22);";
-	db->insert(sql_insert3);
-	string sql_insert4="INSERT INTO table (id,name,age) VALUES(4,'zhaoliu',23);";
-	db->insert(sql_insert4);
-	string sql_insert5="INSERT INTO table (id,name,age) VALUES(5,'qianshi',24);";
-	db->insert(sql_insert5);
+	// string sql_insert1="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
+	// db->insert(sql_insert1);
+	// string sql_insert2="INSERT INTO table (id,name,age) VALUES(2,'lisi',21);";
+	// db->insert(sql_insert2);
+	// string sql_insert3="INSERT INTO table (id,name,age) VALUES(3,'wangwu',22);";
+	// db->insert(sql_insert3);
+	// string sql_insert4="INSERT INTO table (id,name,age) VALUES(4,'zhaoliu',23);";
+	// db->insert(sql_insert4);
+	// string sql_insert5="INSERT INTO table (id,name,age) VALUES(5,'qianshi',24);";
+	// db->insert(sql_insert5);
 
 	//string sql_select1="SELECT * FROM table;";
+	//db->select(sql_select1);
 	string sql_select2="SELECT * FROM table WHERE name<='qianshi';";
-	vector<string> attributeNames;
-	vector<LOGIC> Logics;
+	// vector<string> attributeNames;
+	// vector<LOGIC> Logics;
 	db->select(sql_select2);
+	// string sql_delete="DELETE FROM table WHERE id=1;";
+	// db->Delete(sql_delete);
+	// db->select(sql_select1);
 	
 
 
