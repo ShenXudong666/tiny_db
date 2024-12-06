@@ -53,7 +53,21 @@ enum NODE_TYPE
 	NODE_TYPE_LEAF = 3,    // 叶子结点
 };
 
-
+struct database{
+	char user_name[100];
+	char password[100];
+	char tables[100][20];
+	int table_num;
+	char db_name[100];
+	database() {
+	}
+	database(const std::string& user_name, const std::string& password, const std::string& db_name) {
+		strcpy(this->user_name, user_name.c_str());
+		strcpy(this->password, password.c_str());
+		strcpy(this->db_name, db_name.c_str());
+		table_num = 0;
+	}
+};
 
 struct attribute {
 	char name[MAXSIZE_ATTR_NAME];
@@ -181,6 +195,9 @@ public:
 	size_t getFileSize(const char* fileName);
 	bool flush_data(const char* filename,void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM],int attrnum,off_t offt);
 	void get_data(const char* filename, void* data[ATTR_MAX_NUM], attribute attr[ATTR_MAX_NUM], int attrnum, off_t offt);
+
+	database getDatabase(const std::string& fname);
+	bool flushDatabase(const std::string& fname, database db);
 	protected:
 	static FileManager* object;
 	

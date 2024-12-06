@@ -16,6 +16,8 @@ class DataBase {
         void Update(const std::string& sql);
         void select(const std::string& sql);
         void Drop(const std::string& sql);
+        void init();
+        void printTableNames();
         string extractTableName(const std::string& sql);
         vector<attribute> parseCreateTableStatement(const std::string& sql);
         vector<vector<string>> parseInsertStatement(const std::string& sql);
@@ -25,5 +27,7 @@ class DataBase {
         vector<WhereCondition> parseUpdateStatement(const std::string& sql,vector<WhereCondition>& set_attributes);
         vector<WhereCondition> parseSetStatement(const std::string& s);
         vector<string> splitCondition(const std::string& condition);
-
+        database db;
+    private:
+        
 };

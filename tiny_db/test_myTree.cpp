@@ -5,12 +5,6 @@
 #include <string>
 
 using namespace std;
-// void xiebiao(KEY_KIND key) {
-// 	const char* fname = "table.bin";
-// 	if(key==INT_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(int));
-// 	else if(key==LL_KEY)FileManager::getInstance()->table_create(fname, key, sizeof(long long));
-// 	else FileManager::getInstance()->table_create(fname, key, 100);
-// }
 void test_table_op() {
 	//const char* fname = "table.bin";
 	DataBase* db=new DataBase();
@@ -68,14 +62,24 @@ void test_table_op() {
 	// db->select((char*)"查询一条数据");
 }
 void test2(){
-	DataBase* db=new DataBase();
-	//db->run();
+	DataBase* database=new DataBase();
+	database->init();
 	string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
-	db->createTable(sql_create);
-	string sql_insert1="INSERT INTO student (id,name,age) VALUES(1,'zhangsan',20),(2,'lisi',21),(3,'wangwu',22);";
-	db->insert(sql_insert1);
-	string sql_select1="SELECT * FROM student;";
-	db->select(sql_select1);
+	database->createTable(sql_create);
+	database->printTableNames();
+	string sql_create2="CREATE TABLE teacher(t_id INT PRIMARY KEY,name varchar(100),age INT);";
+	database->createTable(sql_create2);
+	string sql_drop="DROP TABLE student;";
+	database->Drop(sql_drop);
+	database->printTableNames();
+	
+	
+	// string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
+	// db->createTable(sql_create);
+	// string sql_insert1="INSERT INTO student (id,name,age) VALUES(1,'zhangsan',20),(2,'lisi',21),(3,'wangwu',22);";
+	// db->insert(sql_insert1);
+	// string sql_select1="SELECT * FROM student;";
+	// db->select(sql_select1);
 	// string sql_create2="CREATE TABLE teacher(id INT PRIMARY KEY,name varchar(100),age INT);";
 	// db->createTable(sql_create);
 

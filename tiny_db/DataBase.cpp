@@ -2,6 +2,7 @@
 #include "BPTree.h"
 #include "rwdata.h"
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <ostream>
 #include <regex>
@@ -13,9 +14,10 @@ DataBase::DataBase(){
 
 }
 void DataBase::run(){
+    this->init();
     while(true){
         string sql;
-        cout<<"shenxudong's sql>> ";
+        cout<<this->db.db_name<<"->";
         getline(cin,sql);
         if(sql=="exit"||sql=="quit"||sql=="\\q"){
             break;
@@ -41,10 +43,16 @@ void DataBase::run(){
         else if(cmd=="drop"||cmd=="DROP"){
             this->Drop(sql);
         }
+        else if(cmd=="show"||cmd=="SHOW"){
+            this->printTableNames();
+        }
         else{
-            cout<<"无效的命令"<<endl;
+            cout<<endl;
         }
     }
+    database db;
+
+    FileManager::getInstance()->flushDatabase("database.bin",this->db);
 }
 bool DataBase::createTable(const std::string& sql){
     string tablename=this->extractTableName(sql);
@@ -74,8 +82,17 @@ bool DataBase::createTable(const std::string& sql){
     //     cout<<"table already exist"<<endl;
     //     return false;
     // }
-      
+    
     FileManager::getInstance()->table_create(tablename.c_str(), attr_num, attr);
+    tablename.erase(tablename.size() - 4);
+    for(int i=0;i<this->db.table_num;i++){
+        if(strcmp(db.tables[i],tablename.c_str())==0){
+            return true;
+        }
+    }
+
+    strcpy(db.tables[db.table_num], tablename.c_str());
+    db.table_num++;
     return true;
 }
 void DataBase::insert(const std::string& sql){
@@ -160,6 +177,18 @@ void DataBase::Drop(const std::string& sql){
     fclose(file);
     remove(fpath.c_str());
     cout<<"删除成功"<<endl;
+    fpath.erase(fpath.size() - 4);
+    int i=0;
+    for(i;i<db.table_num;i++){
+        if(strcmp(this->db.tables[i],fpath.c_str())==0){
+            strcpy(this->db.tables[i],"");
+            break;
+        }
+    }
+    for(int j=i;j<db.table_num-1;j++){
+        strcpy(this->db.tables[j],this->db.tables[j+1]);
+    }
+    db.table_num--;
 }
 string DataBase::extractTableName(const std::string& sql) {
     
@@ -471,4 +500,62 @@ vector<WhereCondition> DataBase::parseUpdateStatement(const std::string& sql,vec
     getline(stream,wherePart);
     result=parseWhereClause(wherePart);
     return result;
+}
+
+void DataBase::init(){
+    size_t exist=FileManager::getInstance()->getFileSize("database.bin");
+    if(exist==-1){
+        
+        this->db.table_num=0;
+        string user_name;
+        string password;
+        cout<<"请输入用户名"<<endl;
+        cin>>user_name;
+        cout<<"请输入密码"<<endl;
+        cin>>password;
+        cout<<"请输入数据库名"<<endl;
+        string db_name;
+        cin>>db_name;
+        strcpy(db.user_name,user_name.c_str());
+        strcpy(db.password,password.c_str());
+        strcpy(db.db_name,db_name.c_str());
+        FileManager::getInstance()->flushDatabase("database.bin",db);
+        return;
+    }
+    
+    this->db=FileManager::getInstance()->getDatabase("database.bin");
+    
+    // while(true){
+    //     string usr_name;
+    //     string password;
+    //     cout<<"请输入用户名"<<endl;
+    //     cin>>usr_name;
+    //     cout<<"请输入密码"<<endl;
+    //     cin>>password;
+    //     if(strcmp(this->db.user_name,usr_name.c_str())==0&&strcmp(this->db.password,password.c_str())==0){
+    //         cout<<"登录成功!!!欧耶"<<endl;
+    //         break;
+    //     }
+    //     else{
+    //         cout<<"用户名或密码错误"<<endl;
+    //     }
+    // }
+}
+void DataBase::printTableNames(){
+    string tail=".bin";
+    vector<string>v;
+    v.push_back("*");
+    if(db.table_num==0){
+        cout<<"当前数据库为空"<<endl;
+        return;
+    }
+    for(int i=0;i<this->db.table_num;i++){
+        
+        string t(this->db.tables[i]);
+        cout<<t<<":"<<endl;
+        t+=".bin";
+        BPlusTree* bp=new BPlusTree(t);
+        bp->Print_Header(v);
+        delete bp;
+    }
 }

@@ -1,4 +1,5 @@
 #include "rwdata.h"
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <sys/types.h>
@@ -436,8 +437,10 @@ size_t FileManager::getFileSize(const char* fileName)
 	struct stat statbuf;
 
 	// 提供文件名字符串，获得文件属性结构体
-	stat(fileName, &statbuf);
+	size_t ans=stat(fileName, &statbuf);
 
+	if (ans == -1) return -1;
+	
 	// 获取文件大小
 	size_t filesize = statbuf.st_size;
 
@@ -510,6 +513,20 @@ void FileManager::get_data(const char* filename, void* data[ATTR_MAX_NUM], attri
 }
 bool FileManager::deleteFile(const char* filename){
 	FILE* file = fopen(filename, "w");
+	fclose(file);
+	return true;
+}
+
+database FileManager::getDatabase(const std::string& fname){
+	FILE* file = fopen(fname.c_str(), "rb");
+	database db;
+	fread(&db, 1, sizeof(database), file);
+	fclose(file);
+	return db;
+}
+bool FileManager::flushDatabase(const std::string& fname, database db){
+	FILE* file = fopen(fname.c_str(), "wb");
+	fwrite(&db, 1, sizeof(database), file);
 	fclose(file);
 	return true;
 }
