@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstring>
 #include <ostream>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <sys/types.h>
@@ -36,6 +37,12 @@ void DataBase::run(){
         }
         else if(cmd=="update"||cmd=="UPDATE"){
             this->Update(sql);
+        }
+        else if(cmd=="drop"||cmd=="DROP"){
+            this->Drop(sql);
+        }
+        else{
+            cout<<"无效的命令"<<endl;
         }
     }
 }
@@ -142,12 +149,25 @@ void DataBase::Update(const std::string& sql){
     bp->Update_Data(whereConditions, setAttributes);
     bp->flush_file();
 }
+void DataBase::Drop(const std::string& sql){
+    string fpath=this->extractTableName(sql);
+    fpath+=".bin";
+    FILE *file=fopen(fpath.c_str(),"r");
+    if(!file){
+        cout<<"表不存在，删除失败"<<endl;
+        return;
+    }
+    fclose(file);
+    remove(fpath.c_str());
+    cout<<"删除成功"<<endl;
+}
 string DataBase::extractTableName(const std::string& sql) {
     
     regex patternCreate(R"(\bCREATE TABLE \b)", std::regex_constants::icase);
     regex patternSelect(R"(\bFROM\s+(\w+))", std::regex_constants::icase);
     regex patternInsert(R"(\bINSERT INTO\s+(\w+))", std::regex_constants::icase);
     regex patternUpdate(R"(\Update\s+(\w+))", std::regex_constants::icase);
+    regex patternDrop(R"(\bDROP TABLE\s+(\w+))", std::regex_constants::icase);
     smatch matches;
 
     // 检查是否是创建表语句
@@ -158,16 +178,21 @@ string DataBase::extractTableName(const std::string& sql) {
             return sql.substr(pos, end - pos);
         }
     }
+    else if (regex_search(sql, matches, patternDrop) && matches.size() > 1) {
+        return matches[1];
+    }
     // 检查是否是查询语句，并提取表名
     else if (regex_search(sql, matches, patternSelect) && matches.size() > 1) {
         return matches[1];
     }
+  
     else if (regex_search(sql, matches, patternInsert) && matches.size() > 1) {
         return matches[1];
     }
     else if (regex_search(sql, matches, patternUpdate) && matches.size() > 1) {
         return matches[1];
     }
+  
     return "";
 }
 vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<LOGIC>&Logics){
@@ -283,8 +308,8 @@ vector<string> DataBase::splitCondition(const std::string& condition){
 vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
     vector<attribute> attr_arry;
     string columnsPart;
-    string pattern = "CREATE TABLE .*?\\((.*)\\).*";
-    regex regexPattern(pattern);
+    string pattern = "create table .*?\\((.*)\\).*"; // 修改这里
+    regex regexPattern(pattern, std::regex_constants::icase);
     smatch match;
 
     if (regex_search(sql, match, regexPattern)) {
@@ -362,6 +387,19 @@ vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
             columns.push_back(columnName);
         }
     }
+    else if(word[1]=='('){
+        getline(stream, word, ' ');
+        std::string columnsPart = word.substr(1, word.size() - 2); // 去掉括号
+        std::istringstream columnsStream(columnsPart);
+        std::string columnName;
+        while (std::getline(columnsStream, columnName, ',')) {
+            columns.push_back(columnName);
+        }
+    }
+    else{
+        cout<<"语法格式错误"<<endl;
+        return vector<vector<string>>();
+    }
     getline(stream, word, ' '); // 读取 "VALUES"
     getline(stream, word, ' '); // 读取 "VALUES"
     getline(stream, word, '('); // 读取 "("
@@ -369,6 +407,7 @@ vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
 
     size_t pos1, pos2;
     string valueRow;
+    rows.push_back(columns);
     while ((pos1 = valuesPart.find("(")) != std::string::npos) {
         pos2 = valuesPart.find(")", pos1);
         valueRow = valuesPart.substr(pos1 + 1, pos2 - pos1 - 1);
@@ -378,7 +417,7 @@ vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
         std::string value;
         std::vector<string> row;
         string column;
-        rows.push_back(columns);
+        
         for (int i = 0; i < columns.size(); ++i) {
             std::getline(valueStream, value, ',');
             column = value;

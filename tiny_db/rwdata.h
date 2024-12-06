@@ -53,6 +53,8 @@ enum NODE_TYPE
 	NODE_TYPE_LEAF = 3,    // 叶子结点
 };
 
+
+
 struct attribute {
 	char name[MAXSIZE_ATTR_NAME];
 	KEY_KIND key_kind;

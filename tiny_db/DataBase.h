@@ -15,6 +15,7 @@ class DataBase {
         void Delete(const std::string& sql);
         void Update(const std::string& sql);
         void select(const std::string& sql);
+        void Drop(const std::string& sql);
         string extractTableName(const std::string& sql);
         vector<attribute> parseCreateTableStatement(const std::string& sql);
         vector<vector<string>> parseInsertStatement(const std::string& sql);

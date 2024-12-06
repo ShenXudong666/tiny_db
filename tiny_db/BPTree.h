@@ -144,7 +144,7 @@ static void* str2value(string value, KEY_KIND key_kind) {
         }
     }
     catch (const std::invalid_argument& ia) {
-        cout << "Invalid argument: " << ia.what() << '\n';
+        //cout << "Invalid argument: " << ia.what() << '\n';
         return false;
     }
     

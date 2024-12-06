@@ -3,7 +3,6 @@
 #include <cstring>
 #include <sys/types.h>
 #include <string.h>
-#include <type_traits>
  FileManager* FileManager::getInstance() {
 	static FileManager* m = new FileManager();
 	

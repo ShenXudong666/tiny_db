@@ -878,15 +878,18 @@ bool BPlusTree::Insert_Data(vector<vector<string>> value){
             }
        
        }
+       if(key_index2!=-1){
+           off_t offt_data = Insert(data[key_index2]);
+            if(offt_data == INVALID){
+                return false;
+            }
+            FileManager::getInstance()->flush_data(this->fpath, data, this->attr, this->attr_num, offt_data);
+            }
     
     }
 
     //assign(key, data[key_index2], this->attr[key_index2].key_kind);
-    off_t offt_data = Insert(data[key_index2]);
-    if(offt_data == INVALID){
-        return false;
-    }
-    FileManager::getInstance()->flush_data(this->fpath, data, this->attr, this->attr_num, offt_data);
+    
     return true;
 }
 void BPlusTree::Get_Data(void* data[ATTR_MAX_NUM],off_t offt){
@@ -1622,7 +1625,7 @@ void BPlusTree::Print_Data(void* data[ATTR_MAX_NUM],vector<string>attributenames
     }
     for(int i=0;i<attributenames.size();i++)
         print_key(data[index[i]],this->attr[index[i]].key_kind );
-    
+    cout<<endl;
 }
 void BPlusTree::Print_Header(vector<string>attributenames){
     if(attributenames[0]=="*"){
