@@ -20,6 +20,7 @@ class DataBase {
         void init();
         void printTableNames();
         string extractTableName(const std::string& sql);
+        string extractJoinTableName(const std::string& sql);
         vector<attribute> parseCreateTableStatement(const std::string& sql);
         vector<vector<string>> parseInsertStatement(const std::string& sql);
         vector<WhereCondition> parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<LOGIC>&Logics);

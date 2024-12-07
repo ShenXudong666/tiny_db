@@ -189,7 +189,7 @@ void DataBase::Drop(const std::string& sql){
     cout<<"删除成功"<<endl;
     fpath.erase(fpath.size() - 4);
     int i=0;
-    for(i;i<db.table_num;i++){
+    for(;i<db.table_num;i++){
         if(strcmp(this->db.tables[i],fpath.c_str())==0){
             strcpy(this->db.tables[i],"");
             break;
@@ -250,20 +250,20 @@ vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vec
             attributeNames.push_back(attributeName);
         }
     }
-    for(int i=0;i<2;i++)
-        getline(stream, word, ' ');
+    // for(int i=0;i<2;i++)
+    //     getline(stream, word, ' ');
 
-    if(!getline(stream,word,' ')){
-        //cout<<"无条件"<<endl;
+    while(getline(stream, word, ' ')){
+        if(word=="Where"||word=="where"){
+            break;
+        }
+    }
+
+    if(word!="Where"&&word!="where"){
         return vector<WhereCondition>();
     }
-    if(word==""){
-        return vector<WhereCondition>();
-    }
-    if(word!="WHERE"&&word!="where"){
-        //cout<<"语法错误"<<endl;
-        return vector<WhereCondition>();
-    }
+    
+    
     //把where读取完
     string conditionPart;
     getline(stream,conditionPart);
@@ -398,6 +398,15 @@ vector<attribute> DataBase::parseCreateTableStatement(const std::string& sql) {
                     keynum++;
                     continue;
                 }
+                string constraintName;
+                istringstream constraintStream(columeConstraint);
+                getline(constraintStream, constraintName, ' ');
+                if(constraintName=="ref"){
+                    attribute column(columnName, key_kind, maxLength,columeConstraint);
+                    attr_arry.push_back(column);
+                    continue;
+                }
+                    
                     
             }
                 

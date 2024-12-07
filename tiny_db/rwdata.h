@@ -44,7 +44,7 @@ using namespace std;
 #define LOC_GRAPH 1
 
 #define ATTR_MAX_NUM 20
-#define MAXSIZE_ATTR_NAME 20
+#define MAXSIZE_ATTR_NAME 50
 
 enum NODE_TYPE
 {

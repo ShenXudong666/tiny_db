@@ -1,9 +1,9 @@
 #include "BPTree.h"
 #include"rwdata.h"
 #include "DataBase.h"
-#include <cstdio>
 #include<iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 void test_table_op() {
@@ -13,7 +13,12 @@ void test_table_op() {
 	// cout<<"创建表============"<<endl;
 	// string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
 	// db->createTable(sql_create);
-	
+	string sql_select="SELECT * FROM table where id=7 or age=9;";
+	vector<string>t1;
+	vector<WhereCondition>t2;
+	vector<LOGIC>logic;
+	t2=db->parseSelectStatement(sql_select,t1,logic);
+	cout<<0;
 	// string sql_insert1="INSERT INTO table (id,name,age) VALUES(1,'zhangsan',20);";
 	// db->insert(sql_insert1);
 	// string sql_insert2="INSERT INTO table (id,name,age) VALUES(2,'lisi',21);";
@@ -53,14 +58,7 @@ void test_table_op() {
 	// 	cout<<endl;
 	// }
 	
-	// cout<<"开始插入数据============"<<endl;
-	// db->insert((char*)"创建条数据");
-	// cout<<"查询数据============"<<endl;
-	// db->select((char*)"查询一条数据");
-	// cout<<"删除数据============"<<endl;
-	// db->Delete((char*)"删除一条数据");
-	// cout<<"查询数据============"<<endl;
-	// db->select((char*)"查询一条数据");
+
 }
 void test2(){
 	DataBase* database=new DataBase();
@@ -129,8 +127,8 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 int main(){
     const char* fname = "table.bin";
 	
-	//test_table_op();
-	test2();
+	test_table_op();
+	//test2();
 	
 	// DataBase* db=new DataBase();
 	// db->createTable("CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);");

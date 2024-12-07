@@ -148,7 +148,7 @@ static void* str2value(string value, KEY_KIND key_kind) {
         return false;
     }
     
-    
+    return nullptr;
 }
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -671,6 +671,7 @@ protected:
     attribute attr[ATTR_MAX_NUM];
     char key_attr[MAXSIZE_ATTR_NAME];
     int attr_num;
+    BPlusTree* joinBp;
     
 };
 
