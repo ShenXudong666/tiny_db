@@ -15,6 +15,7 @@ class DataBase {
         void Delete(const std::string& sql);
         void Update(const std::string& sql);
         void select(const std::string& sql);
+        void selectJoin(const std::string& sql);
         void Drop(const std::string& sql);
         void flush();
         void init();

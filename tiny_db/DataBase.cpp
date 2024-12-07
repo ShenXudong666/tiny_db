@@ -168,6 +168,10 @@ void DataBase::Update(const std::string& sql){
     bp->Update_Data(whereConditions, setAttributes);
     bp->flush_file();
 }
+void DataBase::selectJoin(const std::string& sql){
+    string fpath1=this->extractTableName(sql);
+    string fpath2=this->extractJoinTableName(sql);
+}
 void DataBase::Drop(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
@@ -232,6 +236,14 @@ string DataBase::extractTableName(const std::string& sql) {
         return matches[1];
     }
   
+    return "";
+}
+string DataBase::extractJoinTableName(const std::string& sql){
+    regex patternJoin(R"(\bJOIN\s+(\w+))", std::regex_constants::icase);
+    smatch matches;
+    if (regex_search(sql, matches, patternJoin) && matches.size() > 1) {
+        return matches[1];
+    }
     return "";
 }
 vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vector<string>&attributeNames,vector<LOGIC>&Logics){
