@@ -50,7 +50,6 @@ void DataBase::run(){
             cout<<endl;
         }
     }
-    database db;
 
     FileManager::getInstance()->flushDatabase("database.bin",this->db);
 }
@@ -120,9 +119,10 @@ void DataBase::select(const std::string& sql){
     fpath+=".bin";
     FILE *file=fopen(fpath.c_str(),"r");
     if(!file){
-        cout<<"表不存在，插入失败"<<endl;
+        cout<<"表不存在，查询失败"<<endl;
         return;
     }
+    fclose(file);
     vector<string>attributeNames;
     vector<LOGIC>Logics;
     vector<WhereCondition>whereConditions=this->parseSelectStatement(sql,attributeNames,Logics);
@@ -138,9 +138,10 @@ void DataBase::Delete(const std::string& sql){
     fpath+=".bin";
     FILE *file=fopen(fpath.c_str(),"r");
     if(!file){
-        cout<<"表不存在，插入失败"<<endl;
+        cout<<"表不存在，删除数据失败"<<endl;
         return;
     }
+    fclose(file);
     vector<WhereCondition>whereConditions=this->parseDeleteStatement(sql);
     BPlusTree* bp=new BPlusTree(fpath);
     if(bp->Delete_Data(whereConditions)){
@@ -157,9 +158,10 @@ void DataBase::Update(const std::string& sql){
     fpath+=".bin";
     FILE *file=fopen(fpath.c_str(),"r");
     if(!file){
-        cout<<"表不存在，插入失败"<<endl;
+        cout<<"表不存在，更新失败"<<endl;
         return;
     }
+    fclose(file);
     vector<WhereCondition>setAttributes;
     vector<WhereCondition>whereConditions=this->parseUpdateStatement(sql,setAttributes);
     BPlusTree* bp=new BPlusTree(fpath);
@@ -169,13 +171,21 @@ void DataBase::Update(const std::string& sql){
 void DataBase::Drop(const std::string& sql){
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
+    
+
+    //检查文件是否存在
     FILE *file=fopen(fpath.c_str(),"r");
     if(!file){
         cout<<"表不存在，删除失败"<<endl;
         return;
     }
     fclose(file);
-    remove(fpath.c_str());
+    
+    int res=remove(fpath.c_str());
+    if(res!=0){
+        cout<<"删除失败"<<endl;
+        return;
+    }
     cout<<"删除成功"<<endl;
     fpath.erase(fpath.size() - 4);
     int i=0;
@@ -261,8 +271,8 @@ vector<WhereCondition> DataBase::parseSelectStatement(const std::string& sql,vec
 
     istringstream conditionStream(conditionPart);
     while(getline(conditionStream, word, ' ')){
-        if(word=="AND")Logics.push_back(AND_LOGIC);
-        if(word=="OR")Logics.push_back(OR_LOGIC);
+        if(word=="AND"||word=="and")Logics.push_back(AND_LOGIC);
+        if(word=="OR"||word=="or")Logics.push_back(OR_LOGIC);
     }
     
     return w; 
@@ -276,7 +286,7 @@ vector<WhereCondition> DataBase::parseWhereClause(const std::string& whereClause
     while (getline(iss, token, ' ')) {
         //去掉token末尾的分号
         if(token.back()==';')token.pop_back();
-        if(token!="AND"&&token!="OR")result.push_back(token);
+        if(token!="AND"&&token!="OR"&&token!="and"&&token!="or")result.push_back(token);
     }
     for(int i=0;i<result.size();i++){
         
@@ -558,4 +568,7 @@ void DataBase::printTableNames(){
         bp->Print_Header(v);
         delete bp;
     }
+}
+void DataBase::flush(){
+    FileManager::getInstance()->flushDatabase("database.bin",this->db);
 }

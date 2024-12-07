@@ -16,6 +16,7 @@ class DataBase {
         void Update(const std::string& sql);
         void select(const std::string& sql);
         void Drop(const std::string& sql);
+        void flush();
         void init();
         void printTableNames();
         string extractTableName(const std::string& sql);

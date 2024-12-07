@@ -1,6 +1,7 @@
 #include "BPTree.h"
 #include"rwdata.h"
 #include "DataBase.h"
+#include <cstdio>
 #include<iostream>
 #include <string>
 
@@ -63,16 +64,27 @@ void test_table_op() {
 }
 void test2(){
 	DataBase* database=new DataBase();
-	database->init();
-	string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
-	database->createTable(sql_create);
-	database->printTableNames();
-	string sql_create2="CREATE TABLE teacher(t_id INT PRIMARY KEY,name varchar(100),age INT);";
-	database->createTable(sql_create2);
-	string sql_drop="DROP TABLE student;";
-	database->Drop(sql_drop);
-	database->printTableNames();
+	database->run();
+	// string sql_create2="CREATE TABLE teacher(t_id INT PRIMARY KEY,name varchar(100),age INT);";
+	// database->createTable(sql_create2);
+	// string sql_frop="DROP TABLE teacher;";
+	// database->Drop(sql_frop);
+	// FILE* file=fopen("new.bin","w");
+	// fclose(file);
+	// int a=remove("new.bin");
+	// if(a==0) cout<<"删除成功"<<endl;
+	// else cout<<"删除失败"<<endl;
+	//database->run();
+	// string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
+	// database->createTable(sql_create);
+	// database->printTableNames();
+	// string sql_create2="CREATE TABLE teacher(t_id INT PRIMARY KEY,name varchar(100),age INT);";
+	// database->createTable(sql_create2);
+	// string sql_drop="DROP TABLE student;";
+	// database->Drop(sql_drop);
+	// database->printTableNames();
 	
+	// database->flush();
 	
 	// string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
 	// db->createTable(sql_create);
@@ -82,7 +94,7 @@ void test2(){
 	// db->select(sql_select1);
 	// string sql_create2="CREATE TABLE teacher(id INT PRIMARY KEY,name varchar(100),age INT);";
 	// db->createTable(sql_create);
-
+	
 
 }
 char* getString(int index){
