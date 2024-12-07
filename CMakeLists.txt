@@ -7,6 +7,6 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-add_subdirectory(sql-parser)
+#add_subdirectory(sql-parser)
 add_subdirectory(tiny_db)
 
