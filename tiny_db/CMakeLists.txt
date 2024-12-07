@@ -17,14 +17,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC .)
 target_link_libraries(${PROJECT_NAME} sqlparser)
 
 # 如果你需要添加额外的二进制文件，在这里写入，会自动复制到可执行文件目录下面
-set(COPY_BINARY_FILE 
- ${CMAKE_CURRENT_SOURCE_DIR}/example.bin
+# set(COPY_BINARY_FILE 
+#  ${CMAKE_CURRENT_SOURCE_DIR}/example.bin
 
-)
+# )
 
 # 复制的具体命令
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${COPY_BINARY_FILE}
-    $<TARGET_FILE_DIR:${PROJECT_NAME}>
-)
+# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy
+#     ${COPY_BINARY_FILE}
+#     $<TARGET_FILE_DIR:${PROJECT_NAME}>
+# )
