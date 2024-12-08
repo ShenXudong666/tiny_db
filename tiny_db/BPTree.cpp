@@ -627,10 +627,124 @@ BPlusTree::BPlusTree(const std::string& fname)
     }
     
 }
+BPlusTree::BPlusTree(const std::string& fname1, const std::string& fname2){
+    strcpy(this->fpath, fname1.c_str());
+    this->offt_self = 0;
+    get_file();
+    this->m_Root=NULL;
+    this->m_pLeafHead=NULL;
+    this->m_pLeafTail=NULL;
+    FileManager::getInstance()->get_BlockGraph(this->fpath, this->Block_GRAPH);
+    if(this->Block_GRAPH[offt_root]==BLOCK_LEAF){
+        this->m_Root=new CLeafNode(this->fpath, this->key_kind, this->max_key_size, this->offt_root);
+
+    }
+    else if(this->Block_GRAPH[offt_root]==BLOCK_INTER){
+        this->m_Root=new CInternalNode(this->fpath, this->key_kind, this->max_key_size, this->offt_root);
+    }
+
+    bool ans=parser_ref_table(fname2);
+    if(ans)this->joinBp=new BPlusTree(fname2+".bin");
+    
+
+    
+
+}
 BPlusTree::~BPlusTree()
 {
     ClearTree();
 }
+bool BPlusTree::parser_ref_table(const std::string& ref_table){
+    string a="";
+    for(int i=0;i<attr_num;i++){
+        string t=this->attr[i].constraint;
+        if(t.find(ref_table)!=string::npos)a=a+t;
+    }
+    if(a==""){
+        return false;
+    }
+    
+    istringstream iss(a);
+    string token;
+
+    // 读取第一个单词（"ref"）
+    getline(iss, token, ' ');
+
+    // 读取第二个单词（"tablename"）
+    getline(iss, this->ref_table, '(');
+    // 读取第三个单词（"key_name"），去掉括号
+    getline(iss, this->foreign_key, ')');
+    
+    if(ref_table==this->ref_table){
+        return true;
+    }
+    return false;
+}
+CNode* BPlusTree::GetRoot(){
+    char type=FileManager::getInstance()->get_BlockType(this->fpath, this->offt_root);
+        if(type==BLOCK_INTER){
+            return new CInternalNode(this->fpath,this->key_kind,this->max_key_size,this->offt_root);
+        }
+        else if (type==BLOCK_LEAF) {
+            return new CLeafNode(this->fpath,this->key_kind,this->max_key_size,this->offt_root);
+        }
+        return NULL;
+}
+void BPlusTree::SetRoot(CNode* root)
+{   //同步更新文件
+        m_Root = root;
+        if( m_Root != NULL){
+            m_Root->flush_file();
+        this->offt_root = m_Root->getPtSelf();
+        m_Root->setPtFather(INVALID);
+        //cout<<"root offt"<<this->offt_root<<endl;
+        }
+        
+}
+bool BPlusTree::flush_file(){
+    table t;
+    memcpy(t.fpath, this->fpath, sizeof(this->fpath));
+
+    t.offt_root = this->offt_root;
+    t.offt_leftHead = this->offt_leftHead;
+    t.offt_rightHead = this->offt_rightHead;
+    t.key_use_block = this->key_use_block;
+    t.value_use_block = this->value_use_block;
+    t.key_kind = this->key_kind;
+    t.m_Depth = this->m_Depth;
+    t.max_key_size = this->max_key_size;
+    t.attr_num = this->attr_num;
+    for(int i=0;i<ATTR_MAX_NUM;i++){
+        t.attr[i] = this->attr[i];
+    }
+
+    FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
+    return true;
+
+}
+
+bool BPlusTree::get_file() {
+        table t = FileManager::getInstance()->getTable(this->fpath, this->offt_self);
+        
+        this->offt_root = t.offt_root;
+        this->offt_leftHead = t.offt_leftHead;
+        this->offt_rightHead = t.offt_rightHead;
+        this->key_use_block = t.key_use_block;
+        this->value_use_block = t.value_use_block;
+        this->m_Depth = t.m_Depth;
+        this->max_key_size = t.max_key_size;
+        this->key_kind = t.key_kind;
+        this->attr_num = t.attr_num;
+        for(int i=0;i<this->attr_num;i++){
+            this->attr[i] = t.attr[i];
+            if(_stricmp(t.attr[i].constraint, "PRIMARY KEY")==0){
+                strcpy(this->key_attr, t.attr[i].name);
+            }
+        }
+
+        return true;
+}
+
 CLeafNode* BPlusTree::GetLeafHead(){
     if(this->m_pLeafHead!=NULL)return this->m_pLeafHead;
     char type = FileManager::getInstance()->get_BlockType(this->fpath, this->offt_leftHead);
@@ -1659,7 +1773,134 @@ void BPlusTree::Print_Header(vector<string>attributenames){
     }
     cout<<endl;
 }
+void BPlusTree::Select_Data_Join(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w){
+    if(this->ref_table=="None"){
+        cout<<"不存在与该表的连接"<<endl;
+        return;
+    }
+    //先打印表头
+    this->Print_Header_Join(attributenames);
+    
+    vector<WhereCondition>wc1;
+    vector<WhereCondition>wc2;
+    int foreign_key_index;
+    for(int i=0;i<this->attr_num;i++){
+        if(_stricmp(this->attr[i].name, this->foreign_key.c_str())==0){
+            foreign_key_index=i;
+            break;
+        }
+    }
 
+    for(int i=0;i<w.size();i++){
+        for(int j=0;j<this->attr_num;j++){
+            if(_stricmp(w[i].attribute.c_str(), this->attr[j].name)==0){
+                wc1.push_back(w[i]);
+                break;
+            }
+        }
+        for(int j=0;j<this->joinBp->attr_num;j++){
+            if(_stricmp(w[i].attribute.c_str(), this->joinBp->attr[j].name)==0&&_stricmp(this->joinBp->attr[j].name, this->foreign_key.c_str())!=0){
+                wc2.push_back(w[i]);
+                break;
+        }
+    }
+    }
+
+    vector<LOGIC>temp;
+    for(int i=0;i<NUM_ALL_BLOCK;i++){
+        if(this->Block_GRAPH[i]==BLOCK_DATA){
+            void* data[ATTR_MAX_NUM];
+            this->Get_Data(data, i);
+            if(this->SatisfyConditions(wc1, Logics, data)){
+                vector<WhereCondition>wc_temp2=wc2;
+                vector<LOGIC>logic_temp2;
+                WhereCondition foreign_key_wc(this->foreign_key, "=", value2str(data[foreign_key_index], this->attr[foreign_key_index].key_kind));
+                wc_temp2.push_back(foreign_key_wc);
+                logic_temp2.push_back(AND_LOGIC);
+                for(int j=0;j<NUM_ALL_BLOCK;j++){
+                    if(this->joinBp->Block_GRAPH[j]==BLOCK_DATA){
+                        void* data2[ATTR_MAX_NUM];
+                        this->joinBp->Get_Data(data2, j);
+                        if(this->joinBp->SatisfyConditions(wc_temp2, logic_temp2, data2))this->Print_Data_Join(data, data2, attributenames);
+                        
+                    }
+                }
+
+            }
+            
+        }
+    }
+
+}
+void BPlusTree::Print_Header_Join(vector<string>attributenames){
+    
+    if(attributenames[0]=="*"){
+        for(int i=0;i<this->attr_num;i++){
+            cout<<'|'<<this->attr[i].name<<'\t';
+        }
+        for(int i=0;i<this->joinBp->attr_num;i++){
+            if(_stricmp(this->joinBp->attr[i].name, this->foreign_key.c_str())==0)continue;
+            cout<<'|'<<this->joinBp->attr[i].name<<'\t';
+        }
+        cout<<endl;
+        return;
+    }
+    vector<int>index1;
+    vector<int>index2;
+    for(int i=0;i<attributenames.size();i++){
+        for(int j=0;j<this->attr_num;j++){
+            if(_stricmp(attributenames[i].c_str(),this->attr[j].name)==0){
+                index1.push_back(j);
+                break;
+            }
+        }
+        for(int j=0;j<this->joinBp->attr_num;j++){
+            if(_stricmp(attributenames[i].c_str(),this->joinBp->attr[j].name)==0&&_stricmp(this->joinBp->attr[j].name, this->foreign_key.c_str())!=0){
+                index2.push_back(j);
+                break;
+        }
+    }
+    }
+    for(int i=0;i<index1.size();i++){
+        cout<<'|'<<this->attr[index1[i]].name<<'\t';
+    }
+    for(int i=0;i<index2.size();i++){
+        cout<<'|'<<this->joinBp->attr[index2[i]].name<<'\t';
+    }
+    cout<<endl;
+}
+void BPlusTree::Print_Data_Join(void* data1[ATTR_MAX_NUM],void* data2[ATTR_MAX_NUM],vector<string>attributenames){
+    if(attributenames[0]=="*"){
+        for(int i=0;i<this->attr_num;i++){
+            print_key(data1[i],this->attr[i].key_kind );
+        }
+        for(int i=0;i<this->joinBp->attr_num;i++){
+            if(_stricmp(this->joinBp->attr[i].name, this->foreign_key.c_str())==0)continue;
+            print_key(data2[i],this->joinBp->attr[i].key_kind );
+        }
+        cout<<endl;
+        return;
+    }
+    vector<int>index1;
+    vector<int>index2;
+    for(int i=0;i<attributenames.size();i++){
+        for(int j=0;j<this->attr_num;j++){
+            if(_stricmp(attributenames[i].c_str(),this->attr[j].name)==0){
+                index1.push_back(j);
+                break;
+            }
+        }
+        for(int j=0;j<this->joinBp->attr_num;j++){
+            if(_stricmp(attributenames[i].c_str(),this->joinBp->attr[j].name)==0&&_stricmp(this->joinBp->attr[j].name, this->foreign_key.c_str())!=0){
+                index2.push_back(j);
+        }
+    }
+    }
+    
+    for(int i=0;i<index1.size();i++)print_key(data1[index1[i]],this->attr[index1[i]].key_kind );
+    for(int i=0;i<index2.size();i++)print_key(data2[index2[i]],this->joinBp->attr[index2[i]].key_kind );
+    cout<<endl;
+}
 bool BPlusTree::SatisfyCondition(WhereCondition w,void* data[ATTR_MAX_NUM]){
     void* compare_key;
     int j;

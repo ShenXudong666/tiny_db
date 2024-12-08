@@ -36,6 +36,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 #define MAXNUM_DATA (ORDER_V * 2)    /* 叶子结点中最多数据个数，为2v */
 #include<string>
 #include<iostream>
+#include <sstream>
 #include<fstream>
 #include<cstring>
 #include <vector>
@@ -149,6 +150,20 @@ static void* str2value(string value, KEY_KIND key_kind) {
     }
     
     return nullptr;
+}
+static string value2str(void* value, KEY_KIND key_kind) {
+    switch (key_kind) {
+        case INT_KEY:
+            return to_string(*(int*)value);
+            break;
+        case LL_KEY:
+            return to_string(*(long long*)value);
+            break;
+        case STRING_KEY:
+            return (char*)value;
+            break;
+    }
+    return "";
 }
 /* 键值的类型*/
 typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
@@ -502,8 +517,8 @@ public:
     BPlusTree();
     //输入文件名初始化表，也就是这颗树
     BPlusTree(const std::string& fname);
+    BPlusTree(const std::string& fname1, const std::string& fname2);
     virtual ~BPlusTree();
-
     // 查找指定的数据
     off_t Search(void* data);
     // 插入指定的数据
@@ -513,8 +528,11 @@ public:
     void Print_Data(void* data[ATTR_MAX_NUM]);
     //只打印一条数据
     void Print_Data(void* data[ATTR_MAX_NUM],vector<string>attributenames);
+    void Print_Data_Join(void* data1[ATTR_MAX_NUM],void* data2[ATTR_MAX_NUM],vector<string>attributenames);
     void Print_Header(vector<string>attributenames);
+    void Print_Header_Join(vector<string>attributenames);
     void Select_Data(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w);
+    void Select_Data_Join(vector<string>attributenames,vector<LOGIC>Logics,vector<WhereCondition>w);
     bool SatisfyCondition(WhereCondition w,void* data[ATTR_MAX_NUM]);
     bool SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,void* data[ATTR_MAX_NUM]);
     // 删除指定的数据
@@ -523,18 +541,13 @@ public:
     bool Update_Data(vector<WhereCondition>w,vector<WhereCondition>attributenames);
     // 清除树
     void ClearTree();
-
     // 打印树
     void PrintTree();
-
     // 旋转树
     BPlusTree* RotateTree();
-
     // 检查树是否满足B+树的定义
     bool CheckTree();
-
     void PrintNode(CNode* pNode);
-
     // 递归检查结点及其子树是否满足B+树的定义
     bool CheckNode(CNode* pNode);
     CLeafNode* GetLeafHead();
@@ -542,49 +555,12 @@ public:
     void SetLeafHead(CLeafNode* node);
     void SetLeafTail(CLeafNode* node);
     // 获取和设置根结点
-    CNode* GetRoot()
-    {
-        
-        char type=FileManager::getInstance()->get_BlockType(this->fpath, this->offt_root);
-        if(type==BLOCK_INTER){
-            return new CInternalNode(this->fpath,this->key_kind,this->max_key_size,this->offt_root);
-        }
-        else if (type==BLOCK_LEAF) {
-            return new CLeafNode(this->fpath,this->key_kind,this->max_key_size,this->offt_root);
-        }
-        return NULL;
-    }
-
-    void SetRoot(CNode* root)
-    {   //同步更新文件
-        m_Root = root;
-        if( m_Root != NULL){
-            m_Root->flush_file();
-        this->offt_root = m_Root->getPtSelf();
-        m_Root->setPtFather(INVALID);
-        //cout<<"root offt"<<this->offt_root<<endl;
-        }
-        
-    }
-
+    CNode* GetRoot();
+    void SetRoot(CNode* root);
     // 获取和设置深度
-    int GetDepth()
-    {
-        return m_Depth;
-    }
-
-    void SetDepth(int depth)
-    {
-        m_Depth = depth;
-    }
-
-    // 深度加一
-    void IncDepth()
-    {
-        m_Depth = m_Depth + 1;
-    }
-
-    // 深度减一
+    int GetDepth(){return m_Depth;}
+    void SetDepth(int depth){m_Depth = depth;}
+    void IncDepth(){m_Depth = m_Depth + 1;}
     void DecDepth()
     {
         if (m_Depth > 0)
@@ -593,53 +569,9 @@ public:
         }
     }
 
-    bool flush_file() {
-        table t;
-        memcpy(t.fpath, this->fpath, sizeof(this->fpath));
-
-        t.offt_root = this->offt_root;
-        t.offt_leftHead = this->offt_leftHead;
-        t.offt_rightHead = this->offt_rightHead;
-        t.key_use_block = this->key_use_block;
-        t.value_use_block = this->value_use_block;
-        t.key_kind = this->key_kind;
-        t.m_Depth = this->m_Depth;
-        t.max_key_size = this->max_key_size;
-        t.attr_num = this->attr_num;
-        for(int i=0;i<ATTR_MAX_NUM;i++){
-            t.attr[i] = this->attr[i];
-        }
-
-        FileManager::getInstance()->flushTable(t, this->fpath, this->offt_self);
-        return true;
-
-    }
-
-    bool get_file() {
-        table t = FileManager::getInstance()->getTable(this->fpath, this->offt_self);
-        
-        this->offt_root = t.offt_root;
-        this->offt_leftHead = t.offt_leftHead;
-        this->offt_rightHead = t.offt_rightHead;
-        this->key_use_block = t.key_use_block;
-        this->value_use_block = t.value_use_block;
-        this->m_Depth = t.m_Depth;
-        this->max_key_size = t.max_key_size;
-        this->key_kind = t.key_kind;
-        this->attr_num = t.attr_num;
-        for(int i=0;i<this->attr_num;i++){
-            this->attr[i] = t.attr[i];
-            if(_stricmp(t.attr[i].constraint, "PRIMARY KEY")==0){
-                strcpy(this->key_attr, t.attr[i].name);
-            }
-        }
-
-        return true;
-    }
-
-    off_t getPtRoot(){
-        return this->offt_root;
-    }
+    bool flush_file();
+    bool get_file();
+    off_t getPtRoot(){return this->offt_root;}
 
 public:
     // 以下两个变量用于实现双向链表
@@ -661,6 +593,7 @@ protected:
     bool DeleteInternalNode(CInternalNode* pNode, void* key);
     bool SetCorrentFather(CLeafNode* leaf);
     bool SetCorrentFather(CInternalNode* leaf);
+    bool parser_ref_table(const std::string& fname);
     off_t offt_root;    //根节点在文件中的偏移量
     int m_Depth;      // 树的深度
     size_t key_use_block;
@@ -672,6 +605,8 @@ protected:
     char key_attr[MAXSIZE_ATTR_NAME];
     int attr_num;
     BPlusTree* joinBp;
+    string ref_table="None";
+    string foreign_key;
     
 };
 

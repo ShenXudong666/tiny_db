@@ -64,7 +64,30 @@ void test_table_op() {
 }
 void test2(){
 	DataBase* database=new DataBase();
-	database->run();
+	//database->run();
+	database->init();
+	string sql_create_emp="CREATE TABLE employee(e_id INT PRIMARY KEY,e_name varchar(100),age INT,d_name varchar(100) ref department(d_name));";
+	string sql_create_dept="CREATE TABLE department(d_id INT PRIMARY KEY,d_name varchar(100),salary INT);";
+	string sql_insert_emp1="INSERT INTO employee (e_id,e_name,age,d_name) VALUES(1,'zhangsan',20,'sales'),(2,'lisi',21,'sales'),(3,'wangwu',22,'sales'),(4,'zhaoliu',23,'IT'),(5,'qianshi',24,'IT'),(6,'sunqi',25,'IT'),(7,'zhouba',26,'HR'),(8,'wujiu',27,'HR'),(9,'zhengshi',28,'HR');";
+
+	string sql_insert_dept1="INSERT INTO department (d_id,d_name,salary) VALUES(1,'sales',1000),(2,'IT',2000),(3,'HR',3000);";
+
+	// database->createTable(sql_create_emp);
+	// database->createTable(sql_create_dept);
+	// database->insert(sql_insert_emp1);
+	// database->insert(sql_insert_dept1);
+	// database->printTableNames();
+
+	// string sql_select1="SELECT * FROM employee;";
+	// database->select(sql_select1);
+	// string sql_selct2="SELECT * FROM department;";
+	// database->select(sql_selct2);
+	string sql_select3="SELECT e_name,age,d_name FROM employee JOIN department where age>20 AND d_name='sales';";
+	database->select(sql_select3);
+
+	database->flush();
+	// string sql_create="CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);";
+	// database->createTable(sql_create);
 	// string sql_create2="CREATE TABLE teacher(t_id INT PRIMARY KEY,name varchar(100),age INT);";
 	// database->createTable(sql_create2);
 	// string sql_frop="DROP TABLE teacher;";
@@ -97,6 +120,7 @@ void test2(){
 	
 
 }
+
 char* getString(int index){
 	char* s=new char[1024];
 	
@@ -129,8 +153,8 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 int main(){
     const char* fname = "table.bin";
 	
-	test_table_op();
-	//test2();
+	//test_table_op();
+	test2();
 	
 	// DataBase* db=new DataBase();
 	// db->createTable("CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);");

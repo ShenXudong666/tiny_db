@@ -32,6 +32,7 @@ void DataBase::run(){
             this->insert(sql);
         }
         else if(cmd=="select"||cmd=="SELECT"){
+            
             this->select(sql);
         }
         else if(cmd=="delete"||cmd=="Delete"){
@@ -115,6 +116,13 @@ void DataBase::insert(const std::string& sql){
 
 }
 void DataBase::select(const std::string& sql){
+
+    string join_table=this->extractJoinTableName(sql);
+    if(join_table!=""){
+        this->selectJoin(sql);
+        return;
+    }
+    
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
     FILE *file=fopen(fpath.c_str(),"r");
@@ -171,6 +179,16 @@ void DataBase::Update(const std::string& sql){
 void DataBase::selectJoin(const std::string& sql){
     string fpath1=this->extractTableName(sql);
     string fpath2=this->extractJoinTableName(sql);
+    vector<string>attributeNames;
+    vector<LOGIC>Logics;
+    vector<WhereCondition>whereConditions=this->parseSelectStatement(sql,attributeNames,Logics);
+
+    fpath1+=".bin";
+    BPlusTree* bp1=new BPlusTree(fpath1,fpath2);
+    bp1->Select_Data_Join(attributeNames, Logics, whereConditions);
+    bp1->flush_file();
+    delete bp1;
+
 }
 void DataBase::Drop(const std::string& sql){
     string fpath=this->extractTableName(sql);
