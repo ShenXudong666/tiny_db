@@ -27,6 +27,8 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 */
 #include <climits>
 #include <cstddef>
+#include <iomanip>
+#include <ios>
 #include <string.h>
 #include <sys/types.h>
 #define ORDER_V 2    /* 为简单起见，把v固定为2，实际的B+树v值应该是可配的。这里的v是内部节点中键的最小值 */
@@ -537,7 +539,7 @@ public:
     bool SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,void* data[ATTR_MAX_NUM]);
     // 删除指定的数据
     bool Delete(void* data);
-    bool Delete_Data(vector<WhereCondition>w);
+    bool Delete_Data(vector<WhereCondition>w,vector<LOGIC>Logics);
     bool Update_Data(vector<WhereCondition>w,vector<WhereCondition>attributenames);
     // 清除树
     void ClearTree();

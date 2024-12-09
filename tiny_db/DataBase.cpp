@@ -122,7 +122,7 @@ void DataBase::select(const std::string& sql){
         this->selectJoin(sql);
         return;
     }
-    
+
     string fpath=this->extractTableName(sql);
     fpath+=".bin";
     FILE *file=fopen(fpath.c_str(),"r");
@@ -150,9 +150,10 @@ void DataBase::Delete(const std::string& sql){
         return;
     }
     fclose(file);
-    vector<WhereCondition>whereConditions=this->parseDeleteStatement(sql);
+    vector<LOGIC>Logics;
+    vector<WhereCondition>whereConditions=this->parseDeleteStatement(sql,Logics);
     BPlusTree* bp=new BPlusTree(fpath);
-    if(bp->Delete_Data(whereConditions)){
+    if(bp->Delete_Data(whereConditions,Logics)){
         cout<<"删除成功"<<endl;
     }
     else{
@@ -515,7 +516,7 @@ vector<vector<string>> DataBase::parseInsertStatement(const std::string& sql){
     return rows;
 
 }
-vector<WhereCondition> DataBase::parseDeleteStatement(const std::string& sql){
+vector<WhereCondition> DataBase::parseDeleteStatement(const std::string& sql, vector<LOGIC>& logic){
     vector<WhereCondition>result;
     string word;
     string wherePart;
@@ -525,6 +526,16 @@ vector<WhereCondition> DataBase::parseDeleteStatement(const std::string& sql){
 
     getline(stream,wherePart);
     result=parseWhereClause(wherePart);
+    istringstream logicStream(wherePart);
+    string logicWord;
+    while (std::getline(logicStream, logicWord, ' ')) {
+        if(logicWord=="AND"||logicWord=="and"){
+            logic.push_back(AND_LOGIC);
+        }
+        else if(logicWord=="OR"||logicWord=="or"){
+            logic.push_back(OR_LOGIC);
+        }
+    }
     return result;
 }
 vector<WhereCondition> DataBase::parseUpdateStatement(const std::string& sql,vector<WhereCondition>& set_attributes){

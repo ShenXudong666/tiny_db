@@ -1952,14 +1952,35 @@ bool BPlusTree::SatisfyConditions(vector<WhereCondition>w,vector<LOGIC>Logics,vo
     }
     return flag1;
 }
-bool BPlusTree::Delete_Data(vector<WhereCondition>w){
+bool BPlusTree::Delete_Data(vector<WhereCondition>w,vector<LOGIC>Logics){
     if(w.size()==0){
         //删除整棵树
         FileManager::getInstance()->deleteFile(this->fpath);
         return true;
     }
-    void* key=str2value(w[0].value, this->key_kind);
-    return this->Delete(key);
+    if(w.size()==1&&_stricmp(w[0].attribute.c_str(), this->key_attr)==0&&w[0].operatorSymbol=="="){
+        void* key=str2value(w[0].value, this->key_kind);
+        return this->Delete(key);
+    }
+    int key_index=-1;
+    for(int i=0;i<this->attr_num;i++){
+        if(_stricmp(this->key_attr,this->attr[i].name)==0){
+            key_index=i;
+            break;
+        }
+    }
+    if(key_index==-1)return false;
+    //遍历删除条件
+    for(int i=0;i<NUM_ALL_BLOCK;i++){
+        if(this->Block_GRAPH[i]==BLOCK_DATA){
+            void* data[ATTR_MAX_NUM];
+            this->Get_Data(data, i);
+            if(SatisfyConditions(w,Logics,data)){
+                this->Delete(data[key_index]);
+            }
+        }
+    }
+    return true;
     
 }
 bool BPlusTree::Update_Data(vector<WhereCondition>w,vector<WhereCondition>attributenames){
