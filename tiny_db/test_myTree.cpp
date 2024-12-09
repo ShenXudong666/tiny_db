@@ -13,9 +13,7 @@ void test_table_op() {
 	// cout<<"创建表============"<<endl;
 	// string sql_create="CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);";
 	// db->createTable(sql_create);
-	string sql_select="SELECT * FROM table JOIN student where id=7 or age=9;";
-	string table=db->extractJoinTableName(sql_select);
-	cout<<table<<endl;
+	
 	// vector<string>t1;
 	// vector<WhereCondition>t2;
 	// vector<LOGIC>logic;

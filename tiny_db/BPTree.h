@@ -39,10 +39,8 @@ using namespace std;
 #define LL_KEY 2
 #define STRING_KEY 3
 #define NEW_OFFT 0
-
 typedef int LOGIC;
-#define AND_LOGIC 0
-#define OR_LOGIC 1
+
 static int cmp(void* a, void* b,KEY_KIND key_kind) {
     if(key_kind == INT_KEY) {
         return *(int*)a > *(int*)b;

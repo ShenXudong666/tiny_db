@@ -7,6 +7,7 @@ BPTree.cpp
 rwdata.cpp
 test_myTree.cpp
 DataBase.cpp
+sqlparser.cpp
 )
 
 add_executable(${PROJECT_NAME} ${TINY_DB_SOURCE})

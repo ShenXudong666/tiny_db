@@ -46,6 +46,9 @@ using namespace std;
 #define ATTR_MAX_NUM 20
 #define MAXSIZE_ATTR_NAME 50
 
+typedef int LOGIC;
+#define AND_LOGIC 0
+#define OR_LOGIC 1
 enum NODE_TYPE
 {
 	NODE_TYPE_ROOT = 1,    // 根结点
