@@ -1,14 +1,5 @@
 #pragma once
-/* BPlusTree.h
-
-B+树定义文件，本程序实行一个简单的B+树
-
-Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
-(1) A B+ tree of order v consists of a root, internal nodes and leaves.
-(2) The root my be either leaf or node with two or more children.
-(3) Internal nodes contain between v and 2v keys, and a node with k keys has k + 1 children.
-(4) Leaves are always on the same level.
-(5) If a leaf is a primary index, it consists of a bucket of records, sorted by search key. If it is a secondary index, it will have many short records consisting of a key and a pointer to the actual record.
+/* 
 
 (1) 一个v阶的B+树由根结点、内部结点和叶子结点组成。
 (2) 根结点可以是叶子结点，也可以是有两个或更多子树的内部结点。
@@ -20,11 +11,6 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 
 */
 
-
-/* B+ 树的阶，即内部结点中键的最小数目v。
-   也有些人把阶定义为内部结点中键的最大数目，即2v。
-   一般而言，叶子结点中最大数据个数和内部结点中最大键个数是一样的，也是2v。(我想这样做的目的是为了把内部结点和叶子结点统一到同一个结构中吧)
-*/
 #include <climits>
 #include <cstddef>
 #include <iomanip>
@@ -45,17 +31,7 @@ Definition (from http://www.seanster.com/BplusTree/BplusTree.html ):
 using namespace std;
 #include"rwdata.h"
 
-/**
- * @brief 存储数据对齐方式
- */
-#define DB_ALIGNMENT 16
-#define db_align(d, a) (((d) + (a - 1)) & ~(a - 1))
 
-#define ceil(M) (((M) - 1) / 2)
-
- /**
-  * @brief 数据块类型
-  */
 #define TYPE_KEY 0
 #define TYPE_VALUE 1
 
@@ -64,7 +40,7 @@ using namespace std;
 #define STRING_KEY 3
 #define NEW_OFFT 0
 
-typedef int LOGIC ;
+typedef int LOGIC;
 #define AND_LOGIC 0
 #define OR_LOGIC 1
 static int cmp(void* a, void* b,KEY_KIND key_kind) {
@@ -167,11 +143,7 @@ static string value2str(void* value, KEY_KIND key_kind) {
     }
     return "";
 }
-/* 键值的类型*/
-typedef int KEY_TYPE;    /* 为简单起见，定义为int类型，实际的B+树键值类型应该是可配的 */
-/*备注： 为简单起见，叶子结点的数据也只存储键值*/
 
-/* 结点类型 */
 
 /* 结点数据结构，为内部结点和叶子结点的父类 */
 class CNode
@@ -208,29 +180,15 @@ public:
         if(father != NULL) offt_father = father->getPtSelf();
     }
 
-    off_t getPtFather() {
-        return this->offt_father;
-    }
-
-    void setPtFather(off_t offt) {
-        this->offt_father = offt;
-    }
-
+    off_t getPtFather() {return this->offt_father;}
+    void setPtFather(off_t offt) {this->offt_father = offt;}
     // 获取一个最近的兄弟结点
     CNode* GetBrother(int& flag);
-
     // 删除结点
     void DeleteChildren();
-    void FreeBlock() {
-        FileManager::getInstance()->flushBlock(this->fname, this->offt_self, BLOCK_FREE);
-     }
-    off_t getPtSelf() {
-        return this->offt_self;
-    }
-
-    void setPtSelf(off_t offt) {
-        this->offt_self = offt;
-    }
+    void FreeBlock() {FileManager::getInstance()->flushBlock(this->fname, this->offt_self, BLOCK_FREE);}
+    off_t getPtSelf() {return this->offt_self;}
+    void setPtSelf(off_t offt) {this->offt_self = offt;}
 
 protected:
 
@@ -251,6 +209,11 @@ protected:
     off_t offt_self;   //结点数据在文件中的位置
 };
 
+static void updateNode(CNode* node) {
+    node->flush_file();
+    delete node;
+}
+
 /* 内部结点数据结构 */
 class CInternalNode : public CNode
 {
@@ -260,48 +223,13 @@ public:
     virtual ~CInternalNode();
 
     // 获取和设置键值，对用户来说，数字从1开始，实际在结点中是从0开始的
-    void* GetElement(int i)
-    {
-        if ((i > 0) && (i <= MAXNUM_KEY))
-        {
-            return m_Keys[i - 1];
-        }
-        else
-        {
-            return INVALID;
-        }
-    }
+    void* GetElement(int i);
     // 获取和设置键值，对用户来说，数字从1开始，实际在结点中是从0开始的
-    void SetElement(int i, void* key)
-    {
-        if ((i > 0) && (i <= MAXNUM_KEY))
-        {
-            //m_Keys[i - 1] = key;
-            if(this->key_kind==INT_KEY){
-                this->m_Keys[i - 1] = (void*)(new int(*(int*)key));
-            }
-            else if(this->key_kind==LL_KEY){
-                this->m_Keys[i - 1] = (void*)(new long long(*(long long*)key));
-            }
-            else if(this->key_kind==STRING_KEY){
-                this->m_Keys[i - 1] = (void*)((char*)key);
-            }
-        }
-    }
-
+    void SetElement(int i, void* key);
     // 获取和设置指针，对用户来说，数字从1开始
     CNode* GetPointer(int i);
     
-
-    void SetPointer(int i, CNode* pointer)
-    {
-        if ((i > 0) && (i <= MAXNUM_POINTER))
-        {
-            if(pointer != NULL)offt_pointers[i - 1] = pointer->getPtSelf();
-            else offt_pointers[i - 1] = INVALID;
-        }
-    }
-
+    void SetPointer(int i, CNode* pointer);
     // 在结点pNode上插入键value
     bool Insert(void* value, CNode* pNode);
     // 删除键value
@@ -325,35 +253,11 @@ public:
         return this->offt_pointers[index];
     }
 
-    bool flush_file() {
-        inter_node node;
-        /*这一部分后面会根据数据的需求进行变更*/
-        //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
-        memcpy(node.offt_pointers, this->offt_pointers, sizeof(this->offt_pointers));
-        node.offt_self = this->offt_self;
-        node.offt_father = this->offt_father;
-        node.count = this->m_Count;
-        node.node_type = this->node_Type;
-        
-        Index index(this->fname, this->offt_self,  this->max_size,this->key_kind);
-        FileManager::getInstance()->flushInterNode(node,index,this->m_Keys);
+    bool flush_file();
 
-        return true;
-    }
+    bool get_file();
 
-    bool get_file() {
-        Index index(this->fname, this->offt_self,  this->max_size,this->key_kind);
-        //下面的getCInternalNode待修改
-        inter_node node=FileManager::getInstance()->getCInternalNode(index,this->m_Keys ,this->offt_self);
-
-        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.offt_pointers));
-        this->m_Count = node.count;
-        this->node_Type = node.node_type;
-        this->offt_father=node.offt_father;
-
-        return true;
-    }
-
+    //测试时使用的函数
     void print_data(){
         cout<<"偏移量为："<<this->offt_self<<" "<<"中间节点"<<endl;
         for(int i=0;i<MAXNUM_KEY;i++){
@@ -380,44 +284,9 @@ public:
     virtual ~CLeafNode();
 
     // 获取和设置数据
-    void* GetElement(int i)
-    {
-        if ((i > 0) && (i <= MAXNUM_DATA))
-        {
-            return m_Datas[i - 1];
-        }
-        else
-        {
-            return INVALID;
-        }
-    }
-    off_t GetElement_offt(int i){
-        if ((i > 0) && (i <= MAXNUM_DATA))
-        {
-            return this->offt_data[i - 1];
-        }
-        else
-        {
-            return INVALID;
-        }
-    }
-
-    void SetElement(int i, void* data)
-    {
-        if ((i > 0) && (i <= MAXNUM_KEY))
-        {
-            //m_Keys[i - 1] = key;
-            if(this->key_kind==INT_KEY){
-                this->m_Datas[i - 1] = (void*)(new int(*(int*)data));
-            }
-            else if(this->key_kind==LL_KEY){
-                this->m_Datas[i - 1] = (void*)(new long long(*(long long*)data));
-            }
-            else if(this->key_kind==STRING_KEY){
-                this->m_Datas[i - 1] = (void*)((char*)data);
-            }
-        }
-    }
+    void* GetElement(int i);
+    off_t GetElement_offt(int i);
+    void SetElement(int i, void* data);
     void SetElement_offt(int i,off_t offt){
         if ((i > 0) && (i <= MAXNUM_KEY))
         {
@@ -456,38 +325,14 @@ public:
         return this->offt_NextNode;
     }
 
-    bool flush_file() {
-        
-        leaf_node node(this->offt_self,this->GetCount(),NODE_TYPE_LEAF,this->offt_father,this->offt_PrevNode,this->offt_NextNode,this->offt_data);
-        Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
-        FileManager::getInstance()->flushLeafNode(node, index,this->m_Datas);
+    bool flush_file();
 
-        return true;
-    }
-
-    bool get_file() {
-        
-        Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
-
-        leaf_node node = FileManager::getInstance()->getLeafNode(index,this->m_Datas,this->offt_self);
-
-        //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
-        this->offt_PrevNode = node.offt_PrevNode;
-        this->offt_NextNode = node.offt_NextNode;
-        this->offt_father = node.offt_father;
-        this->m_Count = node.count;
-        this->node_Type = node.node_type;
-        this->offt_self=node.offt_self;
-        for(int i=0;i<MAXNUM_DATA;i++){
-            this->offt_data[i]=node.offt_data[i];
-        }
-        return true;
-    }
+    bool get_file() ;
     void SetPrevNode(CLeafNode* node);
     CLeafNode* GetPrevNode();
     void SetNextNode(CLeafNode* node);
     CLeafNode* GetNextNode();
-        
+    //测试时使用的函数
     void print_data(){
         cout<<"偏移量为："<<this->getPtSelf()<<" 叶节点"<<endl;
         for(int i=0;i<MAXNUM_DATA;i++){
@@ -612,7 +457,3 @@ protected:
     
 };
 
-static void updateNode(CNode* node) {
-    node->flush_file();
-    delete node;
-}

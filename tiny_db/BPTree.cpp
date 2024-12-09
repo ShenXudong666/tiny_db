@@ -11,24 +11,6 @@
 #include <sys/types.h>
 #include <vector>
 
-#define DB_HEAD_SIZE 4096 // head size must be pow of 2! 文件数据库的头大小
-
-
-/**
- * @brief 存储数据对齐方式
- */
-#define DB_ALIGNMENT 16
-#define db_align(d, a) (((d) + (a - 1)) & ~(a - 1))
-
-#define ceil(M) (((M) - 1) / 2)
-
- /**
-  * @brief 数据块类型
-  */
-#define TYPE_KEY 0
-#define TYPE_VALUE 1
-
-
 
 CNode::CNode(const char* filename, KEY_KIND key_kind, size_t max_size,off_t offt)
 {
@@ -130,29 +112,76 @@ CInternalNode::CInternalNode(const char* filename, KEY_KIND key_kind, size_t max
     FileManager::getInstance()->flushBlock(fname, this->offt_self, BLOCK_INTER);
 
 }
-// CInternalNode::CInternalNode()
-// {
-    
-//     node_Type = NODE_TYPE_INTERNAL;
 
-//     int i = 0;
-//     for (int i=0; i < MAXNUM_KEY; i++) {
-//         this->m_Keys[i] = new int();
-//     }
-
-//     for (i = 0; i < MAXNUM_POINTER; i++)
-//     {
-//         this->offt_pointers[i] = NULL;
-//     }
-
-
-// }
 CInternalNode::~CInternalNode()
 {
     for (int i = 0; i < MAXNUM_POINTER; i++)
     {
         this->offt_pointers[i] = NULL;
     }
+}
+
+void* CInternalNode::GetElement(int i)
+{
+        if ((i > 0) && (i <= MAXNUM_KEY))
+        {
+            return m_Keys[i - 1];
+        }
+        else
+        {
+            return INVALID;
+        }
+}
+void CInternalNode::SetElement(int i, void* key)
+{
+        if ((i > 0) && (i <= MAXNUM_KEY))
+        {
+            //m_Keys[i - 1] = key;
+            if(this->key_kind==INT_KEY){
+                this->m_Keys[i - 1] = (void*)(new int(*(int*)key));
+            }
+            else if(this->key_kind==LL_KEY){
+                this->m_Keys[i - 1] = (void*)(new long long(*(long long*)key));
+            }
+            else if(this->key_kind==STRING_KEY){
+                this->m_Keys[i - 1] = (void*)((char*)key);
+            }
+        }
+}
+void CInternalNode::SetPointer(int i, CNode* pointer)
+{
+        if ((i > 0) && (i <= MAXNUM_POINTER))
+        {
+            if(pointer != NULL)offt_pointers[i - 1] = pointer->getPtSelf();
+            else offt_pointers[i - 1] = INVALID;
+        }
+}
+bool CInternalNode::flush_file() {
+        inter_node node;
+        /*这一部分后面会根据数据的需求进行变更*/
+        //memcpy(node.m_Keys, this->m_Keys, sizeof(this->m_Keys));
+        memcpy(node.offt_pointers, this->offt_pointers, sizeof(this->offt_pointers));
+        node.offt_self = this->offt_self;
+        node.offt_father = this->offt_father;
+        node.count = this->m_Count;
+        node.node_type = this->node_Type;
+        
+        Index index(this->fname, this->offt_self,  this->max_size,this->key_kind);
+        FileManager::getInstance()->flushInterNode(node,index,this->m_Keys);
+
+        return true;
+}
+bool CInternalNode::get_file() {
+        Index index(this->fname, this->offt_self,  this->max_size,this->key_kind);
+        //下面的getCInternalNode待修改
+        inter_node node=FileManager::getInstance()->getCInternalNode(index,this->m_Keys ,this->offt_self);
+
+        memcpy(this->offt_pointers, node.offt_pointers, sizeof(node.offt_pointers));
+        this->m_Count = node.count;
+        this->node_Type = node.node_type;
+        this->offt_father=node.offt_father;
+
+        return true;
 }
 CNode* CInternalNode::GetPointer(int i)
 {
@@ -426,19 +455,7 @@ bool CInternalNode::MoveOneElement(CNode* pNode)
     return true;
 }
 
-// 清除叶子结点中的数据
-// CLeafNode::CLeafNode()
-// {
-//     node_Type = NODE_TYPE_LEAF;
 
-//     for (int i = 0; i < MAXNUM_DATA; i++)
-//     {
-//         m_Datas[i] = INVALID;
-//     }
-
-//     m_pPrevNode = NULL;
-//     m_pNextNode = NULL;
-// }
 CLeafNode::CLeafNode(const char* fname,KEY_KIND key_kind,size_t max_size,off_t offt):CNode(fname,key_kind,max_size,offt)
 {
     this->node_Type = NODE_TYPE_LEAF;
@@ -462,7 +479,69 @@ CLeafNode::~CLeafNode()
 {
 
 }
+void* CLeafNode::GetElement(int i)
+{
+        if ((i > 0) && (i <= MAXNUM_DATA))
+        {
+            return m_Datas[i - 1];
+        }
+        else
+        {
+            return INVALID;
+        }
+}
+off_t CLeafNode::GetElement_offt(int i){
+        if ((i > 0) && (i <= MAXNUM_DATA))
+        {
+            return this->offt_data[i - 1];
+        }
+        else
+        {
+            return INVALID;
+        }
+}
+void CLeafNode::SetElement(int i, void* data)
+{
+        if ((i > 0) && (i <= MAXNUM_KEY))
+        {
+            //m_Keys[i - 1] = key;
+            if(this->key_kind==INT_KEY){
+                this->m_Datas[i - 1] = (void*)(new int(*(int*)data));
+            }
+            else if(this->key_kind==LL_KEY){
+                this->m_Datas[i - 1] = (void*)(new long long(*(long long*)data));
+            }
+            else if(this->key_kind==STRING_KEY){
+                this->m_Datas[i - 1] = (void*)((char*)data);
+            }
+        }
+}
+bool CLeafNode::flush_file() {
+        
+        leaf_node node(this->offt_self,this->GetCount(),NODE_TYPE_LEAF,this->offt_father,this->offt_PrevNode,this->offt_NextNode,this->offt_data);
+        Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
+        FileManager::getInstance()->flushLeafNode(node, index,this->m_Datas);
 
+        return true;
+}
+bool CLeafNode::get_file() {
+        
+        Index index(this->fname,this->offt_self,this->max_size,this->key_kind);
+
+        leaf_node node = FileManager::getInstance()->getLeafNode(index,this->m_Datas,this->offt_self);
+
+        //memcmp(this->m_Datas, node.m_Datas, sizeof(node.m_Datas));
+        this->offt_PrevNode = node.offt_PrevNode;
+        this->offt_NextNode = node.offt_NextNode;
+        this->offt_father = node.offt_father;
+        this->m_Count = node.count;
+        this->node_Type = node.node_type;
+        this->offt_self=node.offt_self;
+        for(int i=0;i<MAXNUM_DATA;i++){
+            this->offt_data[i]=node.offt_data[i];
+        }
+        return true;
+}
 // 在叶子结点中插入数据
 bool CLeafNode::Insert(void* value,off_t offt_data)
 {
@@ -646,9 +725,6 @@ BPlusTree::BPlusTree(const std::string& fname1, const std::string& fname2){
     bool ans=parser_ref_table(fname2);
     if(ans)this->joinBp=new BPlusTree(fname2+".bin");
     
-
-    
-
 }
 BPlusTree::~BPlusTree()
 {
@@ -822,19 +898,6 @@ off_t BPlusTree::Search(void* data)
         }
     }
 
-
-    // if (NULL != sPath)
-    // {
-    //     if (true == found)
-    //     {
-
-    //         (void)sprintf(sPath + offset, " ,successed.");
-    //     }
-    //     else
-    //     {
-    //         (void)sprintf(sPath + offset, " ,failed.");
-    //     }
-    // }
     //释放内存
     delete pNode;
     return found;
@@ -856,11 +919,7 @@ off_t BPlusTree::Insert(void* data)  //
     {
         return INVALID;
     }
-    // for debug
-    //if (289 == data)
-    //{
-    //    printf("\n%d,check failed!",data);
-    //}
+
     //在文件中拿到一个空闲块
     off_t offt_data = FileManager::getInstance()->getFreeBlock(this->fpath, BLOCK_DATA);
 
@@ -894,11 +953,6 @@ off_t BPlusTree::Insert(void* data)  //
     off_t offt_key = INVALID;
     key = pOldNode->Split(pNewNode);
 
-    // 在双向链表中插入结点
-    // CLeafNode* pOldNext = pOldNode->m_pNextNode;
-    // pOldNode->m_pNextNode = pNewNode;
-    // pNewNode->m_pNextNode = pOldNext;
-    // pNewNode->m_pPrevNode = pOldNode;
     CLeafNode* pOldNext = pOldNode->GetNextNode();
     pOldNode->SetNextNode(pNewNode);
     pNewNode->SetNextNode(pOldNext);
@@ -1305,7 +1359,7 @@ bool BPlusTree::CheckNode(CNode* pNode)
 
 }
 
-// 打印整个树
+// 打印整个树，在初步使用B+树时使用，后面无用
 void BPlusTree::PrintTree()
 {
     CNode* pRoot = GetRoot();
@@ -1364,7 +1418,7 @@ void BPlusTree::PrintTree()
     }
 }
 
-// 打印某结点
+// 打印某结点，测试时使用
 void BPlusTree::PrintNode(CNode* pNode)
 {
     if (NULL == pNode)

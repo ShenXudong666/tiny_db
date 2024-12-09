@@ -72,7 +72,7 @@ void test2(){
 	
 	string sql_insert_dept1="INSERT INTO department (d_id,d_name,salary) VALUES(1,'sales',1000),(2,'IT',2000),(3,'HR',3000);";
 	string sql_delete="DELETE FROM employee WHERE age>22 and d_name='HR';";
-	database->Delete(sql_delete);
+	//database->Delete(sql_delete);
 	database->select("select * from employee;");
 	//database->Delete(sql_delete);
 	// database->createTable(sql_create_emp);
