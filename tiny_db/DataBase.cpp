@@ -26,27 +26,27 @@ void DataBase::run(){
         if(cmd=="create"||cmd=="CREATE"){
             this->createTable(sql);
         }
-        else if(cmd=="insert"||cmd=="INSERT"){
+        else if(cmd=="insert"||cmd=="INSERT"||cmd=="Insert"){
             this->insert(sql);
         }
-        else if(cmd=="select"||cmd=="SELECT"){
+        else if(cmd=="select"||cmd=="SELECT"||cmd=="Select"){
             
             this->select(sql);
         }
-        else if(cmd=="delete"||cmd=="Delete"){
+        else if(cmd=="delete"||cmd=="Delete"||cmd=="DELETE"){
             this->Delete(sql);
         }
-        else if(cmd=="update"||cmd=="UPDATE"){
+        else if(cmd=="update"||cmd=="UPDATE"||cmd=="Update"){
             this->Update(sql);
         }
-        else if(cmd=="drop"||cmd=="DROP"){
+        else if(cmd=="drop"||cmd=="DROP"||cmd=="Drop"){
             this->Drop(sql);
         }
-        else if(cmd=="show"||cmd=="SHOW"){
+        else if(cmd=="show"||cmd=="SHOW"||cmd=="Show"){
             this->printTableNames();
         }
         else{
-            cout<<endl;
+            //cout<<endl;
         }
     }
 

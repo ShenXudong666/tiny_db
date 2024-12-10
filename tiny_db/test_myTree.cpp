@@ -62,8 +62,10 @@ void test_table_op() {
 }
 void test2(){
 	DataBase* database=new DataBase();
-	database->init();
-	//database->run();
+	//database->init();
+	database->run();
+	string sql_select="SELECT * FROM employee;";
+	//database->select(sql_select);
 	string sql_create_emp="CREATE TABLE employee(e_id INT PRIMARY KEY,e_name varchar(100),age INT,d_name varchar(100) ref department(d_name));";
 	string sql_create_dept="CREATE TABLE department(d_id INT PRIMARY KEY,d_name varchar(100),salary INT);";
 	string sql_insert_emp1="INSERT INTO employee (e_id,e_name,age,d_name) VALUES(1,'zhangsan',20,'sales'),(2,'lisi',21,'sales'),(3,'wangwu',22,'sales'),(4,'zhaoliu',23,'IT'),(5,'qianshi',24,'IT'),(6,'sunqi',25,'IT'),(7,'zhouba',26,'HR'),(8,'wujiu',27,'HR'),(9,'zhengshi',28,'HR');";
@@ -71,7 +73,7 @@ void test2(){
 	string sql_insert_dept1="INSERT INTO department (d_id,d_name,salary) VALUES(1,'sales',1000),(2,'IT',2000),(3,'HR',3000);";
 	string sql_delete="DELETE FROM employee WHERE age>22 and d_name='HR';";
 	//database->Delete(sql_delete);
-	database->select("select * from employee;");
+	//database->select("select * from employee;");
 	//database->Delete(sql_delete);
 	// database->createTable(sql_create_emp);
 	// database->createTable(sql_create_dept);

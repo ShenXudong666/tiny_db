@@ -1211,7 +1211,7 @@ bool BPlusTree::Delete(void* data)
     {
         pBrother->Combine(pOldNode);
         NewKey = pOldNode->GetElement(1);
-        print_key(NewKey, this->key_kind);
+        //print_key(NewKey, this->key_kind);
         CLeafNode* pOldNext = pOldNode->GetNextNode();
         pBrother->SetPrevNode(pOldNext);
         //pBrother->m_pNextNode = pOldNext;
@@ -1956,8 +1956,9 @@ void BPlusTree::Print_Data_Join(void* data1[ATTR_MAX_NUM],void* data2[ATTR_MAX_N
     cout<<endl;
 }
 bool BPlusTree::SatisfyCondition(WhereCondition w,void* data[ATTR_MAX_NUM]){
+    
     void* compare_key;
-    int j;
+    int j=-1;
     for(int i=0;i<this->attr_num;i++){
         if(_stricmp(w.attribute.c_str(),this->attr[i].name)==0){
             compare_key=str2value(w.value, this->attr[i].key_kind);
@@ -1965,7 +1966,10 @@ bool BPlusTree::SatisfyCondition(WhereCondition w,void* data[ATTR_MAX_NUM]){
             break;
         }
     }
-    
+    if(j==-1){
+        cout<<"条件错误"<<endl;
+        return false;
+    }
     if(w.operatorSymbol[0]=='='){
         if(eql(data[j],compare_key,this->attr[j].key_kind))return true;
         return false;
@@ -2039,7 +2043,6 @@ bool BPlusTree::Delete_Data(vector<WhereCondition>w,vector<LOGIC>Logics){
 }
 bool BPlusTree::Update_Data(vector<WhereCondition>w,vector<WhereCondition>attributenames){
     void* key=str2value(w[0].value, this->key_kind);
-    cout<<"key:"<<*(int*)key<<endl;
     off_t offt_data=this->Search(key);
     if(offt_data==INVALID){
         cout<<"未找到该数据，修改失败"<<endl;
