@@ -247,21 +247,21 @@ void DataBase::init(){
     
     this->db=FileManager::getInstance()->getDatabase("database.bin");
     
-    // while(true){
-    //     string usr_name;
-    //     string password;
-    //     cout<<"请输入用户名"<<endl;
-    //     cin>>usr_name;
-    //     cout<<"请输入密码"<<endl;
-    //     cin>>password;
-    //     if(strcmp(this->db.user_name,usr_name.c_str())==0&&strcmp(this->db.password,password.c_str())==0){
-    //         cout<<"登录成功!!!欧耶"<<endl;
-    //         break;
-    //     }
-    //     else{
-    //         cout<<"用户名或密码错误"<<endl;
-    //     }
-    // }
+    while(true){
+        string usr_name;
+        string password;
+        cout<<"请输入用户名"<<endl;
+        cin>>usr_name;
+        cout<<"请输入密码"<<endl;
+        cin>>password;
+        if(strcmp(this->db.user_name,usr_name.c_str())==0&&strcmp(this->db.password,password.c_str())==0){
+            cout<<"登录成功!!!欧耶"<<endl;
+            break;
+        }
+        else{
+            cout<<"用户名或密码错误"<<endl;
+        }
+    }
 }
 void DataBase::printTableNames(){
     string tail=".bin";

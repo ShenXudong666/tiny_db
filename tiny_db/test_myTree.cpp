@@ -162,9 +162,8 @@ int main(){
 	// DataBase* db=new DataBase();
 	// db->createTable("CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);");
 	// BPlusTree* bp = new BPlusTree(fname);
-	// for(int i=1;i<=15;i++){
+	// for(int i=1;i<=500;i++){
 	// 	bp->Insert((void*)new int(i));
-	// 	cout<<bp->offt_leftHead<<" "<<bp->offt_rightHead<<endl;
 	// }
 	// cout<<"插入数据完成"<<endl;
 	// bp->flush_file();
