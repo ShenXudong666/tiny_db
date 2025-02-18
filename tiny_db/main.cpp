@@ -154,71 +154,12 @@ void print_add_leaf(BPlusTree* bp,KEY_KIND key){
 }
 
 int main(){
-    const char* fname = "table.bin";
+    
+	DataBase* database=new DataBase();
+	//database->init();
+	database->run();
 	
-	//test_table_op();
-	test2();
-	
-	// DataBase* db=new DataBase();
-	// db->createTable("CREATE TABLE table(id INT PRIMARY KEY,name varchar(100),age INT);");
-	// BPlusTree* bp = new BPlusTree(fname);
-	// for(int i=1;i<=500;i++){
-	// 	bp->Insert((void*)new int(i));
-	// }
-	// cout<<"插入数据完成"<<endl;
-	// bp->flush_file();
-	// BPlusTree* bp1 = new BPlusTree(fname);
-	// print_add_leaf(bp1,  INT_KEY);
-	// bp1->flush_file();
-	//string a;
-	//getline(cin,a);
-	//cout<<a<<endl;
-	// DataBase* db=new DataBase();
-	
-	// char sql[1024];
-	// char sql2[1024];
-	// strcpy(sql, "CREATE TABLE student(id INT PRIMARY KEY,name varchar(100),age INT);");
-	// strcpy(sql2, "select * FROM student2;");
-	// cout<<db->extractTableName(sql)<<endl;
-	// cout<<db->extractTableName(sql2)<<endl;
-	// vector<attribute>attr=db->parseCreateTableStatement(sql);
-	// for(int i=0;i<attr.size();i++){
-	// 	cout<<attr[i].name<<" "<<attr[i].key_kind<<" "<<attr[i].max_size<<endl;
-	// }
-	//BPlusTree* bp = new BPlusTree(fname);
-	// bp->flush_file();
-	//FileManager::getInstance()->newBlock(fname);
 
-
-    // BPlusTree* bp = new BPlusTree(fname);
-	// for(int i=1;i<=13;i++){
-	// 	bp->Insert((void*)new int(i));
-	// }
-	
-	// bp->Delete(new int(2));
-	// bp->Insert(new int(14));
-	// bp->Insert(new int(15));
-	
-	// // for(int i=1;i<=4;i++){
-	// // 	bool a=bp->Search((void*)new int(i),(char*)fname);
-	// // 	cout<<i<<" "<<a<<endl;
-	// // }
-
-	// //cout<<bp->Search(new int(3),(char *)fname)<<endl;
-	// bp->flush_file();
-	// delete bp;
-	// BPlusTree* bp1 = new BPlusTree(fname);
-	// // CNode* root=bp1->GetRoot();
-	// // for(int i=0;i<MAXNUM_DATA;i++){
-	// // 	cout<<((CLeafNode*)root)->offt_data[i]<<endl;
-	// // }
-	
-	// // cout<<"root的偏移量为："<<root->getPtSelf()<<endl;
-	// print_add_leaf(bp1,INT_KEY);
-	
-	
-	
-	
 
 	return 0;
 }
